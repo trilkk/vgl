@@ -2,7 +2,7 @@
 #define VGL_HPP
 
 #include "vgl/vgl_optional.hpp"
-#include "vgl/vgl_vec.hpp"
+#include "vgl/vgl_uvec4.hpp"
 
 #if defined(USE_LD)
 
@@ -87,7 +87,7 @@ bool g_blend_enabled = false;
 /// Current blend mode.
 OperationMode g_blend_mode = DISABLED;
 /// Current clear color.
-vec4 g_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
+uvec4 g_clear_color(0, 0, 0, 0);
 /// Current clear depth.
 float g_clear_depth = 1.0f;
 /// Current clear stencil.
@@ -209,7 +209,7 @@ void blend_mode(OperationMode op)
 /// Clear current framebuffer.
 ///
 /// \param op Bit mask of buffers to clear.
-void clear_buffers(optional<vec4> color, optional<float> depth, optional<uint8_t> stencil)
+void clear_buffers(optional<uvec4> color, optional<float> depth, optional<uint8_t> stencil)
 {
     GLbitfield clear_mask = 0;
 
@@ -217,7 +217,8 @@ void clear_buffers(optional<vec4> color, optional<float> depth, optional<uint8_t
     {
         if(*color != detail::g_clear_color)
         {
-            dnload_glClearColor(color->x(), color->y(), color->z(), color->w());
+            vec4 norm_color = color->toNormVec4();
+            dnload_glClearColor(norm_color.x(), norm_color.y(), norm_color.z(), norm_color.w());
             detail::g_clear_color = *color;
         }
         clear_mask |= GL_COLOR_BUFFER_BIT;

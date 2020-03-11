@@ -1,7 +1,8 @@
 #ifndef VGL_UVEC4_HPP
 #define VGL_UVEC4_HPP
 
-#include "vgl_vec.hpp"
+#include "vgl_vec3.hpp"
+#include "vgl_vec4.hpp"
 
 namespace vgl
 {
@@ -43,6 +44,17 @@ public:
     {
     }
 
+    /// Constructor.
+    ///
+    /// \param op Input vector.
+    constexpr explicit uvec4(const vec4 &op) :
+        m_data{static_cast<uint8_t>(iround(op[0u] * 255.0f)),
+            static_cast<uint8_t>(iround(op[1u] * 255.0f)),
+            static_cast<uint8_t>(iround(op[2u] * 255.0f)),
+            static_cast<uint8_t>(iround(op[3u] * 255.0f))}
+    {
+    }
+
 public:
     /// Accessor.
     ///
@@ -57,6 +69,49 @@ public:
     constexpr const uint8_t* data() const
     {
         return m_data.data();
+    }
+
+    /// Accessor.
+    ///
+    /// \return R component.
+    constexpr uint8_t r() const
+    {
+        return m_data[0u];
+    }
+
+    /// Accessor.
+    ///
+    /// \return G component.
+    constexpr uint8_t g() const
+    {
+        return m_data[1u];
+    }
+
+    /// Accessor.
+    ///
+    /// \return B component.
+    constexpr uint8_t b() const
+    {
+        return m_data[2u];
+    }
+
+    /// Accessor.
+    ///
+    /// \return A component.
+    constexpr uint8_t a() const
+    {
+        return m_data[3u];
+    }
+
+    /// Conversion operator.
+    ///
+    /// \return Normalized vec4 representation.
+    constexpr vec4 toNormVec4() const
+    {
+        return vec4(to_fnorm(m_data[0u]),
+                to_fnorm(m_data[1u]),
+                to_fnorm(m_data[2u]),
+                to_fnorm(m_data[3u]));
     }
 
 public:

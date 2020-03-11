@@ -3,6 +3,7 @@
 
 #include "vgl_array.hpp"
 #include "vgl_optional.hpp"
+#include "vgl_vec2.hpp"
 #include "vgl_uvec4.hpp"
 
 namespace vgl

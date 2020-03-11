@@ -8,6 +8,9 @@
 namespace vgl
 {
 
+namespace detail
+{
+
 /// Mathematical GLSL-lookalike templated vector class.
 template<unsigned N, typename CrtpType> class vec
 {
@@ -31,19 +34,6 @@ protected:
             m_data[ii] = op;
         }
     }
-
-#if 0
-    /// Copy constructor.
-    ///
-    /// \param op Source vector.
-    constexpr vec(const CrtpType& op)
-    {
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            m_data[ii] = op[ii];
-        }
-    }
-#endif
 
     /// Clunky initializing constructor.
     ///
@@ -571,157 +561,6 @@ public:
     }
 };
 
-/// 2-component vector.
-class vec2 : public vec<2, vec2>
-{
-private:
-    /// Parent type.
-    using parent_type = vec<2, vec2>;
-
-public:
-    /// Default constructor.
-    explicit vec2() = default;
-
-    /// Initialize with single float.
-    ///
-    /// \param op Single float.
-    constexpr explicit vec2(float op) :
-        parent_type(op)
-    {
-    }
-
-    /// Full initialization.
-    ///
-    /// \param px First element.
-    /// \param py Second element.
-    constexpr explicit vec2(float px, float py) :
-        parent_type(px, py)
-    {
-    }
-
-public:
-    /// Accessor.
-    ///
-    /// \return Y component.
-    constexpr float y()
-    {
-        return parent_type::m_data[1];
-    }
-};
-
-/// 3-component vector.
-class vec3 : public vec<3, vec3>
-{
-private:
-    /// Parent type.
-    using parent_type = vec<3, vec3>;
-
-public:
-    /// Default constructor.
-    explicit vec3() = default;
-
-    /// Initialize with single float.
-    ///
-    /// \param op Single float.
-    constexpr explicit vec3(float op) :
-        parent_type(op)
-    {
-    }
-
-    /// Full initialization.
-    ///
-    /// \param px First element.
-    /// \param py Second element.
-    /// \param pz Third element.
-    constexpr explicit vec3(float px, float py, float pz) :
-        parent_type(px, py, pz)
-    {
-    }
-
-public:
-    /// Accessor.
-    ///
-    /// \return Y component.
-    constexpr float y()
-    {
-        return parent_type::m_data[1];
-    }
-
-    /// Accessor.
-    ///
-    /// \return Z component.
-    constexpr float z()
-    {
-        return parent_type::m_data[2];
-    }
-};
-
-/// 4-component vector.
-class vec4 : public vec<4, vec4>
-{
-private:
-    /// Parent type.
-    using parent_type = vec<4, vec4>;
-
-public:
-    /// Default constructor.
-    explicit vec4() = default;
-
-    /// Initialize with single float.
-    ///
-    /// \param op Single float.
-    constexpr explicit vec4(float op) :
-        parent_type(op)
-    {
-    }
-
-    /// Full initialization.
-    ///
-    /// \param px First element.
-    /// \param py Second element.
-    /// \param pz Third element.
-    /// \param pw Fourth element.
-    constexpr explicit vec4(float px, float py, float pz, float pw) :
-        parent_type(px, py, pz, pw)
-    {
-    }
-
-public:
-    /// Accessor.
-    ///
-    /// \return Y component.
-    constexpr float y()
-    {
-        return parent_type::m_data[1];
-    }
-
-    /// Accessor.
-    ///
-    /// \return Z component.
-    constexpr float z()
-    {
-        return parent_type::m_data[2];
-    }
-
-    /// Accessor.
-    ///
-    /// \return W component.
-    constexpr float w()
-    {
-        return parent_type::m_data[3];
-    }
-};
-
-/// Cross product.
-///
-/// \param lhs Left-hand-side operand.
-/// \param rhs Right-hand-side operand.
-/// \return Result vector.
-constexpr vec3 cross(const vec3& lhs, const vec3& rhs)
-{
-    return vec3(lhs[1] * rhs[2] - lhs[2] * rhs[1],
-            lhs[2] * rhs[0] - lhs[0] * rhs[2],
-            lhs[0] * rhs[1] - lhs[1] * rhs[0]);
 }
 
 }

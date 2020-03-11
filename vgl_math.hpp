@@ -70,6 +70,15 @@ constexpr float fixed_14_2_to_float(int16_t op)
     return static_cast<float>(op) * 0.25f;
 }
 
+/// Convert to normalized float space.
+///
+/// \param op Input integer value.
+/// \return Normalized floating point value.
+constexpr float to_fnorm(uint8_t op)
+{
+    return static_cast<float>(op) * (1.0f / 255.0f);
+}
+
 /// Weight normalized space float away from half.
 ///
 /// \param op Input value.
@@ -181,7 +190,7 @@ constexpr float smooth_mix(float lhs, float rhs, float ratio)
 /// \return Modulated value.
 constexpr uint8_t modulate(uint8_t lhs, uint8_t rhs)
 {
-    float ret = (static_cast<float>(lhs) / 255.0f) * (static_cast<float>(rhs) / 255.0f);
+    float ret = to_fnorm(lhs) * to_fnorm(rhs);
     return static_cast<uint8_t>(iround(ret * 255.0f));
 }
 
