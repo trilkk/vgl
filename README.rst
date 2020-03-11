@@ -31,7 +31,7 @@ Usage
 
 Clone the repository under your source folder as a subrepository so it becomes a folder named ``vgl/``.
 
-Then, instead of, saying for example::
+Then, as opposed to saying, for example::
 
     #include <optional>
 
