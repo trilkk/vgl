@@ -31,14 +31,14 @@ Usage
 
 Clone the repository under your source folder as a subrepository so it becomes a folder named ``vgl/``.
 
-Then, instead of, saying for example:
+Then, instead of, saying for example::
 
     #include <optional>
 
     using std::optional;
     using std::nullopt;
 
-Instead say:
+Instead say::
 
     #include "vgl/vgl_optional.hpp"
 
