@@ -21,6 +21,7 @@ Requirements
 ====
 
 The compiler must support C++17. This means:
+
 * Clang 5 or later
 * GCC 7 or later
 * MSVC 19.14 (Visual Studio 2017 with updates should be fine).
