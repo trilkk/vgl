@@ -13,22 +13,14 @@ using std::nullopt;
 namespace detail
 {
 
-/// Base class for optional.
+/// Base data class for optional.
 ///
-/// Optional inherits either the trivially destructible or not trivially destructible optional depending on whether
-/// the templated type is trivially destructible or not.
-template<typename T, bool> class optional_data
+/// Inherited by trivially or nontrivially destructible optional.
+template<typename T> class optional_data
 {
 protected:
-    /// Some platforms require alignment to size_t.
-    constexpr static const size_t SIZE_T_COUNT = sizeof(T) / sizeof(size_t) +
-        (((sizeof(T) % sizeof(size_t)) > 0u) ? 1u : 0u);
-
-protected:
     /// Container for optional data.
-    ///
-    /// Using size_t to ensure the alignment.
-    size_t m_data[SIZE_T_COUNT];
+    alignas(alignof(T)) uint8_t m_data[sizeof(T)];
 
     /// Flag for initialization.
     bool m_initialized;
@@ -39,6 +31,22 @@ protected:
     /// \param op Initial value.
     constexpr explicit optional_data(bool op) :
        m_initialized(op)
+    {
+    }
+};
+
+/// Destructible class for optional.
+///
+/// Optional inherits either the trivially destructible or not trivially destructible optional depending on whether
+/// the templated type is trivially destructible or not.
+template<typename T, bool> class optional_destructible : public optional_data<T>
+{
+protected:
+    /// Default constructor.
+    ///
+    /// \param op Initial value.
+    constexpr explicit optional_destructible(bool op) :
+        optional_data<T>(op)
     {
     }
 
@@ -50,33 +58,19 @@ public:
 };
 
 /// Specialization for non-trivially destructible optional values.
-template<typename T> class optional_data<T, false>
+template<typename T> class optional_destructible<T, false> : public optional_data<T>
 {
-protected:
-    /// Some platforms require alignment to size_t.
-    constexpr static const size_t SIZE_T_COUNT = sizeof(T) / sizeof(size_t) +
-        (((sizeof(T) % sizeof(size_t)) > 0u) ? 1u : 0u);
-
-protected:
-    /// Container for optional data.
-    ///
-    /// Using size_t to ensure the alignment.
-    size_t m_data[SIZE_T_COUNT];
-
-    /// Flag for initialization.
-    bool m_initialized;
-
 protected:
     /// Default constructor.
     ///
     /// \param op Initial value.
-    constexpr explicit optional_data(bool op) :
-       m_initialized(op)
+    constexpr explicit optional_destructible(bool op) :
+        optional_data<T>(op)
     {
     }
 
     /// Destructor.
-    ~optional_data()
+    ~optional_destructible()
     {
         destruct();
     }
@@ -85,9 +79,9 @@ public:
     /// Nontrivial destruction function.
     constexpr void destruct()
     {
-        if(m_initialized)
+        if(optional_data<T>::m_initialized)
         {
-            (*reinterpret_cast<T*>(m_data)).~T();
+            (*reinterpret_cast<T*>(optional_data<T>::m_data)).~T();
         }
     }
 };
@@ -97,16 +91,19 @@ public:
 /// Optional value.
 ///
 /// Replacement for std::optional.
-template<typename T> class optional : detail::optional_data<T, std::is_trivially_destructible<T>::value>
+template<typename T> class optional : detail::optional_destructible<T, std::is_trivially_destructible<T>::value>
 {
-protected:
-    /// Need to access internal data through base type.
-    using base_type = detail::optional_data<T, std::is_trivially_destructible<T>::value>;
+private:
+    /// Base class type.
+    using base_type = detail::optional_data<T>;
+
+    /// Parent class type.
+    using parent_type = detail::optional_destructible<T, std::is_trivially_destructible<T>::value>;
 
 public:
     /// Constructor.
     constexpr explicit optional() :
-        base_type(false)
+        parent_type(false)
     {
     }
 
@@ -114,7 +111,7 @@ public:
     ///
     /// \param op Value.
     constexpr optional(const T& op) :
-        base_type(true)
+        parent_type(true)
     {
         new(getPtr()) T(op);
     }
@@ -123,7 +120,7 @@ public:
     ///
     /// \param op Value.
     constexpr optional(T&& op) :
-        base_type(true)
+        parent_type(true)
     {
         new(getPtr()) T(std::move(op));
     }
@@ -132,7 +129,7 @@ public:
     ///
     /// \param op Value.
     constexpr optional(const optional<T>& op) :
-        base_type(false)
+        parent_type(false)
     {
         if(op)
         {
@@ -145,7 +142,7 @@ public:
     ///
     /// \param op Value.
     constexpr optional(optional<T>&& op) :
-        base_type(false)
+        parent_type(false)
     {
         if(op)
         {
@@ -157,7 +154,7 @@ public:
 
     /// Initializer with nullopt.
     constexpr optional(const std::nullopt_t&) :
-        base_type(false)
+        parent_type(false)
     {
     }
 
@@ -293,7 +290,7 @@ public:
     /// \param op Assigned object.
     constexpr optional<T>& operator=(const T& op)
     {
-        base_type::destruct();
+        parent_type::destruct();
         new(getPtr()) T(op);
         base_type::m_initialized = true;
         return *this;
@@ -303,7 +300,7 @@ public:
     /// \param op Assigned object.
     constexpr optional<T>& operator=(T&& op)
     {
-        base_type::destruct();
+        parent_type::destruct();
         new(getPtr()) T(std::move(op));
         base_type::m_initialized = true;
         return *this;
@@ -314,7 +311,7 @@ public:
     /// \param op Assigned object.
     constexpr optional<T>& operator=(const optional<T>& op)
     {
-        base_type::destruct();
+        parent_type::destruct();
         base_type::m_initialized = false;
         if(op)
         {
