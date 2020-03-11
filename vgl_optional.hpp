@@ -13,23 +13,8 @@ using std::nullopt;
 namespace detail
 {
 
-/// Potentially destructible union for optional.
-template<typename T, bool = std::is_trivially_destructible<T>::value> union optional_union
-{
-    /// Type data (trivially destructible).
-    T m_type_data;
-
-    /// Trivially destructible data as a diversion.
-    uint8_t m_trivially_destructible_byte;
-
-    /// Constructor.
-    constexpr optional_union() noexcept
-    {
-    }
-};
-
-/// Destructable union specialization for optional.
-template<typename T> union optional_union<T, false>
+/// Container union for optional specialization that ensures correct alingment.
+template<typename T> union optional_union
 {
     /// Type data (not trivially destructible).
     T m_type_data;
@@ -38,12 +23,7 @@ template<typename T> union optional_union<T, false>
     uint8_t m_trivially_destructible_byte;
 
     /// Constructor.
-    constexpr optional_union() noexcept
-    {
-    }
-
-    /// Destructor needed.
-    ~optional_union()
+    constexpr explicit optional_union() noexcept
     {
     }
 };
@@ -52,11 +32,11 @@ template<typename T> union optional_union<T, false>
 ///
 /// Optional inherits either the trivially destructible or not trivially destructible optional depending on whether
 /// the templated type is trivially destructible or not.
-template<typename T, bool B> class optional_data
+template<typename T, bool> class optional_data
 {
 protected:
-    /// Potentially destructible data.
-    optional_union<T, B> m_data;
+    /// Trivially destructible data.
+    optional_union<T> m_data;
 
     /// Flag for initialization.
     bool m_initialized;
@@ -77,12 +57,12 @@ public:
     }
 };
 
-/// Specialization for non-trivially destructible optional data.
+/// Specialization for nontrivially destructible optional data.
 template<typename T> class optional_data<T, false>
 {
 protected:
-    /// Potentially destructible data.
-    optional_union<T, false> m_data;
+    /// Nontrivially destructible data.
+    optional_union<T> m_data;
 
     /// Flag for initialization.
     bool m_initialized;
