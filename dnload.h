@@ -110,10 +110,14 @@ static void asm_exit(void)
 
 #if defined(USE_LD)
 /** \cond */
+#define dnload_realloc realloc
+#define dnload_free free
 #define dnload_putchar putchar
 /** \endcond */
 #else
 /** \cond */
+#define dnload_realloc g_symbol_table.df_realloc
+#define dnload_free g_symbol_table.df_free
 #define dnload_putchar g_symbol_table.df_putchar
 /** \endcond */
 /** \brief Symbol table structure.
@@ -122,9 +126,13 @@ static void asm_exit(void)
  */
 static struct SymbolTableStruct
 {
+    void* (*df_realloc)(void*, size_t);
+    void (*df_free)(void*);
     int (*df_putchar)(int);
 } g_symbol_table =
 {
+    (void* (*)(void*, size_t))0xb1ae4962,
+    (void (*)(void*))0xc23f2ccc,
     (int (*)(int))0xcde5f545,
 };
 #endif
@@ -326,7 +334,7 @@ static void* dnload_find_symbol(uint32_t hash)
 static void dnload(void)
 {
     unsigned ii;
-    for(ii = 0; (1 > ii); ++ii)
+    for(ii = 0; (3 > ii); ++ii)
     {
         void **iter = ((void**)&g_symbol_table) + ii;
         *iter = dnload_find_symbol(*(uint32_t*)iter);

@@ -141,7 +141,7 @@ public:
     /// Iterator to the beginning.
     ///
     /// \return Iterator.
-    constexpr iterator begin()
+    constexpr iterator begin() const
     {
         return m_data;
     }
@@ -156,7 +156,7 @@ public:
     /// Iterator to the end.
     ///
     /// \return Iterator.
-    constexpr iterator end()
+    constexpr iterator end() const
     {
         return m_data + m_size;
     }

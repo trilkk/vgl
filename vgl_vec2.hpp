@@ -1,7 +1,7 @@
 #ifndef VGL_VEC2_HPP
 #define VGL_VEC2_HPP
 
-#include "vgl/vgl_vec.hpp"
+#include "vgl_vec.hpp"
 
 namespace vgl
 {

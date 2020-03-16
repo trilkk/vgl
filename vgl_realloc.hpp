@@ -1,6 +1,8 @@
 #ifndef VGL_REALLOC_HPP
 #define VGL_REALLOC_HPP
 
+#include <new>
+
 #if defined(USE_LD)
 #include <boost/throw_exception.hpp>
 #endif

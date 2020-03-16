@@ -1,8 +1,8 @@
 #ifndef VGL_HPP
 #define VGL_HPP
 
-#include "vgl/vgl_optional.hpp"
-#include "vgl/vgl_uvec4.hpp"
+#include "vgl_optional.hpp"
+#include "vgl_uvec4.hpp"
 
 #if defined(USE_LD)
 

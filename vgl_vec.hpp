@@ -1,9 +1,9 @@
 #ifndef VGL_VEC_HPP
 #define VGL_VEC_HPP
 
-#include "vgl/vgl_array.hpp"
-#include "vgl/vgl_math.hpp"
-#include "vgl/vgl_optional.hpp"
+#include "vgl_array.hpp"
+#include "vgl_math.hpp"
+#include "vgl_optional.hpp"
 
 namespace vgl
 {
