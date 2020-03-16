@@ -211,7 +211,7 @@ public:
     /// \return This vector.
     constexpr CrtpType& operator+=(float rhs)
     {
-        *crtpThis = *crtpThis() + rhs;
+        *crtpThis() = *crtpThis() + rhs;
         return *crtpThis();
     }
 

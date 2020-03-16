@@ -26,17 +26,6 @@ public:
     explicit constexpr LogicalMesh() = default;
 
 private:
-    /// Add face (internal).
-    ///
-    /// \param op Face to add.
-    /// \return Index of face added.
-    unsigned addFaceInternal(LogicalFace&& op)
-    {
-        unsigned ret = getLogicalFaceCount();
-        m_faces.push_back(std::move(op));
-        return ret;
-    }
-
     /// Add vertex (internal).
     ///
     /// \param op Vertex to add.
@@ -51,11 +40,67 @@ private:
 public:
     /// Add face.
     ///
-    /// \param args Arguments
-    /// \return Index of face added.
-    template<typename...Args> unsigned addFace(Args&&...args)
+    /// \param c1 First corner point.
+    /// \param c2 Second corner point.
+    /// \param c3 Third corner point.
+    /// \param col Face color.
+    /// \param flat Is the face flat?
+    unsigned addFace(unsigned c1, unsigned c2, unsigned c3, const optional<uvec4>& col = nullopt, bool flat = false)
     {
-        return addFaceInternal(LogicalFace(args...));
+        unsigned ret = getLogicalFaceCount();
+        m_faces.emplace_back(c1, c2, c3, col, flat);
+        return ret;
+    }
+    /// Add face.
+    ///
+    /// \param c1 First corner point.
+    /// \param tc1 First texcoord.
+    /// \param c2 Second corner point.
+    /// \param tc2 Second texcoord.
+    /// \param c3 Third corner point.
+    /// \param tc3 Third texcoord.
+    /// \param col Face color.
+    /// \param flat Is the face flat?
+    unsigned addFace(unsigned c1, const vec2& tc1, unsigned c2, const vec2& tc2, unsigned c3,
+            const vec2& tc3, const optional<uvec4>& col = nullopt, bool flat = false)
+    {
+        unsigned ret = getLogicalFaceCount();
+        m_faces.emplace_back(c1, tc1, c2, tc2, c3, tc3, col, flat);
+        return ret;
+    }
+    /// Add face.
+    ///
+    /// \param c1 First corner point.
+    /// \param c2 Second corner point.
+    /// \param c3 Third corner point.
+    /// \param c4 Fourth corner point.
+    /// \param col Face color.
+    /// \param flat Is the face flat?
+    unsigned addFace(unsigned c1, unsigned c2, unsigned c3, unsigned c4, const optional<uvec4>& col = nullopt,
+            bool flat = false)
+    {
+        unsigned ret = getLogicalFaceCount();
+        m_faces.emplace_back(c1, c2, c3, c4, col, flat);
+        return ret;
+    }
+    /// Add face.
+    ///
+    /// \param c1 First corner point.
+    /// \param tc1 First texcoord.
+    /// \param c2 Second corner point.
+    /// \param tc2 Second texcoord.
+    /// \param c3 Third corner point.
+    /// \param tc3 Third texcoord.
+    /// \param c4 Fourth corner point
+    /// \param tc4 Fourth corner point
+    /// \param col Face color.
+    /// \param flat Is the face flat?
+    unsigned addFace(unsigned c1, const vec2& tc1, unsigned c2, const vec2& tc2, unsigned c3, const vec2& tc3,
+            unsigned c4, const vec2& tc4, const optional<uvec4>& col = nullopt, bool flat = false)
+    {
+        unsigned ret = getLogicalFaceCount();
+        m_faces.emplace_back(c1, tc1, c2, tc2, c3, tc3, c4, tc4, col, flat);
+        return ret;
     }
 
     /// Add vertex.
