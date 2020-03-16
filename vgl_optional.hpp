@@ -8,10 +8,22 @@
 namespace vgl
 {
 
-using std::nullopt;
+// Forward declaration required.
+class nullopt_t;
 
 namespace detail
 {
+
+/// Trivial union member.
+class optional_trivial_union_member
+{
+public:
+    /// Constructor.
+    constexpr explicit optional_trivial_union_member() noexcept
+    {
+    }
+
+};
 
 /// Container union for optional specialization that ensures correct alingment.
 template<typename T> union optional_union
@@ -19,11 +31,13 @@ template<typename T> union optional_union
     /// Type data (not trivially destructible).
     T m_type_data;
 
-    /// Trivially destructible data as a diversion.
-    uint8_t m_trivially_destructible_byte;
+    /// Trivially destructible alternative.
+    optional_trivial_union_member m_trivial_data;
+
 
     /// Constructor.
-    constexpr explicit optional_union() noexcept
+    constexpr explicit optional_union() noexcept :
+        m_trivial_data()
     {
     }
 };
@@ -353,6 +367,27 @@ public:
         return *this;
     }
 };
+
+/// Nullopt_t implementation.
+class nullopt_t
+{
+public:
+    /// Constructor.
+    constexpr explicit nullopt_t(int)
+    {
+    }
+
+    /// Conversion operator to all optional types.
+    ///
+    /// \return Empty optional.
+    template<typename T> constexpr operator optional<T>() const
+    {
+        return optional<T>();
+    }
+};
+
+/// Nullopt.
+constexpr nullopt_t nullopt(0);
 
 }
 

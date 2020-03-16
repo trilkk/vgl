@@ -49,7 +49,7 @@ private:
     IndexBlock(GLenum type, unsigned count, unsigned offset) :
         m_type(type),
         m_count(count),
-        m_offset(static_cast<uint16_t*>(nullptr) + offset)
+        m_offset(reinterpret_cast<uint16_t*>(offset))
     {
     }
 
@@ -57,7 +57,7 @@ private:
     /// Draw indexed geometry.
     void drawGeometry() const
     {
-        dnload_glDrawElements(m_type, m_count, GL_UNSIGNED_SHORT, m_offset);
+        dnload_glDrawElements(m_type, static_cast<GLsizei>(m_count), GL_UNSIGNED_SHORT, m_offset);
     }
 };
 

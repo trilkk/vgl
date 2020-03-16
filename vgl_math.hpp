@@ -34,13 +34,50 @@ constexpr float clamp(float val, float min_val, float max_val)
     return std::min(std::max(val, min_val), max_val);
 }
 
-/// Round float to int.
+/// Rounds floating point value towards negative infinity.
+///
+/// \param val Value to round.
+/// \return Rounded integer value.
+constexpr int ifloor(float val)
+{
+    if(val < 0.0f)
+    {
+        return static_cast<int>(val) - 1;
+    }
+    return static_cast<int>(val);
+}
+/// Rounds floating point value towards negative infinity.
+///
+/// \param val Value to round.
+/// \return Rounded integer value.
+constexpr float floor(float val)
+{
+    return static_cast<float>(ifloor(val));
+}
+
+/// Round float to nearest integer boundary.
+///
+/// Rounds halfway away from zero.
 ///
 /// \param val Value to round.
 /// \return Rounded integer value.
 constexpr int iround(float val)
 {
-    return static_cast<int>(std::lround(val));
+    if(val < 0.0f)
+    {
+        return -static_cast<int>(-val + 0.5f);
+    }
+    return static_cast<int>(val + 0.5f);
+}
+/// Round float to nearest integer boundary.
+///
+/// Rounds halfway away from zero.
+///
+/// \param val Value to round.
+/// \return Rounded integer value.
+constexpr float round(float val)
+{
+    return static_cast<float>(iround(val));
 }
 
 /// Convert 4.12 signed fixed point number to floating point.
@@ -201,7 +238,7 @@ constexpr uint8_t modulate(uint8_t lhs, uint8_t rhs)
 /// \return Remainder of val / divisor.
 constexpr float remainder(float val, float divisor)
 {
-    return val - (std::floor(val / divisor) * divisor);
+    return val - (floor(val / divisor) * divisor);
 }
 
 /// Congruence function.

@@ -156,7 +156,7 @@ public:
     /// Truth value operator.
     ///
     /// \return True if pointer is not empty.
-    operator bool() const
+    constexpr operator bool() const
     {
         return (m_ref != NULL);
     }
