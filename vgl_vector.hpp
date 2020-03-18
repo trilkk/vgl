@@ -39,7 +39,7 @@ private:
 
 public:
     /// Default constructor.
-    constexpr explicit vector() = default;
+    constexpr explicit vector() noexcept = default;
 
     /// Constructor.
     ///
@@ -52,7 +52,7 @@ public:
     /// Move constructor.
     ///
     /// \param op Source vector.
-    constexpr vector(vector<T>&& op) :
+    constexpr vector(vector<T>&& op) noexcept :
         m_data(op.m_data),
         m_size(op.m_size),
         m_capacity(op.m_capacity)
@@ -350,7 +350,7 @@ public:
         accessCheck(idx);
         return m_data[idx];
     }
-    /// Const access operator wrapper.
+    /// Const access operator.
     ///
     /// \return Element reference.
     constexpr const T& operator[](int idx) const
@@ -363,7 +363,7 @@ public:
     ///
     /// \param op Source vector.
     /// \return This object.
-    constexpr vector<T>& operator=(vector<T>&& op)
+    constexpr vector<T>& operator=(vector<T>&& op) noexcept
     {
         m_data = op.m_data;
         m_size = op.m_size;
@@ -371,6 +371,7 @@ public:
         op.m_data = nullptr;
         op.m_size = 0;
         op.m_capacity = 0;
+        return *this;
     }
 
     /// Truth value operator.

@@ -3,27 +3,11 @@
 
 #include "vgl_realloc.hpp"
 
-#include <cstring>
-
 namespace vgl
 {
 
 namespace detail
 {
-
-/// Internal strlen.
-///
-/// \param op C string.
-/// \return Length of string minus terminating null.
-constexpr unsigned internal_strlen(const char* op)
-{
-    const char* ii = op;
-    while(*ii)
-    {
-        ++ii;
-    }
-    return static_cast<unsigned>(ii - op);
-}
 
 /// Internal memcpy.
 ///
@@ -42,8 +26,22 @@ constexpr void* internal_memcpy(void* dst, const void* src, unsigned count)
     return dst;
 }
 
-/// String replacement.
-template<typename T> class basic_string
+/// Internal strlen.
+///
+/// \param op C string.
+/// \return Length of string minus terminating null.
+constexpr unsigned internal_strlen(const char* op)
+{
+    const char* ii = op;
+    while(*ii)
+    {
+        ++ii;
+    }
+    return static_cast<unsigned>(ii - op);
+}
+
+/// Base class for strings and string_views.
+template<typename T> class string_data
 {
 public:
     /// Iterator type.
@@ -51,48 +49,58 @@ public:
     /// Const iterator type.
     using const_iterator = const T*;
 
-private:
+protected:
     /// Internal data.
     T* m_data = nullptr;
 
     /// String length.
     unsigned m_length = 0;
 
-public:
-    /// Constructor.
-    explicit constexpr basic_string() = default;
+protected:
+    /// Default constructor.
+    explicit constexpr string_data() noexcept = default;
 
     /// Constructor.
     ///
-    /// \param op C string input.
-    explicit basic_string(const T* op)
+    /// \param data Data input.
+    /// \param length Length.
+    explicit constexpr string_data(T* data, unsigned length) noexcept :
+        m_data(data),
+        m_length(length)
     {
-        assign(op);
     }
 
-    /// Copy constructor.
+private:
+    /// Boundary check.
     ///
-    /// \param op C string input.
-    basic_string(const basic_string<T>& op)
+    /// \param idx Index to check.
+    constexpr void accessCheck(unsigned idx) const
     {
-        assign(op);
+#if defined(USE_LD) && defined(DEBUG)
+        if(idx >= m_length)
+        {
+            std::ostringstream sstr;
+            sstr << "accessing index " << idx << " from string of length " << m_length;
+            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+        }
+#else
+        (void)idx;
+#endif
     }
-
-    /// Move constructor.
+    /// Boundary check.
     ///
-    /// \param op C string input.
-    basic_string(basic_string<T>&& op) :
-        m_data(op.m_data),
-        m_length(op.m_length)
+    /// \param idx Index to check.
+    constexpr void accessCheck(int idx) const
     {
-        op.m_data = nullptr;
-        op.m_length = 0;
-    }
-
-    /// Destructor.
-    ~basic_string()
-    {
-        array_delete(m_data);
+#if defined(USE_LD) && defined(DEBUG)
+        if(idx < 0)
+        {
+            std::ostringstream sstr;
+            sstr << "accessing negative index " << idx << " from string of length " << m_length;
+            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+        }
+#endif
+        accessCheck(static_cast<unsigned>(idx));
     }
 
 public:
@@ -126,47 +134,6 @@ public:
         return m_data + m_length;
     }
 
-    /// Assign data.
-    ///
-    /// \param op Input data.
-    /// \return This object.
-    basic_string& assign(const T* op)
-    {
-        clear();
-        if(op && *op)
-        {
-            m_length = internal_strlen(op);
-            unsigned copy_length = m_length + 1;
-            m_data = array_new(m_data, copy_length);
-            internal_memcpy(m_data, op, copy_length);
-        }
-        return *this;
-    }
-    /// Assign data.
-    ///
-    /// \param op Input data.
-    /// \return This object.
-    basic_string& assign(const basic_string& op)
-    {
-        clear();
-        if(!op.empty())
-        {
-            m_length = op.length();
-            unsigned copy_length = m_length + 1;
-            m_data = array_new(m_data, copy_length);
-            internal_memcpy(m_data, op, copy_length);
-        }
-        return *this;
-    }
-
-    /// Clear the string data.
-    void clear()
-    {
-        array_delete(m_data);
-        m_data = nullptr;
-        m_length = 0;
-    }
-
     /// Is the string empty?
     ///
     /// \return True if empty, false otherwise.
@@ -183,16 +150,203 @@ public:
         return m_length;
     }
 
-    /// Return C string representing the string.
+    /// Returns the internal data pointer.
     ///
-    /// \return C string pointer.
-    constexpr const T* c_str() const
+    /// Unlike with std::string, this is guaranteed to be null-terminated.
+    ///
+    /// \return Data pointer.
+    constexpr const T* data() const
     {
         if(m_data)
         {
             return m_data;
         }
         return reinterpret_cast<const T*>("");
+    }
+    /// Return C string representing the string.
+    ///
+    /// \return C string pointer.
+    constexpr const T* c_str() const
+    {
+        return data();
+    }
+
+public:
+    /// Access operator.
+    ///
+    /// \return Element reference.
+    constexpr T& operator[](unsigned idx)
+    {
+        accessCheck(idx);
+        return m_data[idx];
+    }
+    /// Const access operator.
+    ///
+    /// \return Element reference.
+    constexpr const T& operator[](unsigned idx) const
+    {
+        accessCheck(idx);
+        return m_data[idx];
+    }
+    /// Access operator.
+    ///
+    /// \return Element reference.
+    constexpr T& operator[](int idx)
+    {
+        accessCheck(idx);
+        return m_data[idx];
+    }
+    /// Const access operator.
+    ///
+    /// \return Element reference.
+    constexpr const T& operator[](int idx) const
+    {
+        accessCheck(idx);
+        return m_data[idx];
+    }
+
+#if defined(USE_LD)
+    /// Stream output operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Output stream.
+    friend std::ostream& operator<<(std::ostream& lhs, const string_data<T>& rhs)
+    {
+        return lhs << rhs.c_str();
+    }
+#endif
+};
+
+/// Templated string replacement.
+template<typename T> class basic_string : public string_data<T>
+{
+private:
+    /// Base class type.
+    using base_type = string_data<T>;
+
+public:
+    /// Constructor.
+    explicit constexpr basic_string() = default;
+
+    /// Constructor.
+    ///
+    /// \param op C string input.
+    explicit basic_string(const T* op)
+    {
+        assign(op);
+    }
+
+    /// Constructor.
+    ///
+    /// \param op String data input.
+    explicit basic_string(const string_data<const T>& op)
+    {
+        assign(op);
+    }
+
+    /// Copy constructor.
+    ///
+    /// \param op String data input.
+    basic_string(const basic_string<T>& op)
+    {
+        assign(op);
+    }
+
+    /// Move constructor.
+    ///
+    /// \param op C string input.
+    basic_string(basic_string<T>&& op) :
+        base_type(op.m_data, op.m_length)
+    {
+        op.m_data = nullptr;
+        op.m_length = 0;
+    }
+
+    /// Destructor.
+    ~basic_string()
+    {
+        array_delete(base_type::m_data);
+    }
+
+public:
+    /// Assign data.
+    ///
+    /// \param op Input data.
+    /// \return This object.
+    basic_string& assign(const T* op)
+    {
+        clear();
+        if(op && *op)
+        {
+            base_type::m_length = internal_strlen(op);
+            unsigned copy_length = base_type::m_length + 1;
+            base_type::m_data = array_new(base_type::m_data, copy_length);
+            internal_memcpy(base_type::m_data, op, copy_length);
+        }
+        return *this;
+    }
+    /// Assign data.
+    ///
+    /// \param op Input data.
+    /// \return This object.
+    basic_string& assign(const string_data<const T>& op)
+    {
+        clear();
+        if(!op.empty())
+        {
+            base_type::m_length = op.length();
+            unsigned copy_length = base_type::m_length + 1;
+            base_type::m_data = array_new(base_type::m_data, copy_length);
+            internal_memcpy(base_type::m_data, op.data(), copy_length);
+        }
+        return *this;
+    }
+    /// Assign data.
+    ///
+    /// \param op Input data.
+    /// \return This object.
+    basic_string& assign(const string_data<T>& op)
+    {
+        return assign(*reinterpret_cast<const string_data<const T>*>(&op));
+    }
+
+    /// Clear the string data.
+    void clear()
+    {
+        array_delete(base_type::m_data);
+        base_type::m_data = nullptr;
+        base_type::m_length = 0;
+    }
+
+    /// Resizes the string.
+    ///
+    /// New characters are not initialized.
+    ///
+    /// \param new_size New size.
+    void resize(unsigned new_size)
+    {
+        base_type::m_data = array_new(base_type::m_data, new_size + 1);
+        base_type::m_data[new_size] = static_cast<T>(0);
+        base_type::m_length = new_size;
+    }
+    /// Resizes the string.
+    ///
+    /// New characters are initialized to T().
+    ///
+    /// \param new_size New size.
+    /// \param value Value for new elements.
+    void resize(unsigned new_size, const T& value)
+    {
+        unsigned old_size = base_type::m_length;
+
+        resize(new_size);
+
+        while(old_size < new_size)
+        {
+            base_type::m_data[old_size] = value;
+            ++old_size;
+        }
     }
 
 public:
@@ -219,23 +373,11 @@ public:
     /// \return This object.
     basic_string& operator=(basic_string<T>&& op)
     {
-        m_data = op.m_data;
-        m_length = op.m_length;
+        base_type::m_data = op.m_data;
+        base_type::m_length = op.m_length;
         op.m_data = nullptr;
         op.m_length = 0;
     }
-
-#if defined(USE_LD)
-    /// Stream output operator.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return Output stream.
-    friend std::ostream& operator<<(std::ostream& lhs, const basic_string<T>& rhs)
-    {
-        return lhs << rhs.c_str();
-    }
-#endif
 };
 
 }
