@@ -159,6 +159,8 @@ std::string glsl_tidy(const std::string& source)
     return ret;
 }
 
+#if !defined(DNLOAD_GLESV2)
+
 /// Line comment regex on a string.
 ///
 /// \param bb String iterator.
@@ -401,6 +403,8 @@ std::string convert_glesv2_gl(std::string_view op)
 
     return ret;
 }
+
+#endif
 
 }
 
