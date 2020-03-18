@@ -93,7 +93,7 @@ std::string read_file(const fs::path &name)
 ///
 /// \param source Source input.
 /// \return Pair of strings, GLSL shader compiler preprocessor input and rest of the source.
-std::pair<std::string, std::string> glsl_split(const std::string& source)
+std::pair<std::string, std::string> glsl_split(std::string_view source)
 {
     std::vector<std::string> lines;
 
@@ -136,7 +136,7 @@ std::pair<std::string, std::string> glsl_split(const std::string& source)
 ///
 /// \prarm source Source input.
 /// \return Source with preprocessor lines removed.
-std::string glsl_tidy(const std::string& source)
+std::string glsl_tidy(std::string_view source)
 {
     std::vector<std::string> lines;
 
@@ -154,9 +154,7 @@ std::string glsl_tidy(const std::string& source)
         }
     }
 
-    std::string ret = boost::algorithm::join(accepted, "\n");
-
-    return ret;
+    return boost::algorithm::join(accepted, "\n");
 }
 
 #if !defined(DNLOAD_GLESV2)
@@ -376,20 +374,16 @@ static std::string::const_iterator regex_glesv2(std::string::const_iterator bb,
 std::string convert_glesv2_gl(std::string_view op)
 {
     std::string ret(op);
-    std::string::const_iterator ii = ret.begin();
-    std::string::const_iterator ee = ret.end();
+    std::string::const_iterator ii = cbegin(ret);
+    std::string::const_iterator ee = cend(ret);
 
     while(ii != ee)
     {
         std::string::const_iterator jj = regex_glesv2(ii, ee);
         if(jj != ii)
         {
-            // TODO: Erase with iterators when C++11.
-            std::string::difference_type erase_start = ii - ret.begin();
-            std::string::difference_type erase_count = jj - ret.begin() - erase_start;
-            ret = ret.erase(static_cast<size_t>(erase_start), static_cast<size_t>(erase_count));
-            ii = ret.begin() + erase_start;
-            ee = ret.end();
+            ii = ret.erase(ii, jj);
+            ee = cend(ret);
             continue;
         }
         jj = regex_comment(ii, ee);
