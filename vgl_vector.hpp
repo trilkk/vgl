@@ -46,8 +46,14 @@ public:
     /// \param op Starting capacity.
     explicit vector(unsigned op) :
         m_data(array_new<T>(nullptr, op)),
-        m_size(0),
-        m_capacity(op) { }
+        m_size(op),
+        m_capacity(op)
+    {
+        for(unsigned ii = 0; ii < op; ++ii)
+        {
+            new(&m_data[ii]) T();
+        }            
+    }
 
     /// Move constructor.
     ///
