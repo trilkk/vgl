@@ -355,7 +355,7 @@ class mat4
       vec3 unit_fw = normalize(pos - eye);
       vec3 unit_up = normalize(up);
 
-      if(std::abs(dot(unit_fw, unit_up)) > 0.999f)
+      if(abs(dot(unit_fw, unit_up)) > 0.999f)
       {
         unit_up = vec3(unit_fw[1], unit_fw[0], unit_fw[2]);
       }

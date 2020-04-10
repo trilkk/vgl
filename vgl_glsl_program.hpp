@@ -2,6 +2,7 @@
 #define VGL_GLSL_PROGRAM_HPP
 
 #include "vgl_glsl_shader.hpp"
+#include "vgl_utility.hpp"
 
 namespace vgl
 {
@@ -67,8 +68,8 @@ public:
     /// \param vert Vertex shader.
     /// \param frag Fragment shader.
     explicit GlslProgram(GlslShader&& vert, GlslShader&& frag) :
-        m_vert(std::move(vert)),
-        m_frag(std::move(frag)),
+        m_vert(move(vert)),
+        m_frag(move(frag)),
         m_id(link())
     {
     }
@@ -77,8 +78,8 @@ public:
     ///
     /// \param op Source program.
     GlslProgram(GlslProgram&& op) :
-        m_vert(std::move(op.m_vert)),
-        m_frag(std::move(op.m_frag)),
+        m_vert(move(op.m_vert)),
+        m_frag(move(op.m_frag)),
         m_id(op.m_id)
     {
         op.m_id = 0;
@@ -233,8 +234,8 @@ public:
     /// \return This object.
     GlslProgram& operator=(GlslProgram&& op) noexcept
     {
-        m_vert = std::move(op.m_vert);
-        m_frag = std::move(op.m_frag);
+        m_vert = move(op.m_vert);
+        m_frag = move(op.m_frag);
         m_id = op.m_id;
         op.m_id = 0;
         return *this;

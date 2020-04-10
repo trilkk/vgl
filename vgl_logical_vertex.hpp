@@ -156,12 +156,12 @@ public:
     ///
     /// \param op Source vertex.
     constexpr LogicalVertex(LogicalVertex&& op) :
-        m_position(std::move(op.m_position)),
-        m_normal(std::move(op.m_normal)),
-        m_color(std::move(op.m_color)),
-        m_bone_ref(std::move(op.m_bone_ref)),
-        m_texcoord(std::move(op.m_texcoord)),
-        m_face_references(std::move(op.m_face_references))
+        m_position(move(op.m_position)),
+        m_normal(move(op.m_normal)),
+        m_color(move(op.m_color)),
+        m_bone_ref(move(op.m_bone_ref)),
+        m_texcoord(move(op.m_texcoord)),
+        m_face_references(move(op.m_face_references))
     {
     }
 

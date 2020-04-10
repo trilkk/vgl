@@ -1,6 +1,7 @@
 #ifndef VGL_UNIQUE_PTR_HPP
 #define VGL_UNIQUE_PTR_HPP
 
+#include "vgl_cstddef.hpp"
 #include "vgl_realloc.hpp"
 
 namespace vgl
@@ -29,7 +30,7 @@ public:
     /// Constructor.
     ///
     /// \param op Pointer to take control of.
-    constexpr explicit unique_ptr(T *op) :
+    constexpr explicit unique_ptr(T* op) :
         m_ref(op)
     {
     }
@@ -39,13 +40,13 @@ public:
     /// Transfers ownership.
     ///
     /// \param op Source.
-    unique_ptr(unique_ptr<T> &&op) :
+    unique_ptr(unique_ptr<T>&& op) :
         m_ref(op.release())
     {
     }
 
     /// Constructor from nullptr.
-    unique_ptr(const std::nullptr_t&) :
+    unique_ptr(const nullptr_t&) :
         m_ref(nullptr)
     {
     }
@@ -134,7 +135,7 @@ public:
     /// Destroys the object.
     ///
     /// \return This object.
-    unique_ptr<T>& operator=(const std::nullptr_t&)
+    unique_ptr<T>& operator=(const nullptr_t&)
     {
         reset();
         return *this;
@@ -146,7 +147,7 @@ public:
     ///
     /// \param op Source.
     /// \return This object.
-    unique_ptr<T>& operator=(unique_ptr<T> &&op)
+    unique_ptr<T>& operator=(unique_ptr<T>&& op)
     {
         reset(op.m_ref);
         op.m_ref = NULL;

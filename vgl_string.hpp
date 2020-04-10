@@ -9,23 +9,6 @@ namespace vgl
 namespace detail
 {
 
-/// Internal memcpy.
-///
-/// \param dst Destination pointer.
-/// \param src Source pointer.
-/// \param count Number of bytes to copy.
-/// \return Destination pointer.
-constexpr void* internal_memcpy(void* dst, const void* src, unsigned count)
-{
-    uint8_t* udst = static_cast<uint8_t*>(dst);
-    const uint8_t* usrc = static_cast<const uint8_t*>(src);
-    for(unsigned ii = 0; (ii < count); ++ii)
-    {
-        udst[ii] = usrc[ii];
-    }
-    return dst;
-}
-
 /// Internal strlen.
 ///
 /// \param op C string.

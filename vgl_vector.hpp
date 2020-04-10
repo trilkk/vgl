@@ -2,6 +2,7 @@
 #define VGL_VECTOR_HPP
 
 #include "vgl_realloc.hpp"
+#include "vgl_utility.hpp"
 
 namespace vgl
 {
@@ -119,6 +120,8 @@ private:
 
     /// Grow if necessary.
     ///
+    /// Increases size by one.
+    ///
     /// \return Pointer to the end of sequence.
     T* growCheck()
     {
@@ -131,7 +134,11 @@ private:
         {
             resizeInternal(m_capacity * 2);
         }
-        return end();
+
+        // Return 
+        iterator ret = end();
+        ++m_size;
+        return ret;
     }
 
     /// Internal resize.
@@ -238,7 +245,7 @@ public:
     /// \return True if yes, false if no.
     constexpr bool empty() const
     {
-        return (0 != m_size);
+        return (m_size != 0);
     }
 
     /// Get byte size.
@@ -281,15 +288,13 @@ public:
     void push_back(const T &op)
     {
         new(growCheck()) T(op);
-        ++m_size;
     }
     /// Move an element into the end of array.
     ///
     /// \param op Element to add.
     void push_back(T &&op)
     {
-        new(growCheck()) T(std::move(op));
-        ++m_size;
+        new(growCheck()) T(move(op));
     }
 
     /// Emplace an element into array.
@@ -299,7 +304,6 @@ public:
     template<typename...Args> void emplace_back(Args&&...args)
     {
         new(growCheck()) T(args...);
-        ++m_size;
     }
 
     /// Resize to given size.

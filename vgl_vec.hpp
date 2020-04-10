@@ -479,7 +479,7 @@ public:
         CrtpType ret;
         for(unsigned ii = 0; (ii < N); ++ii)
         {
-            ret[ii] = std::max(lhs[ii], rhs[ii]);
+            ret[ii] = max(lhs[ii], rhs[ii]);
         }
         return ret;
     }
@@ -493,7 +493,7 @@ public:
         CrtpType ret;
         for(unsigned ii = 0; (ii < N); ++ii)
         {
-            ret[ii] = std::min(lhs[ii], rhs[ii]);
+            ret[ii] = min(lhs[ii], rhs[ii]);
         }
         return ret;
     }

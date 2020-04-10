@@ -1,6 +1,8 @@
 #ifndef VGL_OPTIONAL_HPP
 #define VGL_OPTIONAL_HPP
 
+#include "vgl_utility.hpp"
+
 #include <cstddef>
 #include <optional>
 #include <type_traits>
@@ -8,8 +10,8 @@
 namespace vgl
 {
 
-// Forward declaration required.
-class nullopt_t;
+using std::nullopt_t;
+using std::nullopt;
 
 namespace detail
 {
@@ -140,7 +142,7 @@ public:
     constexpr optional(T&& op) :
         base_type(true)
     {
-        new(getPtr()) T(std::move(op));
+        new(getPtr()) T(move(op));
     }
 
     /// Copy constructor.
@@ -164,14 +166,14 @@ public:
     {
         if(op)
         {
-            new(getPtr()) T(std::move(*op));
+            new(getPtr()) T(move(*op));
             op.destruct();
             base_type::m_initialized = true;
         }
     }
 
     /// Initializer with nullopt.
-    constexpr optional(const std::nullopt_t&) noexcept :
+    constexpr optional(const nullopt_t&) noexcept :
         base_type(false)
     {
     }
@@ -319,7 +321,7 @@ public:
     constexpr optional<T>& operator=(T&& op)
     {
         base_type::destruct();
-        new(getPtr()) T(std::move(op));
+        new(getPtr()) T(move(op));
         base_type::m_initialized = true;
         return *this;
     }
@@ -349,7 +351,7 @@ public:
         base_type::m_initialized = false;
         if(op)
         {
-            new(getPtr()) T(std::move(*op));
+            new(getPtr()) T(move(*op));
             base_type::m_initialized = true;
             op.destruct();
             op.base_type::m_initialized = false;
@@ -360,34 +362,13 @@ public:
     /// Assignment from nullopt.
     ///
     /// \return The optional after clearing it.
-    constexpr optional<T>& operator=(const std::nullopt_t&)
+    constexpr optional<T>& operator=(const nullopt_t&)
     {
         base_type::destruct();
         base_type::m_initialized = false;
         return *this;
     }
 };
-
-/// Nullopt_t implementation.
-class nullopt_t
-{
-public:
-    /// Constructor.
-    constexpr explicit nullopt_t(int)
-    {
-    }
-
-    /// Conversion operator to all optional types.
-    ///
-    /// \return Empty optional.
-    template<typename T> constexpr operator optional<T>() const
-    {
-        return optional<T>();
-    }
-};
-
-/// Nullopt.
-constexpr nullopt_t nullopt(0);
 
 }
 

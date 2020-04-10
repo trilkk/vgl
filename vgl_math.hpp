@@ -1,10 +1,14 @@
 #ifndef VGL_MATH_HPP
 #define VGL_MATH_HPP
 
+#include "vgl_algorithm.hpp"
+
 #include <cmath>
 
 namespace vgl
 {
+
+using std::abs;
 
 /// Check if floats match on some relative level.
 ///
@@ -31,7 +35,7 @@ constexpr bool floats_almost_equal(float lhs, float rhs)
 /// \param max_val Maximum value.
 constexpr float clamp(float val, float min_val, float max_val)
 {
-    return std::min(std::max(val, min_val), max_val);
+    return min(max(val, min_val), max_val);
 }
 
 /// Rounds floating point value towards negative infinity.

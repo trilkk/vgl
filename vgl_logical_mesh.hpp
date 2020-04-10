@@ -3,6 +3,7 @@
 
 #include "vgl_logical_vertex.hpp"
 #include "vgl_mesh.hpp"
+#include "vgl_task_queue.hpp"
 
 namespace vgl
 {
@@ -33,7 +34,7 @@ private:
     unsigned addVertexInternal(LogicalVertex&& op)
     {
         unsigned ret = getLogicalVertexCount();
-        m_vertices.push_back(std::move(op));
+        m_vertices.push_back(move(op));
         return ret;
     }
 

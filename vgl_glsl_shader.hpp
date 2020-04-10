@@ -101,7 +101,7 @@ public:
     /// \param op Source shader.
     GlslShader(GlslShader&& op) noexcept :
 #if defined(USE_LD)
-        m_files(std::move(op.m_files)),
+        m_files(move(op.m_files)),
 #endif
         m_type(op.m_type),
         m_id(op.m_id)
@@ -238,7 +238,7 @@ public:
     GlslShader& operator=(GlslShader&& op)
     {
 #if defined(USE_LD)
-        m_files = std::move(op.m_files);
+        m_files = move(op.m_files);
 #endif
         m_type = op.m_type;
         m_id = op.m_id;
