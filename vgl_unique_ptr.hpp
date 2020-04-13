@@ -66,23 +66,23 @@ private:
         delete m_ref;
     }
 
-    /// Release ownership, return released pointer.
-    ///
-    /// Should not be called by user.
-    T* release()
-    {
-        T* ret = m_ref;
-        m_ref = NULL;
-        return ret;
-    }
-
 public:
     /// Accessor.
     ///
     /// \return Referenced pointer.
-    T* get() const
+    constexpr T* get() const
     {
         return m_ref;
+    }
+
+    /// Release ownership, return released pointer.
+    ///
+    /// Should not be called by user.
+    constexpr T* release()
+    {
+        T* ret = m_ref;
+        m_ref = NULL;
+        return ret;
     }
 
     /// Replace contents.
@@ -98,7 +98,7 @@ public:
     /// Pointer operator.
     ///
     /// \return Pointer.
-    T* operator->() const
+    constexpr T* operator->() const
     {
         return m_ref;
     }
@@ -106,14 +106,14 @@ public:
     /// Dereference operator.
     ///
     /// \return Dereferenced contents.
-    T& operator*()
+    constexpr T& operator*()
     {
         return *m_ref;
     }
     /// Dereference operator.
     ///
     /// \return Dereferenced contents.
-    const T& operator*() const
+    constexpr const T& operator*() const
     {
         return *m_ref;
     }

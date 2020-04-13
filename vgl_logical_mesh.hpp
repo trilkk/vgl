@@ -3,7 +3,7 @@
 
 #include "vgl_logical_vertex.hpp"
 #include "vgl_mesh.hpp"
-#include "vgl_task_queue.hpp"
+#include "vgl_task_dispatcher.hpp"
 
 namespace vgl
 {

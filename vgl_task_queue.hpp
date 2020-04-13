@@ -1,11 +1,8 @@
 #ifndef VGL_TASK_QUEUE_HPP
 #define VGL_TASK_QUEUE_HPP
 
-#include "vgl_cond.hpp"
 #include "vgl_queue.hpp"
 #include "vgl_task.hpp"
-#include "vgl_thread.hpp"
-#include "vgl_vector.hpp"
 
 namespace vgl
 {
@@ -17,137 +14,85 @@ namespace detail
 class TaskQueue
 {
 private:
-    /// Threads created for this task queue. May be empty.
-    vector<Thread> m_threads;
-
     /// Queue for tasks.
     queue<TaskUptr> m_tasks;
 
-    /// Free condition variables for tasks dispatching with wait.
-    vector<Cond> m_cond_pool_free;
-
-    /// Condition variables being waited on by tasks dispatched with wait.
-    vector<Cond> m_cond_pool_used;
-
-    /// Guard mutex.
-    unique_ptr<Mutex> m_mutex;
-
-    /// Main condition variable.
+    /// Condition variable to be signalled when the task queue is modified.
     unique_ptr<Cond> m_cond;
 
-    /// Target concurrency level.
-    unsigned m_concurrency = 0;
-
-    /// Number of threads active currently.
-    unsigned m_threads_active = 0;
-
-    /// Flag signifying the task queue is being destroyed.
-    bool m_quitting = false;
+private:
+    /// Deleted copy constructor.
+    TaskQueue(const TaskQueue&) = delete;
+    /// Deleted assignment.
+    TaskQueue& operator=(const TaskQueue&) = delete;
 
 public:
     /// Default constructor.
     constexpr explicit TaskQueue() = default;
 
-    /// Destructor.
-    ~TaskQueue()
-    {
-        m_quitting = true;
-        
-        ScopedLock sl(*m_mutex);
-        m_cond->broadcast();
-    }
-
-private:
-    /// Thread function.
-    void threadFunc()
-    {
-        ScopedLock sl(*m_mutex);
-
-        while(!m_quitting)
-        {
-            if((m_threads_active < m_concurrency) && !m_tasks.empty())
-            {
-                ++m_threads_active;
-                
-                TaskUptr task = move(m_tasks.front());
-                task->execute();
-
-                --m_threads_active;
-            }
-            else
-            {
-                m_cond->wait(*m_mutex);
-            }
-        }
-    }
-
 public:
     /// Initialize the task queue.
-    ///
-    /// \param op Number of threads to initialize.
-    void initialize(unsigned op)
+    void initialize()
     {
-        m_concurrency = 0;
-
-        m_mutex = new Mutex();
-        m_cond = new Cond();
-
-        while(op)
-        {
-            m_threads.emplace_back(task_thread_func, this);
-        }
+        m_cond.reset(new Cond());
     }
 
-    /// Dispatch a task.
-    ///
-    /// \param task Newly created task.
-    void dispatch(Task* task)
+    /// Uninitialize the task queue.
+    void uninitialize()
     {
-        ScopedLock sl(*m_mutex);
-        m_tasks.emplace_back(task);
+        m_cond->broadcast();
+#if defined(USE_LD)
+        while(!m_tasks.empty())
+        {
+            m_tasks.pop();
+        }
+#endif
+    }
+
+    /// Signal on the task queue.
+    void signal()
+    {
         m_cond->signal();
     }
 
-private:
-    /// Task dispatcher thread.
+    /// Wait on the task queue.
     ///
-    /// \param op Pointer to task queue.
-    static int task_thread_func(void* op)
+    /// \param op Locked scope.
+    void wait(ScopedLock& sl)
     {
-        TaskQueue* task_queue = static_cast<TaskQueue*>(op);
-        task_queue->threadFunc();
-        return 0;
+        m_cond->wait(sl);
+    }
+
+    /// Tell if the task queue is empty.
+    ///
+    /// \return True if empty, false otherwise.
+    constexpr bool empty() const
+    {
+        return m_tasks.empty();
+    }
+
+    /// Acquire from the task queue.
+    ///
+    /// \return Task.
+    TaskUptr acquire()
+    {
+        TaskUptr ret(m_tasks.front().release());
+        m_tasks.pop();
+        return ret;
+    }
+
+    /// Emplace into the task queue.
+    ///
+    /// Implicitly signals.
+    ///
+    /// \param op New task.
+    void emplace(Task* op)
+    {
+        m_tasks.emplace(op);
+        m_cond->signal();
     }
 };
 
-/// Queue for tasks.
-TaskQueue g_tasks_any;
-
-/// Queue for tasks for the main thread.
-TaskQueue g_tasks_main;
-
-}
-
-/// Dispatch task to any thread.
-template<typename T> void dispatch_any(const T& op)
-{
-    detail::g_tasks_any.dispatch(new detail::TaskImpl<T>(op));
-}
-/// Dispatch task to any thread.
-template<typename T> void dispatch_any(T&& op)
-{
-    detail::g_tasks_any.dispatch(new detail::TaskImpl<T>(move(op)));
-}
-
-/// Dispatch task to main thread.
-template<typename T> void dispatch_main(const T& op)
-{
-    detail::g_tasks_main.dispatch(new detail::TaskImpl<T>(op));
-}
-/// Dispatch task to main thread.
-template<typename T> void dispatch_main(T&& op)
-{
-    detail::g_tasks_main.dispatch(new detail::TaskImpl<T>(move(op)));
 }
 
 }

@@ -1,6 +1,7 @@
 #ifndef VGL_TASK_HPP
 #define VGL_TASK_HPP
 
+#include "vgl_fence.hpp"
 #include "vgl_unique_ptr.hpp"
 
 namespace vgl
@@ -12,8 +13,8 @@ namespace vgl
 class Task
 {
 private:
-    /// Condition variable to signal if set.
-    Cond* m_cond = nullptr;
+    /// Pointer to internal fence state to release if set.
+    detail::FenceData* m_fence_data = nullptr;
 
 protected:
     /// Default constructor.
@@ -21,18 +22,27 @@ protected:
 
 public:
     /// Destructor.
-    virtual ~Task() = default;
+    virtual ~Task()
+    {
+        if(m_fence_data)
+        {
+            m_fence_data->signal();
+        }
+    }
 
 public:
+    /// Setter.
+    ///
+    /// \param op Pointer to fence data.
+    constexpr void setFenceData(detail::FenceData* op)
+    {
+        m_fence_data = op;
+    }
+
     /// Execute function.
     void execute()
     {
         executeImpl();
-
-        if(m_cond)
-        {
-            m_cond->signal();
-        }
     }
 
 protected:
@@ -60,7 +70,7 @@ public:
     /// Constructor.
     ///
     /// \param op Source.
-    TaskImpl(const T& op) :
+    constexpr TaskImpl(const T& op) :
         m_params(op)
     {
     }
@@ -68,14 +78,14 @@ public:
     /// Move constructor.
     ///
     /// \param op Source.
-    TaskImpl(T&& op) :
+    constexpr TaskImpl(T&& op) :
         m_params(move(op))
     {
     }
 
 public:
     /// execute() implemetation.
-    void execute() override
+    void executeImpl() override
     {
         m_params();
     }

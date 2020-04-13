@@ -4,6 +4,43 @@
 namespace vgl
 {
 
+namespace detail
+{
+
+/// Acquire mutex implementation.
+///
+/// \param op Mutex implementation.
+void internal_mutex_acquire(SDL_mutex* op)
+{
+    int err = dnload_SDL_LockMutex(op);
+#if defined(USE_LD) && defined(DEBUG)
+    if(err)
+    {
+        BOOST_THROW_EXCEPTION(std::runtime_error(std::string("internal_mutex_acquire(): ") + SDL_GetError()));
+    }
+#else
+    (void)err;
+#endif
+}
+
+/// Release mutex implementation.
+///
+/// \param op Mutex implementation.
+void internal_mutex_release(SDL_mutex* op)
+{
+    int err = dnload_SDL_UnlockMutex(op);
+#if defined(USE_LD) && defined(DEBUG)
+    if(err)
+    {
+        BOOST_THROW_EXCEPTION(std::runtime_error(std::string("internal_mutex_release(): ") + SDL_GetError()));
+    }
+#else
+    (void)err;
+#endif
+}
+
+}
+
 /// Mutex class.
 class Mutex
 {
@@ -52,7 +89,7 @@ public:
     /// Accessor.
     ///
     /// \return Inner mutex.
-    constexpr SDL_mutex* getInnerMutex() const
+    constexpr SDL_mutex* getMutexImpl() const
     {
         return m_mutex;
     }
@@ -60,29 +97,13 @@ public:
     /// Lock.
     void acquire()
     {
-        int err = dnload_SDL_LockMutex(m_mutex);
-#if defined(USE_LD) && defined(DEBUG)
-        if(err)
-        {
-            BOOST_THROW_EXCEPTION(std::runtime_error(std::string("Mutex::acquire(): ") + SDL_GetError()));
-        }
-#else
-        (void)err;
-#endif
+        detail::internal_mutex_acquire(m_mutex);
     }
 
     /// Unlock.
     void release()
     {
-        int err = dnload_SDL_UnlockMutex(m_mutex);
-#if defined(USE_LD) && defined(DEBUG)
-        if(err)
-        {
-            BOOST_THROW_EXCEPTION(std::runtime_error(std::string("Mutex::release(): ") + SDL_GetError()));
-        }
-#else
-        (void)err;
-#endif
+        detail::internal_mutex_release(m_mutex);
     }
 
 public:

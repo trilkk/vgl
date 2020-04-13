@@ -11,7 +11,7 @@ class ScopedLock
 {
 private:
     /// Mutex that was locked.
-    Mutex* m_mutex;
+    SDL_mutex* m_mutex;
 
 private:
     /// Deleted copy constructor.
@@ -26,9 +26,9 @@ public:
     ///
     /// \param op Mutex to lock.
     explicit ScopedLock(Mutex& op) :
-        m_mutex(&op)
+        m_mutex(op.getMutexImpl())
     {
-        op.acquire();
+        acquire();
     }
 
     /// Move constructor.
@@ -47,7 +47,7 @@ public:
     {
         if(m_mutex)
         {
-            m_mutex->release();
+            release();
         }
     }
 
@@ -55,9 +55,21 @@ public:
     /// Accessor.
     ///
     /// \return Referred mutex.
-    constexpr Mutex& getMutex()
+    constexpr SDL_mutex* getMutexImpl()
     {
-        return *m_mutex;
+        return m_mutex;
+    }
+
+    /// Lock.
+    void acquire()
+    {
+        detail::internal_mutex_acquire(m_mutex);
+    }
+
+    /// Unlock.
+    void release()
+    {
+        detail::internal_mutex_release(m_mutex);
     }
 
 public:

@@ -245,7 +245,7 @@ public:
     /// \return True if yes, false if no.
     constexpr bool empty() const
     {
-        return (m_size != 0);
+        return (m_size == 0);
     }
 
     /// Get byte size.

@@ -142,7 +142,7 @@ public:
     /// \return True if yes, false if no.
     constexpr bool empty() const
     {
-        return (m_size != 0);
+        return (m_size == 0);
     }
 
     /// Accessor.
@@ -180,7 +180,7 @@ public:
     ///
     /// \param args Arguments.
     /// \return Reference to newly emplaced object.
-    template<typename...Args> void emplace_back(Args&&...args)
+    template<typename...Args> void emplace(Args&&...args)
     {
         new(growCheck()) T(args...);
     }
