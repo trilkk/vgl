@@ -73,11 +73,9 @@ public:
     }
 
 private:
-    /// Acquire a new conditional.
+    /// Acquire or reuse fence data (unlocked).
     ///
-    /// Creates a new one if the cond pool is empty.
-    ///
-    /// \return Newly created conditional.
+    /// \return Fence data structure to use.
     detail::FenceData* acquireFenceData()
     {
         if(m_fence_pool.empty())
@@ -85,21 +83,50 @@ private:
             return new detail::FenceData();
         }
 
+#if defined(USE_LD) && defined(DEBUG)
+        BOOST_ASSERT(m_fence_pool.front());
+#endif
         detail::FenceData* ret = m_fence_pool.front().release();
+#if defined(USE_LD) && defined(DEBUG)
+        BOOST_ASSERT(ret);
+#endif
         m_fence_pool.pop();
         return ret;
+    }
+    /// Acquire or reuse fence data (locked).
+    ///
+    /// \return Fence data structure to use.
+    detail::FenceData* acquireFenceDataSafe()
+    {
+        ScopedLock sl(*m_mutex);
+        return acquireFenceData();
+    }
+
+    /// Immediately execute given task function.
+    ///
+    /// Return an inactive fence containing the return value.
+    /// \param func Function to dispatch.
+    /// \param params Function parameters.
+    Fence immediateDispatch(TaskFunc func, void* params)
+    {
+        detail::FenceData* ret = acquireFenceDataSafe();
+        ret->setActive(false);
+        ret->setReturnValue(func(params));
+        return Fence(ret);
     }
 
     /// Internally wait (create a fence) and dispatch.
     ///
     /// \param queue Internal task queue.
-    /// \param task Task to push.
-    detail::FenceData* internalDispatch(detail::TaskQueue& task_queue, Task* task)
+    /// \param func Function to dispatch.
+    /// \param params Function parameters.
+    detail::FenceData* internalDispatch(detail::TaskQueue& task_queue, TaskFunc func, void* params)
     {
         ScopedLock sl(*m_mutex);
         detail::FenceData* ret = acquireFenceData();
-        task->setFenceData(ret);
-        task_queue.emplace(task);
+        ret->setActive(true);
+        ret->setReturnValue(nullptr);
+        task_queue.emplace(ret, func, params);
         return ret;
     }
 
@@ -144,9 +171,9 @@ private:
 
                 // Release lock for the duration of executing the task.
                 {
-                    TaskUptr task = m_tasks_any.acquire();
+                    Task task = m_tasks_any.acquire();
                     sl.release();
-                    task->execute();
+                    task();
                     sl.acquire();
                 }
 
@@ -182,7 +209,7 @@ public:
     /// Gets a main context task.
     ///
     /// \return Main context task.
-    TaskUptr getMainTask()
+    Task acquireMainTask()
     {
         ScopedLock sl(*m_mutex);
 
@@ -196,60 +223,59 @@ public:
 
     /// Dispatch a task (any thread).
     ///
-    /// \param task Newly created task.
-    void dispatch_any(Task* task)
+    /// \param func Function to dispatch.
+    /// \param params Function parameters.
+    void dispatch(TaskFunc func, void* params)
     {
         ScopedLock sl(*m_mutex);
-        m_tasks_any.emplace(task);
+        m_tasks_any.emplace(func, params);
     }
-
     /// Dispatch a task (main thread).
     ///
-    /// \param task Newly created task.
-    void dispatch_main(Task* task)
+    /// \param func Function to dispatch.
+    /// \param params Function parameters.
+    void dispatchMain(TaskFunc func, void* params)
     {
         ScopedLock sl(*m_mutex);
-        m_tasks_main.emplace(task);
+        m_tasks_main.emplace(func, params);
     }
 
     /// Dispatch a task and wait for it to complete (any thread).
     ///
-    /// \param task Newly created task.
-    Fence wait_any(Task* task)
+    /// \param func Function to dispatch.
+    /// \param params Function parameters.
+    Fence wait(TaskFunc func, void* params)
     {
         // Prevent deadlock - main thread cannot wait.
         if(isMainThread())
         {
-            task->execute();
-            delete task;
-            return Fence(nullptr);
+            return immediateDispatch(func, params);
         }
 
-        detail::FenceData* data = internalDispatch(m_tasks_any, task);
+        detail::FenceData* data = internalDispatch(m_tasks_any, func, params);
         return Fence(data);
     }
-
     /// Dispatch a task and wait for it to complete (main thread).
     ///
-    /// \param task Newly created task.
-    Fence wait_main(Task* task)
+    /// \param func Function to dispatch.
+    /// \param params Function parameters.
+    Fence waitMain(TaskFunc func, void* params)
     {
         // Prevent deadlock - main thread cannot wait.
         if(isMainThread())
         {
-            task->execute();
-            delete task;
-            return Fence(nullptr);
+            return immediateDispatch(func, params);
         }
 
-        detail::FenceData* data = internalDispatch(m_tasks_main, task);
+        detail::FenceData* data = internalDispatch(m_tasks_main, func, params);
         return Fence(data);
     }
 
     /// Wait on a fence internal state.
     ///
     /// \param op Fence data.
-    void wait(detail::FenceData* op)
+    /// \return Stored return value from the fence.
+    void* wait(detail::FenceData* op)
     {
         ScopedLock sl(*m_mutex);
 
@@ -285,6 +311,7 @@ public:
         }
 
         m_fence_pool.emplace(op);
+        return op->getReturnValue();
     }
 
 private:
@@ -302,12 +329,12 @@ private:
 /// Queue for tasks.
 TaskDispatcher g_task_dispatcher;
 
-/// Internal destruction of fence.
+/// Internal wait for fence data on the task dispatcher.
 ///
-/// \param op Fence.
-void internal_fence_destruct(Fence& op)
+/// \param op Fence data.
+void* internal_fence_data_wait(detail::FenceData* op)
 {
-    g_task_dispatcher.wait(op.getFenceData());
+    return g_task_dispatcher.wait(op);
 }
 
 }
@@ -325,69 +352,45 @@ void tasks_initialize(unsigned op)
 /// This function blocks if main loop tasks are not available.
 ///
 /// \return New main loop task.
-TaskUptr task_get_main()
+Task task_acquire_main()
 {
-    return detail::g_task_dispatcher.getMainTask();
+    return detail::g_task_dispatcher.acquireMainTask();
 }
 
 /// Dispatch task (any thread).
 ///
-/// \param op Task-compatible executable predicate.
-template<typename T> void task_dispatch_any(const T& op)
+/// \param func Function to dispatch.
+/// \param params Function parameters.
+void task_dispatch(TaskFunc func, void* params)
 {
-    detail::g_task_dispatcher.dispatch_any(new detail::TaskImpl<T>(op));
+    detail::g_task_dispatcher.dispatch(func, params);
 }
-/// Dispatch task (any thread).
+/// Dispatch task (main thread).
 ///
-/// \param op Task-compatible executable predicate.
-template<typename T> void task_dispatch_any(T&& op)
+/// \param func Function to dispatch.
+/// \param params Function parameters.
+void task_dispatch_main(TaskFunc func, void* params)
 {
-    detail::g_task_dispatcher.dispatch_any(new detail::TaskImpl<T>(move(op)));
+    detail::g_task_dispatcher.dispatchMain(func, params);
 }
 
 /// Wait on a task (any thread).
 ///
-/// \param op Task-compatible executable predicate.
+/// \param func Function to dispatch.
+/// \param params Function parameters.
 /// \return Fence.
-template<typename T> Fence task_wait_any(const T& op)
+Fence task_wait(TaskFunc func, void* params)
 {
-    return detail::g_task_dispatcher.wait_any(new detail::TaskImpl<T>(op));
-}
-/// Wait on a task (any thread).
-///
-/// \param op Task-compatible executable predicate.
-/// \return Fence.
-template<typename T> Fence task_wait_any(T&& op)
-{
-    return detail::g_task_dispatcher.wait_any(new detail::TaskImpl<T>(op));
-}
-
-/// Dispatch task to main thread.
-template<typename T> void task_dispatch_main(const T& op)
-{
-    detail::g_task_dispatcher.dispatch_main(new detail::TaskImpl<T>(op));
-}
-/// Dispatch task to main thread.
-template<typename T> void task_dispatch_main(T&& op)
-{
-    detail::g_task_dispatcher.dispatch_main(new detail::TaskImpl<T>(move(op)));
-}
-
-/// Wait on a task (main thread).
-///
-/// \param op Task-compatible executable predicate.
-/// \return Fence.
-template<typename T> Fence task_wait_main(const T& op)
-{
-    return detail::g_task_dispatcher.wait_main(new detail::TaskImpl<T>(op));
+    return detail::g_task_dispatcher.wait(func, params);
 }
 /// Wait on a task (main thread).
 ///
-/// \param op Task-compatible executable predicate.
+/// \param func Function to dispatch.
+/// \param params Function parameters.
 /// \return Fence.
-template<typename T> Fence task_wait_main(T&& op)
+Fence task_wait_main(TaskFunc func, void* params)
 {
-    return detail::g_task_dispatcher.wait_main(new detail::TaskImpl<T>(move(op)));
+    return detail::g_task_dispatcher.waitMain(func, params);
 }
 
 }

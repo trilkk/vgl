@@ -15,7 +15,7 @@ class TaskQueue
 {
 private:
     /// Queue for tasks.
-    queue<TaskUptr> m_tasks;
+    queue<Task> m_tasks;
 
     /// Condition variable to be signalled when the task queue is modified.
     unique_ptr<Cond> m_cond;
@@ -74,9 +74,9 @@ public:
     /// Acquire from the task queue.
     ///
     /// \return Task.
-    TaskUptr acquire()
+    Task acquire()
     {
-        TaskUptr ret(m_tasks.front().release());
+        Task ret = move(m_tasks.front());
         m_tasks.pop();
         return ret;
     }
@@ -85,10 +85,23 @@ public:
     ///
     /// Implicitly signals.
     ///
-    /// \param op New task.
-    void emplace(Task* op)
+    /// \param func Function to dispatch.
+    /// \param params Function parameters.
+    void emplace(TaskFunc func, void* params)
     {
-        m_tasks.emplace(op);
+        m_tasks.emplace(func, params);
+        m_cond->signal();
+    }
+    /// Emplace into the task queue.
+    ///
+    /// Implicitly signals.
+    ///
+    /// \param fence_data Fence data to use with the task.
+    /// \param func Function to dispatch.
+    /// \param params Function parameters.
+    void emplace(detail::FenceData* fence_data, TaskFunc func, void* params)
+    {
+        m_tasks.emplace(fence_data, func, params);
         m_cond->signal();
     }
 };

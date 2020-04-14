@@ -56,7 +56,7 @@ private:
     /// \return Bounds-checked index.
     unsigned boundsCheck(unsigned op)
     {
-        return (op > m_capacity) ? (op - m_size) : op;
+        return (op >= m_capacity) ? (op - m_capacity) : op;
     }
 
     /// Grow if necessary.
@@ -66,14 +66,10 @@ private:
     /// \return Pointer to the end of sequence.
     T* growCheck()
     {
-        if(!m_data)
+        if(m_size >= m_capacity)
         {
-            const unsigned DEFAULT_QUEUE_CAPACITY = 4;
-            resizeInternal(DEFAULT_QUEUE_CAPACITY);
-        }
-        else if(m_size >= m_capacity)
-        {
-            resizeInternal(m_capacity * 2);
+            const unsigned DEFAULT_CAPACITY = 4;
+            resizeInternal(max(m_capacity * 2u, DEFAULT_CAPACITY));
         }
 
         unsigned ins = boundsCheck(m_first + m_size);

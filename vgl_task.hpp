@@ -7,6 +7,9 @@
 namespace vgl
 {
 
+/// Task function prototype.
+using TaskFunc = void* (*)(void*);
+
 /// Task abstraction.
 ///
 /// Virtual base class.
@@ -16,13 +19,55 @@ private:
     /// Pointer to internal fence state to release if set.
     detail::FenceData* m_fence_data = nullptr;
 
-protected:
-    /// Default constructor.
-    explicit Task() = default;
+    /// Function pointer to be executed.
+    TaskFunc m_func;
+
+    /// Parameter to the function pointer.
+    void* m_params;
+
+private:
+    /// Deleted copy constructor.
+    Task(const Task&) = delete;
+    /// Deleted assignment.
+    Task& operator=(const Task&) = delete;
+
+public:
+    /// Constructor.
+    ///
+    /// \param func Function for execution.
+    /// \param params Parameters to the function.
+    explicit Task(TaskFunc func, void* params) :
+        m_func(func),
+        m_params(params)
+    {
+    }
+
+    /// Constructor.
+    ///
+    /// \param fence Fence data.
+    /// \param func Function for execution.
+    /// \param params Parameters to the function.
+    explicit Task(detail::FenceData* fence, TaskFunc func, void* params) :
+        m_fence_data(fence),
+        m_func(func),
+        m_params(params)
+    {
+    }
+
+    /// Move constructor.
+    ///
+    /// \param op Source task.
+    Task(Task&& op) :
+        m_fence_data(op.m_fence_data),
+        m_func(op.m_func),
+        m_params(op.m_params)
+    {
+        op.m_fence_data = nullptr;
+    }
 
 public:
     /// Destructor.
-    virtual ~Task()
+    ~Task()
     {
         if(m_fence_data)
         {
@@ -31,70 +76,38 @@ public:
     }
 
 public:
-    /// Setter.
-    ///
-    /// \param op Pointer to fence data.
-    constexpr void setFenceData(detail::FenceData* op)
-    {
-        m_fence_data = op;
-    }
-
     /// Execute function.
-    void execute()
-    {
-        executeImpl();
-    }
-
-protected:
-    /// Virtual execute function.
-    virtual void executeImpl() = 0;
-};
-
-namespace detail
-{
-
-/// Specialized task parameters.
-template<typename T> class TaskImpl : public Task
-{
-private:
-    /// Parameters.
-    T m_params;
-
-private:
-    /// Deleted copy constructor.
-    TaskImpl(const TaskImpl&) = delete;
-    /// Deleted assignment.
-    TaskImpl& operator=(const TaskImpl&) = delete;
-
-public:
-    /// Constructor.
     ///
-    /// \param op Source.
-    constexpr TaskImpl(const T& op) :
-        m_params(op)
+    /// \return Pointer to function that was executed.
+    TaskFunc operator()()
     {
-    }
-
-    /// Move constructor.
-    ///
-    /// \param op Source.
-    constexpr TaskImpl(T&& op) :
-        m_params(move(op))
-    {
+        void* ret = m_func(this);
+        if(m_fence_data)
+        {
+            m_fence_data->setReturnValue(ret);
+        }
+#if defined(USE_LD)
+        else if(ret)
+        {
+            BOOST_THROW_EXCEPTION(std::runtime_error("task return value was not handled"));
+        }
+#endif
+        return m_func;
     }
 
 public:
-    /// execute() implemetation.
-    void executeImpl() override
+    /// Move operator.
+    ///
+    /// \param op Source task.
+    Task& operator=(Task&& op)
     {
-        m_params();
+        m_fence_data = op.m_fence_data;
+        m_func = op.m_func;
+        m_params = op.m_params;
+        op.m_fence_data = nullptr;
+        return *this;
     }
 };
-
-}
-
-/// Task unique pointer type.
-using TaskUptr = unique_ptr<Task>;
 
 }
 

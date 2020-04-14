@@ -1,6 +1,7 @@
 #ifndef VGL_VECTOR_HPP
 #define VGL_VECTOR_HPP
 
+#include "vgl_algorithm.hpp"
 #include "vgl_realloc.hpp"
 #include "vgl_utility.hpp"
 
@@ -125,14 +126,10 @@ private:
     /// \return Pointer to the end of sequence.
     T* growCheck()
     {
-        if(!m_data)
+        if(m_size >= m_capacity)
         {
-            const unsigned DEFAULT_VECTOR_CAPACITY = 4;
-            resizeInternal(DEFAULT_VECTOR_CAPACITY);
-        }
-        else if(m_size >= m_capacity)
-        {
-            resizeInternal(m_capacity * 2);
+            const unsigned DEFAULT_CAPACITY = 4;
+            resizeInternal(max(m_capacity * 2u, DEFAULT_CAPACITY));
         }
 
         // Return 
