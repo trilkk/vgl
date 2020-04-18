@@ -159,7 +159,7 @@ private:
     }
 
     /// Thread function.
-    void threadFunc()
+    int threadFunc()
     {
         ScopedLock sl(*m_mutex);
 
@@ -184,6 +184,8 @@ private:
                 m_tasks_any.wait(sl);
             }
         }
+
+        return 0;
     }
 
 public:
@@ -320,9 +322,7 @@ private:
     /// \param op Pointer to task queue.
     static int task_thread_func(void* op)
     {
-        TaskDispatcher* task_queue = static_cast<TaskDispatcher*>(op);
-        task_queue->threadFunc();
-        return 0;
+        return static_cast<TaskDispatcher*>(op)->threadFunc();
     }
 };
 

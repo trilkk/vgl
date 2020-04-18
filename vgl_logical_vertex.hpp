@@ -4,6 +4,10 @@
 #include "vgl_logical_face.hpp"
 #include "vgl_vector.hpp"
 
+#if defined(USE_LD)
+#include "vgl_bitset.hpp"
+#endif
+
 namespace vgl
 {
 
@@ -313,6 +317,60 @@ public:
             (m_color == rhs.m_color) &&
             (m_bone_ref == rhs.m_bone_ref) &&
             almost_equal(m_texcoord, rhs.m_texcoord);
+    }
+
+    /// Write this vertex into a mesh.
+    ///
+    /// \param op Mesh to write to.
+#if defined(USE_LD)
+    bitset<GeometryChannel::COUNT>
+#else
+        void
+#endif
+        write(Mesh& op) const
+    {
+#if defined(USE_LD)
+        bitset<GeometryChannel::COUNT> ret(GeometryChannel::POSITION);
+#endif
+        op.write(POSITION, m_position);
+
+        if(m_normal)
+        {
+            op.write(NORMAL, *m_normal);
+#if defined(USE_LD)
+            ret.set(GeometryChannel::NORMAL);
+#endif
+        }
+
+        if(m_texcoord)
+        {
+            op.write(TEXCOORD, *m_texcoord);
+#if defined(USE_LD)
+            ret.set(GeometryChannel::TEXCOORD);
+#endif
+        }
+
+        if(m_color)
+        {
+            op.write(COLOR, *m_color);
+#if defined(USE_LD)
+            ret.set(GeometryChannel::COLOR);
+#endif
+        }
+
+        if(m_bone_ref)
+        {
+            op.write(BONE_REF, m_bone_ref->getReference());
+            op.write(BONE_WEIGHT, m_bone_ref->getWeight());
+#if defined(USE_LD)
+            ret.set(GeometryChannel::BONE_REF);
+            ret.set(GeometryChannel::BONE_WEIGHT);
+#endif
+        }
+
+#if defined(USE_LD)
+        return ret;
+#endif
     }
 
 public:

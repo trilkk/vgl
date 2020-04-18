@@ -59,7 +59,7 @@ public:
 
     /// Move constructor.
     ///
-    /// \param op Source vector.
+    /// \param op Source object.
     constexpr vector(vector<T>&& op) noexcept :
         m_data(op.m_data),
         m_size(op.m_size),
@@ -151,14 +151,14 @@ public:
     /// Iterator to the beginning.
     ///
     /// \return Iterator.
-    constexpr iterator begin() const
+    constexpr iterator begin() const noexcept
     {
         return m_data;
     }
     /// Iterator to the beginning.
     ///
     /// \return Iterator.
-    constexpr const_iterator cbegin() const
+    constexpr const_iterator cbegin() const noexcept
     {
         return m_data;
     }
@@ -166,14 +166,14 @@ public:
     /// Iterator to the end.
     ///
     /// \return Iterator.
-    constexpr iterator end() const
+    constexpr iterator end() const noexcept
     {
         return m_data + m_size;
     }
     /// Iterator to the end.
     ///
     /// \return Iterator.
-    constexpr const_iterator cend() const
+    constexpr const_iterator cend() const noexcept
     {
         return m_data + m_size;
     }
@@ -217,7 +217,7 @@ public:
     /// Accessor.
     ///
     /// \return Current capacity.
-    constexpr unsigned capacity() const
+    constexpr unsigned capacity() const noexcept
     {
         return m_capacity;
     }
@@ -225,14 +225,14 @@ public:
     /// Accessor.
     ///
     /// \return Pointer to data.
-    constexpr T* data()
+    constexpr T* data() noexcept
     {
         return m_data;
     }
     /// Const accessor.
     ///
     /// \return Pointer to data.
-    constexpr const T* data() const
+    constexpr const T* data() const noexcept
     {
         return m_data;
     }
@@ -240,7 +240,7 @@ public:
     /// Tell if the sequence is empty.
     ///
     /// \return True if yes, false if no.
-    constexpr bool empty() const
+    constexpr bool empty() const noexcept
     {
         return (m_size == 0);
     }
@@ -366,9 +366,37 @@ public:
         return m_data[idx];
     }
 
+    /// Equals operator.
+    ///
+    /// \param op Other vector.
+    constexpr bool operator==(const vector<T>& op) const noexcept
+    {
+        if(size() != op.size())
+        {
+            return false;
+        }
+
+        for(iterator ii = cbegin(), jj = op.cbegin(), ee = cend(); (ii != ee); ++ii, ++jj)
+        {
+            if(*ii != *jj)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+    /// Not equals operator.
+    ///
+    /// \param op Other vector.
+    constexpr bool operator!=(const vector<T>& op) const noexcept
+    {
+        return !(*this == op);
+    }
+
     /// Move operator.
     ///
-    /// \param op Source vector.
+    /// \param op Source object.
     /// \return This object.
     constexpr vector<T>& operator=(vector<T>&& op) noexcept
     {
@@ -384,7 +412,7 @@ public:
     /// Truth value operator.
     ///
     /// \return True if sequence is not empty.
-    constexpr operator bool() const
+    constexpr operator bool() const noexcept
     {
         return (0 < m_size);
     }

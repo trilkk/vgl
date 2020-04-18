@@ -282,8 +282,46 @@ public:
             }
         }
 
-        // TODO: create the actual mesh from this data
-        return nullptr;
+        Fence ret = task_dispatch_main(Mesh::create, this);
+        return MeshUptr(static_cast<Mesh*>(ret.getReturnValue()));
+    }
+
+    /// Create a mesh from the data in this logical mesh.
+    ///
+    /// \return Pointer to new mesh.
+    Mesh* createMesh()
+    {        
+        Mesh* ret = new Mesh();
+
+        /// Write vertex data.
+        {
+#if defined(USE_LD)
+            bitset<LogicalVertex::CHANNEL_COUNT> channels;
+#endif
+
+            for(auto& vertex : m_vertices)
+            {
+#if defined(USE_LD)
+                bitset<Mesh::CHANNEL_COUNT> written =
+#endif
+                    vertex.write(*ret);
+#if defined(USE_LD)
+                if(channels && (channels != written))
+                {
+                    BOOST_THROW_EXCEPTION(std::runtime_error("channel mismatch between vertices"));
+                }
+#endif
+            }
+        }
+        
+        for(auto& face : m_faces)
+        {
+            face.write(*ret);
+        }
+
+        // Update to GPU before returning.
+        ret->update();
+        return ret;
     }
 
     /// Accessor.
@@ -342,6 +380,15 @@ public:
     unsigned getLogicalVertexCount() const
     {
         return static_cast<unsigned>(m_vertices.size());
+    }
+
+private:
+    /// Export a mesh from this logical mesh.
+    ///
+    /// \param op Pointer to logical mesh.
+    static void* create_mesh(void* op)
+    {
+        return static_cast<LogicalMesh*>(op)->createMesh();
     }
 
 public:
