@@ -2,6 +2,7 @@
 #define VGL_MESH_DATA_HPP
 
 #include "vgl_buffer.hpp"
+#include "vgl_geometry_handle.hpp"
 #include "vgl_vec2.hpp"
 #include "vgl_vec3.hpp"
 #include "vgl_uvec4.hpp"
@@ -9,39 +10,47 @@
 namespace vgl
 {
 
+/// \cond
+class MeshData;
+/// \endcond
+
 namespace detail
 {
+
+/// \cond
+void geometry_handle_update_mesh_data(const GeometryHandle&, const MeshData&);
+/// \endcond
 
 /// Different vertex data channels in a mesh.
 enum GeometryChannel
 {
     /// Channel ID for position.
-    POSITION = 0;
+    POSITION = 0,
 
     /// Channel ID for normal.
-    NORMAL = 1;
+    NORMAL = 1,
 
     /// Channel ID for texture coordinates.
-    TEXCOORD = 2;
+    TEXCOORD = 2,
 
     /// Channel ID for color.
-    COLOR = 3;
+    COLOR = 3,
 
     /// Channel ID for bone ref.
-    BONE_REF = 4;
+    BONE_REF = 4,
 
     /// Channel ID for bone weight.
-    BONE_WEIGHT = 5;
+    BONE_WEIGHT = 5,
 
     /// Channel count.
-    COUNT = 6;
+    COUNT = 6,
 };
 
 /// Returns the number of elements in a geometry channel.
 ///
 /// \param op Channel ID.
 /// \return Number of elements.
-GLint geometry_channel_size(GeometryChannel op)
+constexpr GLint geometry_channel_size(GeometryChannel op)
 {
     switch(op)
     {
@@ -55,7 +64,7 @@ GLint geometry_channel_size(GeometryChannel op)
     case COLOR:
     case BONE_REF:
     case BONE_WEIGHT:
-#if defined(USE_LD)
+#if !defined(USE_LD)
     default:
 #endif
         return 4;
@@ -72,7 +81,7 @@ GLint geometry_channel_size(GeometryChannel op)
 ///
 /// \param op Channel ID.
 /// \return Element type.
-GLenum geometry_channel_type(GeometryChannel op)
+constexpr GLenum geometry_channel_type(GeometryChannel op)
 {
     switch(op)
     {
@@ -84,7 +93,7 @@ GLenum geometry_channel_type(GeometryChannel op)
     case COLOR:
     case BONE_REF:
     case BONE_WEIGHT:
-#if defined(USE_LD)
+#if !defined(USE_LD)
     default:
 #endif
         return GL_UNSIGNED_BYTE;
@@ -94,6 +103,7 @@ GLenum geometry_channel_type(GeometryChannel op)
         BOOST_THROW_EXCEPTION(std::runtime_error("no element count defined for channel " +
                     std::to_string(static_cast<int>(op))));
 #endif
+    }
 }
 
 }
@@ -107,7 +117,7 @@ public:
     {
     private:
         /// Semantic.
-        const GeopmetryChannel m_semantic;
+        const detail::GeometryChannel m_semantic;
 
         /// Number of elements in this channel.
         const GLint m_element_count;
@@ -123,7 +133,7 @@ public:
         ///
         /// \param channel Channel ID.
         /// \param offset Offset of the channel.
-        constexpr explicit ChannelInfo(GeometryChannel channel, unsigned offset) noexcept :
+        constexpr explicit ChannelInfo(detail::GeometryChannel channel, unsigned offset) noexcept :
             m_semantic(channel),
             m_element_count(detail::geometry_channel_size(channel)),
             m_type(detail::geometry_channel_type(channel)),
@@ -135,9 +145,29 @@ public:
         /// Accessor.
         ///
         /// \return Semantic.
-        constexpr GeometryChannel getSemantic() const
+        constexpr detail::GeometryChannel getSemantic() const noexcept
         {
             return m_semantic;
+        }
+
+    public:
+        /// Equals operator.
+        ///
+        /// \param op Other channel info.
+        constexpr bool operator==(const ChannelInfo& op) const noexcept
+        {
+            return (m_semantic == op.m_semantic) &&
+                (m_element_count == op.m_element_count) &&
+                (m_type == op.m_type) &&
+                (m_offset == op.m_offset);
+        }
+
+        /// Not equals operator.
+        ///
+        /// \param op Other channel info.
+        constexpr bool operator!=(const ChannelInfo& op) const noexcept
+        {
+            return !(*this == op);
         }
     };
 
@@ -161,13 +191,36 @@ public:
     /// Default constructor.
     constexpr explicit MeshData() noexcept = default;
 
+    /// Copy constructor.
+    ///
+    /// \param op Source mesh data.
+    MeshData(const MeshData& op) :
+        m_stride(op.m_stride),
+        m_vertex_count(op.m_vertex_count)
+    {
+        for(const auto& vv : op.m_vertex_data)
+        {
+            m_vertex_data.push_back(vv);
+        }
+
+        for(const auto& vv : op.m_index_data)
+        {
+            m_index_data.push_back(vv);
+        }
+
+        for(const auto& vv : op.m_channels)
+        {
+            m_channels.push_back(vv);
+        }
+    }
+
 private:
-    /// Expand data with the size of a type and write it.
+    /// Expand data with the size of a type.
     ///
     /// \return Pointer to where the value can be written.
-    template<typename T> void expand()
+    template<typename T> T* expand()
     {
-        while(unsigned ii = 0; (ii < sizeof(T)); ++ii)
+        for(unsigned ii = 0; (ii < sizeof(T)); ++ii)
         {
             m_vertex_data.push_back(0u);
         }
@@ -186,7 +239,7 @@ private:
     ///
     /// \param channel Channel to set.
     /// \param offset Offset into the channel.
-    void setChannel(GeometryChannel channel, unsigned offset)
+    void setChannel(detail::GeometryChannel channel, unsigned offset)
     {
         for(const auto& vv : m_channels)
         {
@@ -228,7 +281,7 @@ public:
     /// \param op Other mesh data.
     constexpr bool matches(const MeshData& op) const noexcept
     {
-        return (m_channels == op.m_channels) && (m_stride == op.stride);
+        return (m_channels == op.m_channels) && (m_stride == op.m_stride);
     }
 
     /// End vertex input.
@@ -255,36 +308,36 @@ public:
     ///
     /// \param channel Associated channel.
     /// \param data Geometry data.
-    void write(GeometryChannel channel, const vec2& data)
+    void write(detail::GeometryChannel channel, const vec2& data)
     {
         setChannel(channel, getVertexOffset());
-        writeInternal(op[0]);
-        writeInternal(op[1]);
+        writeInternal(data[0]);
+        writeInternal(data[1]);
     }
 
     /// Write vertex data with semantic.
     ///
     /// \param channel Associated channel.
     /// \param data Geometry data.
-    void write(GeometryChannel channel, const vec3& op)
+    void write(detail::GeometryChannel channel, const vec3& data)
     {
         setChannel(channel, getVertexOffset());
-        writeInternal(op[0]);
-        writeInternal(op[1]);
-        writeInternal(op[2]);
+        writeInternal(data[0]);
+        writeInternal(data[1]);
+        writeInternal(data[2]);
     }
 
     /// Write vertex data with semantic.
     ///
     /// \param channel Associated channel.
     /// \param data Geometry data.
-    void write(GeometryChannel channel, const uvec4& op)
+    void write(detail::GeometryChannel channel, const uvec4& data)
     {
         setChannel(channel, getVertexOffset());
-        writeInternal(op[0]);
-        writeInternal(op[1]);
-        writeInternal(op[3]);
-        writeInternal(op[4]);
+        writeInternal(data[0]);
+        writeInternal(data[1]);
+        writeInternal(data[2]);
+        writeInternal(data[3]);
     }
 
     /// Append another mesh data block into this.
@@ -307,7 +360,7 @@ public:
 
         for(const auto& vv : op.m_index_data)
         {
-            m_index_data.push_back(vv + index_offset);
+            m_index_data.push_back(static_cast<uint16_t>(vv + index_offset));
         }
     }
 
@@ -327,6 +380,14 @@ public:
     void update(const VertexBuffer& vertex_buffer, unsigned vertex_offset) const
     {
         vertex_buffer.update(m_vertex_data, vertex_offset);
+    }
+
+    /// Update to GPU.
+    ///
+    /// \param op Handle describing update location.
+    void update(const GeometryHandle& op) const
+    {
+        detail::geometry_handle_update_mesh_data(op, *this);
     }
 };
 

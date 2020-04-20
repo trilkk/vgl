@@ -91,8 +91,17 @@ public:
     /// Constructor.
     ///
     /// \param op Initial value.
-    constexpr explicit bitset(uint32_t op) :
+    constexpr explicit bitset(int op) :
         m_data(static_cast<uint32_t>(op))
+    {
+        assertData();
+    }
+
+    /// Constructor.
+    ///
+    /// \param op Initial value.
+    constexpr explicit bitset(uint32_t op) :
+        m_data(op)
     {
         assertData();
     }
@@ -104,7 +113,7 @@ private:
     constexpr void accessCheck(unsigned idx) const
     {
 #if defined(USE_LD) && defined(DEBUG)
-        if(idx >= m_size)
+        if(idx >= N)
         {
             std::ostringstream sstr;
             sstr << "accessing bit index " << idx << " from " << N << "-bit set";
@@ -135,9 +144,9 @@ private:
     constexpr void assertData() const
     {
 #if defined(USE_LD) && defined(DEBUG)
-        if(m_data & (!mask))
+        if(m_data & (!mask()))
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("bitset value " + std::to_string(op) +
+            BOOST_THROW_EXCEPTION(std::runtime_error("bitset value " + std::to_string(m_data) +
                         " has bits outside " + std::to_string(N) + "-bit range"));
         }
 #endif
@@ -157,7 +166,7 @@ public:
     /// \return True if any bit is set.
     constexpr bool any() const
     {
-        return (m_data != 0)
+        return (m_data != 0);
     }
 
     /// Checks if the bitset is empty.
@@ -189,7 +198,7 @@ public:
     /// \param idx Index.
     constexpr bitset<N>& flip(unsigned idx)
     {
-        m_data ^= static_cast<uint32_t>(1) << m_index;
+        m_data ^= static_cast<uint32_t>(1) << idx;
         return *this;
     }
 
@@ -277,7 +286,7 @@ private:
     /// Gets the number of bits the bitset can hold.
     ///
     /// \return The template variable the bitset was constructed with.
-    constexpr static unsigned size() const
+    constexpr static unsigned size()
     {
         return N;
     }

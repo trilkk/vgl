@@ -3,74 +3,10 @@
 
 #include "vgl_buffer.hpp"
 #include "vgl_mesh_data.hpp"
+#include "vgl_unique_ptr.hpp"
 
 namespace vgl
 {
-
-namespace detail
-{
-
-/// Geometry handle.
-///
-/// Contains a reference to geometry buffer and data index within for reuploading data.
-class GeometryHandle
-{
-private:
-    /// Geometry buffer used.
-    GeometryBuffer& m_geometry_buffer;
-
-    /// Offset into the geometry buffer (bytes, for updating data).
-    unsigned m_vertex_offset;
-
-    /// Offset into the index buffer (elements, for drawing).
-    unsigned m_index_offset;
-
-public:
-    /// Constructor.
-    ///
-    /// \param buffer Geometry buffer.
-    /// \param vertex_offset Vertex buffer offset.
-    /// \param index_offset Index buffer offset.
-    constexpr explicit GeometryHandle(GeometryBuffer& buffer, unsigned vertex_offset, unsigned index_offset) noexcept :
-        m_geometry_buffer(buffer),
-        m_vertex_offset(vertex_offset)
-        m_index_offset(index_offset)
-    {
-    }
-
-public:
-    /// Accessor.
-    ///
-    /// \return Geometry buffer.
-    constexpr GeometryBuffer& getBuffer() const noexcept
-    {
-        return m_geometry_buffer;
-    }
-
-    /// Accessor.
-    ///
-    /// \return Offset into buffer.
-    constexpr unsigned getVertexOffset() const noexcept
-    {
-        return m_vertex_offset;
-    }
-
-    /// Accessor.
-    ///
-    /// \return Offset into buffer.
-    constexpr unsigned getIndexOffset() const noexcept
-    {
-        return m_index_offset;
-    }
-
-    /// Update mesh data by this geometry buffer handle.
-    void update(const MeshData& op) const
-    {
-        op.update(buffer.getVertexBuffer(), m_vertex_offset);
-    }
-};
-
-}
 
 /// Geometry buffer.
 ///
@@ -96,7 +32,7 @@ public:
     /// Implicitly uploads to GPU.
     ///
     /// \param op Mesh data to construct from.
-    explicit GepometryBuffer(const MeshData& op) :
+    explicit GeometryBuffer(const MeshData& op) :
         m_data(op)
     {
         update();
@@ -106,7 +42,7 @@ private:
     /// Append mesh data into the mesh data in this, and immediately upload to GPU.
     ///
     /// \param op Mesh data to append.
-    GeometryHandle append(const MeshData& op)
+    GeometryHandle appendInternal(const MeshData& op)
     {
         GeometryHandle ret(*this, m_data.getVertexOffset(), m_data.getIndexOffset());
         m_data.append(op);
@@ -121,6 +57,14 @@ private:
     }
 
 public:
+    /// Accessor.
+    ///
+    /// \return Reference to internal vertex buffer.
+    constexpr VertexBuffer& getVertexBuffer()
+    {
+        return m_vertex_buffer;
+    }
+
     /// Try to append given mesh data into this buffer.
     ///
     /// \param op Mesh data to attempt.
@@ -135,9 +79,26 @@ public:
         {
             return nullopt;
         }
-        return m_data.append(op);
+        return appendInternal(op);
     }
 };
+
+/// Geometry buffer unique pointer type.
+using GeometryBufferUptr = unique_ptr<GeometryBuffer>;
+
+namespace detail
+{
+
+/// Update mesh data into GPU as described by geometry handle.
+///
+/// \param handle Handle into GPU data.
+/// \param mesh_data Mesh data being updated.
+void geometry_handle_update_mesh_data(const GeometryHandle& handle, const MeshData& mesh_data)
+{
+    mesh_data.update(handle.getBuffer().getVertexBuffer(), handle.getVertexOffset());
+}
+
+}
 
 }
 

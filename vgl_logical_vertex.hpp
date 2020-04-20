@@ -2,6 +2,7 @@
 #define VGL_LOGICAL_VERTEX_HPP
 
 #include "vgl_logical_face.hpp"
+#include "vgl_mesh.hpp"
 #include "vgl_vector.hpp"
 
 #if defined(USE_LD)
@@ -323,48 +324,48 @@ public:
     ///
     /// \param op Mesh to write to.
 #if defined(USE_LD)
-    bitset<GeometryChannel::COUNT>
+    bitset<static_cast<unsigned>(detail::GeometryChannel::COUNT)>
 #else
         void
 #endif
         write(Mesh& op) const
     {
 #if defined(USE_LD)
-        bitset<GeometryChannel::COUNT> ret(GeometryChannel::POSITION);
+        bitset<detail::GeometryChannel::COUNT> ret(detail::GeometryChannel::POSITION);
 #endif
-        op.write(POSITION, m_position);
+        op.write(detail::GeometryChannel::POSITION, m_position);
 
         if(m_normal)
         {
-            op.write(NORMAL, *m_normal);
+            op.write(detail::GeometryChannel::NORMAL, *m_normal);
 #if defined(USE_LD)
-            ret.set(GeometryChannel::NORMAL);
+            ret.set(detail::GeometryChannel::NORMAL);
 #endif
         }
 
         if(m_texcoord)
         {
-            op.write(TEXCOORD, *m_texcoord);
+            op.write(detail::GeometryChannel::TEXCOORD, *m_texcoord);
 #if defined(USE_LD)
-            ret.set(GeometryChannel::TEXCOORD);
+            ret.set(detail::GeometryChannel::TEXCOORD);
 #endif
         }
 
         if(m_color)
         {
-            op.write(COLOR, *m_color);
+            op.write(detail::GeometryChannel::COLOR, *m_color);
 #if defined(USE_LD)
-            ret.set(GeometryChannel::COLOR);
+            ret.set(detail::GeometryChannel::COLOR);
 #endif
         }
 
         if(m_bone_ref)
         {
-            op.write(BONE_REF, m_bone_ref->getReference());
-            op.write(BONE_WEIGHT, m_bone_ref->getWeight());
+            op.write(detail::GeometryChannel::BONE_REF, m_bone_ref->getReferences());
+            op.write(detail::GeometryChannel::BONE_WEIGHT, m_bone_ref->getWeights());
 #if defined(USE_LD)
-            ret.set(GeometryChannel::BONE_REF);
-            ret.set(GeometryChannel::BONE_WEIGHT);
+            ret.set(detail::GeometryChannel::BONE_REF);
+            ret.set(detail::GeometryChannel::BONE_WEIGHT);
 #endif
         }
 

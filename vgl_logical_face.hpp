@@ -2,9 +2,7 @@
 #define VGL_LOGICAL_FACE_HPP
 
 #include "vgl_array.hpp"
-#include "vgl_optional.hpp"
-#include "vgl_vec2.hpp"
-#include "vgl_uvec4.hpp"
+#include "vgl_mesh.hpp"
 
 namespace vgl
 {
@@ -244,7 +242,7 @@ public:
     /// \return True if quad, false if triangle.
     constexpr bool isQuad() const
     {
-        return (4 <= m_num_corners);
+        return (m_num_corners >= 4);
     }
 
     /// Replace vertex index.
@@ -302,6 +300,31 @@ public:
             return false;
         }
         return true;
+    }
+
+    /// Write face data to mesh.
+    ///
+    /// \param op Target mesh.
+    void write(Mesh& op) const
+    {
+#if defined(USE_LD)
+        if((m_num_corners != 3) && (m_num_corners != 4))
+        {
+            BOOST_THROW_EXCEPTION(std::runtime_error("don't know how to write face with " +
+                        std::to_string(m_num_corners) + " corners"));
+        }
+#endif
+        op.write(static_cast<uint16_t>(m_indices[0]));
+        op.write(static_cast<uint16_t>(m_indices[1]));
+        op.write(static_cast<uint16_t>(m_indices[2]));
+
+        // Write another triangle if this is a quad.
+        if(isQuad())
+        {
+            op.write(static_cast<uint16_t>(m_indices[2]));
+            op.write(static_cast<uint16_t>(m_indices[3]));
+            op.write(static_cast<uint16_t>(m_indices[0]));
+        }
     }
 
 public:

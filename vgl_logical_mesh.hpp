@@ -282,7 +282,7 @@ public:
             }
         }
 
-        Fence ret = task_dispatch_main(Mesh::create, this);
+        Fence ret = task_wait_main(create_mesh, this);
         return MeshUptr(static_cast<Mesh*>(ret.getReturnValue()));
     }
 
@@ -296,13 +296,13 @@ public:
         /// Write vertex data.
         {
 #if defined(USE_LD)
-            bitset<LogicalVertex::CHANNEL_COUNT> channels;
+            bitset<detail::GeometryChannel::COUNT> channels;
 #endif
 
             for(auto& vertex : m_vertices)
             {
 #if defined(USE_LD)
-                bitset<Mesh::CHANNEL_COUNT> written =
+                bitset<detail::GeometryChannel::COUNT> written =
 #endif
                     vertex.write(*ret);
 #if defined(USE_LD)

@@ -250,7 +250,7 @@ public:
     /// \return Current size in bytes.
     constexpr unsigned getSizeBytes() const
     {
-        return m_size * sizeof(T);
+        return static_cast<unsigned>(m_size * sizeof(T));
     }
 
     /// Accessor.
@@ -376,7 +376,7 @@ public:
             return false;
         }
 
-        for(iterator ii = cbegin(), jj = op.cbegin(), ee = cend(); (ii != ee); ++ii, ++jj)
+        for(const_iterator ii = cbegin(), jj = op.cbegin(), ee = cend(); (ii != ee); ++ii, ++jj)
         {
             if(*ii != *jj)
             {

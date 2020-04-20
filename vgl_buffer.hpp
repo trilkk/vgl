@@ -10,19 +10,19 @@ namespace detail
 {
 
 /// Currently bound vertex buffer ID.
-detail::g_current_vertex_buffer = 0;
+GLuint g_current_vertex_buffer = 0;
 
 /// Currently bound index buffer ID.
-detail::g_current_index_buffer = 0;
+GLuint g_current_index_buffer = 0;
 
 /// Updates bound buffer ID.
 ///
 /// \param op Buffer ID.
 /// \return True if ID was changed.
-template<GLenum BufferType> update_bound_buffer(GLuint op);
+template<GLenum BufferType> bool update_bound_buffer(GLuint op);
 
 /// \cond
-template<> update_bound_buffer<GL_ARRAY_BUFFER>(GLuint op)
+template<> bool update_bound_buffer<GL_ARRAY_BUFFER>(GLuint op)
 {
     if(g_current_vertex_buffer == op)
     {
@@ -34,7 +34,7 @@ template<> update_bound_buffer<GL_ARRAY_BUFFER>(GLuint op)
 /// \endcond
 
 /// \cond
-template<> update_bound_buffer<GL_ELEMENT_ARRAY_BUFFER>(GLuint op)
+template<> bool update_bound_buffer<GL_ELEMENT_ARRAY_BUFFER>(GLuint op)
 {
     if(g_current_index_buffer == op)
     {
@@ -62,7 +62,7 @@ private:
     /// Deleted assignment.
     Buffer& operator=(const Buffer&) = delete;
 
-protected:
+public:
     /// Constructor.
     Buffer()
     {
@@ -96,7 +96,7 @@ public:
     /// Update data to GPU.
     ///
     /// \param op Data to update.
-    template<typename T> void update(const vector<T>& op)
+    template<typename T> void update(const vector<T>& op) const
     {
         bind();
         dnload_glBufferData(BufferType, op.getSizeBytes(), op.data(), GL_STATIC_DRAW);
@@ -107,13 +107,19 @@ public:
     ///
     /// \param data Data to update.
     /// \param offset Offset to update into.
-    template<typename T> void update(const vector<T>& data, unsigned offset)
+    template<typename T> void update(const vector<T>& data, unsigned offset) const
     {
         bind();
-        dnload_glBufferSubData(BufferType, offset, op.getSizeBytes(), op.data());
+        dnload_glBufferSubData(BufferType, offset, data.getSizeBytes(), data.data());
 
     }
 };
+
+/// Specialization of Buffer.
+using VertexBuffer = Buffer<GL_ARRAY_BUFFER>;
+
+/// Specialization of Buffer.
+using IndexBuffer = Buffer<GL_ELEMENT_ARRAY_BUFFER>;
 
 }
 
