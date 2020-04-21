@@ -61,7 +61,7 @@ public:
     ///
     /// \param op Input data.
     /// \return This object.
-    basic_string_view& operator=(const basic_string_view<T>& op)
+    basic_string_view& operator=(const basic_string_view<T>& op) noexcept
     {
         base_type::m_data = op.m_data;
         base_type::m_length = op.m_length;
@@ -72,14 +72,52 @@ public:
     ///
     /// \param op Source object.
     /// \return This object.
-    basic_string_view& operator=(basic_string_view<T>&& op)
+    basic_string_view& operator=(basic_string_view<T>&& op) noexcept
     {
         base_type::m_data = op.m_data;
         base_type::m_length = op.m_length;
         return *this;
     }
+
+    /// Equals operator.
+    ///
+    /// \param op Other string data.
+    /// \return True if equal, false otherwise.
+    bool operator==(const basic_string_view<T>& op) const noexcept
+    {
+        return internal_string_data_equals(*this, op);
+    }
+
+    /// Not equals operator.
+    ///
+    /// \param op Other string data.
+    /// \return True if not equal, false otherwise.
+    bool operator!=(const basic_string_view<T>& op) const noexcept
+    {
+        return !(*this == op);
+    }
 };
 
+}
+
+/// Equals operator for string and string view.
+///
+/// \param lhs Left-hand-side operand.
+/// \param rhs Right-hand-side operand.
+/// \return True if equal, false otherwise.
+template<typename T> bool operator==(const detail::basic_string<T>& lhs, const detail::basic_string_view<T>& rhs)
+{
+    return detail::internal_string_data_equals(lhs, rhs);
+}
+
+/// Not equals operator for string and string view.
+///
+/// \param lhs Left-hand-side operand.
+/// \param rhs Right-hand-side operand.
+/// \return True if not equal, false otherwise.
+template<typename T> bool operator!=(const detail::basic_string<T>& lhs, const detail::basic_string_view<T>& rhs)
+{
+    return !(lhs == rhs);
 }
 
 /// String view type definition.

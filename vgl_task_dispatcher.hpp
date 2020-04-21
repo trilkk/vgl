@@ -273,11 +273,20 @@ public:
         return Fence(data);
     }
 
+    /// Signal fence data (from locked context.
+    ///
+    /// \param op Fence data.
+    void signalFence(detail::FenceData& op)
+    {
+        ScopedLock sl(*m_mutex);
+        op.signal();
+    }
+
     /// Wait on a fence internal state.
     ///
     /// \param op Fence data.
     /// \return Stored return value from the fence.
-    void* wait(detail::FenceData* op)
+    void* waitFence(detail::FenceData* op)
     {
         ScopedLock sl(*m_mutex);
 
@@ -329,12 +338,20 @@ private:
 /// Queue for tasks.
 TaskDispatcher g_task_dispatcher;
 
+/// Internal signal of fence data.
+///
+/// \param op Fence data.
+void internal_fence_data_signal(detail::FenceData& op)
+{
+    g_task_dispatcher.signalFence(op);
+}
+
 /// Internal wait for fence data on the task dispatcher.
 ///
 /// \param op Fence data.
 void* internal_fence_data_wait(detail::FenceData* op)
 {
-    return g_task_dispatcher.wait(op);
+    return g_task_dispatcher.waitFence(op);
 }
 
 }

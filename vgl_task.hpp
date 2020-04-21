@@ -7,6 +7,15 @@
 namespace vgl
 {
 
+namespace detail
+{
+
+/// \cond
+void internal_fence_data_signal(detail::FenceData&);
+/// \endcond
+
+}
+
 /// Task function prototype.
 using TaskFunc = void* (*)(void*);
 
@@ -69,9 +78,10 @@ public:
     /// Destructor.
     ~Task()
     {
+        // Mutexes are recursive, so it's safe to lock just for signalling.
         if(m_fence_data)
         {
-            m_fence_data->signal();
+            detail::internal_fence_data_signal(*m_fence_data);
         }
     }
 
@@ -81,7 +91,7 @@ public:
     /// \return Pointer to function that was executed.
     TaskFunc operator()()
     {
-        void* ret = m_func(this);
+        void* ret = m_func(m_params);
         if(m_fence_data)
         {
             m_fence_data->setReturnValue(ret);

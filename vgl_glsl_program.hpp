@@ -3,12 +3,133 @@
 
 #include "vgl_glsl_shader.hpp"
 #include "vgl_utility.hpp"
+#include "vgl_vec3.hpp"
+#include "vgl_vector.hpp"
 
 namespace vgl
 {
 
 namespace detail
 {
+
+/// Glsl name <-> locatioin pair.
+class GlslLocation
+{
+protected:
+    /// Name of the uniform.
+    string m_name;
+
+    /// Location
+    GLint m_location;
+
+protected:
+    /// Constructor.
+    ///
+    /// \param name Name for the location info.
+    /// \param location Location.
+    explicit GlslLocation(string_view name, GLint location) :
+        m_name(name),
+        m_location(location)
+    {
+    }
+
+public:
+    /// Accessor.
+    ///
+    /// \return Name.
+    constexpr const string& getName() const
+    {
+        return m_name;
+    }
+
+    /// Accessor.
+    ///
+    /// \return Location.
+    constexpr GLint getLocation() const
+    {
+        return m_location;
+    }
+
+#if defined(USE_LD)
+    /// Is this location entry valid?
+    ///
+    /// \return True if location >= 0, false otherwise.
+    constexpr bool isValid() const
+    {
+        return (m_location >= 0);
+    }
+#endif
+};
+
+/// GLSL attribute info.
+class GlslAttribute : public GlslLocation
+{
+public:
+    /// Constructor.
+    ///
+    /// \param program Program to look from.
+    /// \param name Name for the location info.
+    explicit GlslAttribute(GLuint program, string_view name) :
+        GlslLocation(name, lookup(program, name))
+    {
+    }
+
+private:
+    /// Do lookup for given name.
+    ///
+    /// \param program Program to look from.
+    /// \param name Name for the location info.
+    static GLint lookup(GLuint program, string_view name)
+    {
+        return dnload_glGetAttribLocation(program, name.data());
+    }
+
+public:
+#if defined(USE_LD)
+    /// Refresh name
+    ///
+    /// \param op Program ID to refresh for.
+    void refresh(GLuint op)
+    {
+        m_location = lookup(op, m_name);
+    }
+#endif
+};
+
+/// GLSL uniform info.
+class GlslUniform : public GlslLocation
+{
+public:
+    /// Constructor.
+    ///
+    /// \param program Program to look from.
+    /// \param name Name for the location info.
+    explicit GlslUniform(GLuint program, string_view name) :
+        GlslLocation(name, lookup(program, name))
+    {
+    }
+
+private:
+    /// Do lookup for given name.
+    ///
+    /// \param program Program to look from.
+    /// \param name Name for the location info.
+    static GLint lookup(GLuint program, string_view name)
+    {
+        return dnload_glGetUniformLocation(program, name.data());
+    }
+
+public:
+#if defined(USE_LD)
+    /// Refresh name
+    ///
+    /// \param op Program ID to refresh for.
+    void refresh(GLuint op)
+    {
+        m_location = lookup(op, m_name);
+    }
+#endif
+};
 
 #if defined(USE_LD)
 /// Get program info log.
@@ -56,6 +177,12 @@ private:
     /// Fragment shader.
     GlslShader m_frag;
 
+    /// Uniform mapping.
+    vector<detail::GlslAttribute> m_attributes;
+
+    /// Uniform mapping.
+    vector<detail::GlslUniform> m_uniforms;
+
     /// Program ID.
     GLuint m_id = 0;
 
@@ -89,25 +216,6 @@ public:
     ~GlslProgram()
     {
         destruct();
-    }
-
-private:
-    /// Link the program.
-    static GLuint link(GLuint vert, GLuint frag)
-    {
-        GLuint id = dnload_glCreateProgram();
-        dnload_glAttachShader(id, vert);
-        dnload_glAttachShader(id, frag);
-        dnload_glLinkProgram(id);
-#if defined(USE_LD)
-        if(!detail::get_program_link_status(id))
-        {
-            std::cout << detail::get_program_info_log(id);
-            glDeleteShader(id);
-            return 0;
-        }
-#endif
-        return id;
     }
 
 private:
@@ -156,6 +264,87 @@ private:
         return m_frag;
     }
 
+private:
+    /// Link the program.
+    static GLuint link(GLuint vert, GLuint frag)
+    {
+        GLuint id = dnload_glCreateProgram();
+        dnload_glAttachShader(id, vert);
+        dnload_glAttachShader(id, frag);
+        dnload_glLinkProgram(id);
+#if defined(USE_LD)
+        if(!detail::get_program_link_status(id))
+        {
+            std::cout << detail::get_program_info_log(id);
+            glDeleteShader(id);
+            return 0;
+        }
+#endif
+        return id;
+    }
+
+    /// Get an attribute location.
+    ///
+    /// \param name Name to check.
+    GLint getAttribLocation(string_view name)
+    {
+        for(const auto& vv : m_attributes)
+        {
+            if(vv.getName() == name)
+            {
+                return vv.getLocation();
+            }
+        }
+        m_attributes.emplace_back(m_id, name);
+        detail::GlslAttribute& ret = m_attributes.back();
+#if defined(USE_LD)
+        if(!ret.isValid())
+        {
+            std::cerr << "WARNING: program " << m_id << " has no attribute " << name.data() << std::endl;
+        }
+#endif
+        return ret.getLocation();
+    }
+
+    /// Get an uniform location.
+    ///
+    /// \param name Name to check.
+    GLint getUniformLocation(string_view name)
+    {
+        for(const auto& vv : m_uniforms)
+        {
+            if(vv.getName() == name)
+            {
+                return vv.getLocation();
+            }
+        }
+        m_uniforms.emplace_back(m_id, name);
+        detail::GlslUniform& ret = m_uniforms.back();
+#if defined(USE_LD)
+        if(!ret.isValid())
+        {
+            std::cerr << "WARNING: program " << m_id << " has no uniform " << name.data() << std::endl;
+        }
+#endif
+        return ret.getLocation();
+    }
+
+#if defined(USE_LD)
+    /// Refresh attribute and uniform locations.
+    void refreshLocations()
+    {
+        for(auto& vv : m_attributes)
+        {
+            vv.refresh(m_id);
+        }
+
+        for(auto& vv : m_uniforms)
+        {
+            vv.refresh(m_id);
+        }
+    }
+#endif
+
 public:
     /// Accessor.
     ///
@@ -163,23 +352,6 @@ public:
     constexpr GLuint getId() const
     {
         return m_id;
-    }
-
-    /// Gets the uniform location for given uniform in this program.
-    ///
-    /// \param op Name of the uniform.
-    /// \return Uniform location.
-    GLint getUniformLocation(const char* op) const
-    {
-        return dnload_glGetUniformLocation(m_id, op);
-    }
-    /// Gets the uniform location for given uniform in this program.
-    ///
-    /// \param op Name of the uniform.
-    /// \return Uniform location.
-    GLint getUniformLocation(string_view op) const
-    {
-        return getUniformLocation(op.data());
     }
 
     /// Bind for use.
@@ -223,9 +395,25 @@ public:
         m_vert.recompile();
         m_frag.recompile();
         linkCheck();
-        return (m_id != 0);
+        if(m_id != 0)
+        {
+            refreshLocations();
+            return true;
+        }
+        return false;
     }
 #endif
+
+public:
+    /// Feed uniform to the program.
+    ///
+    /// \param ptr Pointer to uniform data.
+    /// \param count Number of entries.
+    void uniform(string_view name, const vec3* ptr, unsigned count)
+    {
+        GLint location = getUniformLocation(name);
+        dnload_glUniform3fv(location, count, ptr->data());
+    }
 
 public:
     /// Move operator.

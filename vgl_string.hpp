@@ -201,6 +201,33 @@ public:
 #endif
 };
 
+/// Internal comparison operation for string data.
+///
+/// \param lhs Left-hand-side operand.
+/// \param rhs Left-hand-side operand.
+template<typename L, typename R> bool internal_string_data_equals(const string_data<L>& lhs, const string_data<R>& rhs)
+{
+    if(lhs.length() != rhs.length())
+    {
+        return false;
+    }
+
+    typename string_data<L>::const_iterator ii = lhs.cbegin();
+    const typename string_data<L>::const_iterator ee = lhs.cbegin();
+    typename string_data<R>::const_iterator jj = rhs.cbegin();
+    while(ii != ee)
+    {
+        if(*ii != *jj)
+        {
+            return false;
+        }
+        ++ii;
+        ++jj;
+    }
+
+    return true;
+}
+
 /// Templated string replacement.
 template<typename T> class basic_string : public string_data<T>
 {
