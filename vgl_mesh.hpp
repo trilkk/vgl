@@ -57,7 +57,7 @@ public:
     ///
     /// \param channel Associated channel.
     /// \param data Geometry data.
-    void write(detail::GeometryChannel channel, const vec2& data)
+    void write(GeometryChannel channel, const vec2& data)
     {
         m_data.write(channel, data);
     }
@@ -66,7 +66,7 @@ public:
     ///
     /// \param channel Associated channel.
     /// \param data Geometry data.
-    void write(detail::GeometryChannel channel, const vec3& data)
+    void write(GeometryChannel channel, const vec3& data)
     {
         m_data.write(channel, data);
     }
@@ -75,7 +75,7 @@ public:
     ///
     /// \param channel Associated channel.
     /// \param data Geometry data.
-    void write(detail::GeometryChannel channel, const uvec4& data)
+    void write(GeometryChannel channel, const uvec4& data)
     {
         m_data.write(channel, data);
     }

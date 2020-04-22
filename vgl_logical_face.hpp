@@ -36,7 +36,26 @@ private:
     /// Block within the mesh.
     unsigned m_block = 0;
 
+private:
+    /// Deleted copy constructor.
+    LogicalFace(const LogicalFace&) = delete;
+    /// Deleted assignment.
+    LogicalFace& operator=(const LogicalFace&) = delete;
+
 public:
+    /// Constructor.
+    ///
+    /// \param c1 First corner point.
+    /// \param c2 Second corner point.
+    /// \param c3 Third corner point.
+    /// \param flat Is the face flat?
+    explicit constexpr LogicalFace(unsigned c1, unsigned c2, unsigned c3, bool flat = false) noexcept :
+        m_num_corners(3),
+        m_indices{c1, c2, c3, 0u},
+        m_flat(flat)
+    {
+    }
+
     /// Constructor.
     ///
     /// \param c1 First corner point.
@@ -44,8 +63,8 @@ public:
     /// \param c3 Third corner point.
     /// \param col Face color.
     /// \param flat Is the face flat?
-    explicit LogicalFace(unsigned c1, unsigned c2, unsigned c3, const optional<uvec4>& col = nullopt,
-            bool flat = false) :
+    explicit constexpr LogicalFace(unsigned c1, unsigned c2, unsigned c3, const uvec4& col,
+            bool flat = false) noexcept :
         m_num_corners(3),
         m_indices{c1, c2, c3, 0u},
         m_color(col),
@@ -61,10 +80,28 @@ public:
     /// \param tc2 Second texcoord.
     /// \param c3 Third corner point.
     /// \param tc3 Third texcoord.
+    /// \param flat Is the face flat?
+    explicit constexpr LogicalFace(unsigned c1, const vec2& tc1, unsigned c2, const vec2& tc2, unsigned c3,
+            const vec2& tc3, bool flat = false) noexcept :
+        m_num_corners(3),
+        m_indices{c1, c2, c3, 0u},
+        m_texcoords(array<vec2, 4>{tc1, tc2, tc3, vec2(0.0f, 0.0f)}),
+        m_flat(flat)
+    {
+    }
+
+    /// Constructor.
+    ///
+    /// \param c1 First corner point.
+    /// \param tc1 First texcoord.
+    /// \param c2 Second corner point.
+    /// \param tc2 Second texcoord.
+    /// \param c3 Third corner point.
+    /// \param tc3 Third texcoord.
     /// \param col Face color.
     /// \param flat Is the face flat?
-    explicit LogicalFace(unsigned c1, const vec2& tc1, unsigned c2, const vec2& tc2, unsigned c3,
-            const vec2& tc3, const optional<uvec4>& col = nullopt, bool flat = false) :
+    explicit constexpr LogicalFace(unsigned c1, const vec2& tc1, unsigned c2, const vec2& tc2, unsigned c3,
+            const vec2& tc3, const uvec4& col, bool flat = false) noexcept :
         m_num_corners(3),
         m_indices{c1, c2, c3, 0u},
         m_texcoords(array<vec2, 4>{tc1, tc2, tc3, vec2(0.0f, 0.0f)}),
@@ -79,10 +116,24 @@ public:
     /// \param c2 Second corner point.
     /// \param c3 Third corner point.
     /// \param c4 Fourth corner point.
+    /// \param flat Is the face flat?
+    explicit constexpr LogicalFace(unsigned c1, unsigned c2, unsigned c3, unsigned c4, bool flat = false) noexcept :
+        m_num_corners(4),
+        m_indices{c1, c2, c3, c4},
+        m_flat(flat)
+    {
+    }
+
+    /// Constructor.
+    ///
+    /// \param c1 First corner point.
+    /// \param c2 Second corner point.
+    /// \param c3 Third corner point.
+    /// \param c4 Fourth corner point.
     /// \param col Face color.
     /// \param flat Is the face flat?
-    explicit LogicalFace(unsigned c1, unsigned c2, unsigned c3, unsigned c4,
-            const optional<uvec4>& col = nullopt, bool flat = false) :
+    explicit constexpr LogicalFace(unsigned c1, unsigned c2, unsigned c3, unsigned c4, const uvec4& col,
+            bool flat = false) noexcept :
         m_num_corners(4),
         m_indices{c1, c2, c3, c4},
         m_color(col),
@@ -100,15 +151,49 @@ public:
     /// \param tc3 Third texcoord.
     /// \param c4 Fourth corner point
     /// \param tc4 Fourth corner point
+    /// \param flat Is the face flat?
+    explicit constexpr LogicalFace(unsigned c1, const vec2& tc1, unsigned c2, const vec2& tc2, unsigned c3,
+            const vec2& tc3, unsigned c4, const vec2& tc4, bool flat = false) noexcept :
+        m_num_corners(4),
+        m_indices{c1, c2, c3, c4},
+        m_texcoords(array<vec2, 4>{tc1, tc2, tc3, tc4}),
+        m_flat(flat)
+    {
+    }
+
+    /// Constructor.
+    ///
+    /// \param c1 First corner point.
+    /// \param tc1 First texcoord.
+    /// \param c2 Second corner point.
+    /// \param tc2 Second texcoord.
+    /// \param c3 Third corner point.
+    /// \param tc3 Third texcoord.
+    /// \param c4 Fourth corner point
+    /// \param tc4 Fourth corner point
     /// \param col Face color.
     /// \param flat Is the face flat?
-    explicit LogicalFace(unsigned c1, const vec2& tc1, unsigned c2, const vec2& tc2, unsigned c3,
-            const vec2& tc3, unsigned c4, const vec2& tc4, const optional<uvec4>& col = nullopt, bool flat = false) :
+    explicit constexpr LogicalFace(unsigned c1, const vec2& tc1, unsigned c2, const vec2& tc2, unsigned c3,
+            const vec2& tc3, unsigned c4, const vec2& tc4, const uvec4& col, bool flat = false) noexcept :
         m_num_corners(4),
         m_indices{c1, c2, c3, c4},
         m_texcoords(array<vec2, 4>{tc1, tc2, tc3, tc4}),
         m_color(col),
         m_flat(flat)
+    {
+    }
+
+    /// Move constructor.
+    ///
+    /// \param op Source face.
+    constexpr LogicalFace(LogicalFace&& op) :
+        m_num_corners(op.m_num_corners),
+        m_indices(op.m_indices),
+        m_texcoords(op.m_texcoords),
+        m_color(op.m_color),
+        m_normal(op.m_normal),
+        m_flat(op.m_flat),
+        m_block(op.m_block)
     {
     }
 
@@ -135,6 +220,12 @@ private:
       /// \param idx Index to remove.
       constexpr void removeCorner(unsigned idx)
       {
+#if defined(USE_LD) && defined(DEBUG)
+          if(m_num_corners <= 3)
+          {
+              BOOST_THROW_EXCEPTION(std::runtime_error("cannot degrade triangle by removing a corner"));
+          }
+#endif
           --m_num_corners;
           for(unsigned ii = idx; (ii < m_num_corners); ++ii)
           {
@@ -146,7 +237,7 @@ public:
     /// Accessor.
     ///
     /// \return Face color.
-    constexpr optional<uvec4> getColor() const
+    constexpr optional<uvec4> getColor() const noexcept
     {
         return m_color;
     }
@@ -164,14 +255,14 @@ public:
     /// Accessor.
     ///
     /// \return Normal vector.
-    constexpr vec3 getNormal() const
+    constexpr vec3 getNormal() const noexcept
     {
         return m_normal;
     }
     /// Setter.
     ///
     /// \param op Normal vector.
-    constexpr void setNormal(const vec3& op)
+    constexpr void setNormal(const vec3& op) noexcept
     {
         m_normal = op;
     }
@@ -179,7 +270,7 @@ public:
     /// Accessor.
     ///
     /// \return Corner count.
-    constexpr unsigned getNumCorners() const
+    constexpr unsigned getNumCorners() const noexcept
     {
         return m_num_corners;
     }
@@ -200,7 +291,7 @@ public:
     /// Setter.
     ///
     /// \param op Texture coordinate to set on all vertices.
-    constexpr void setTexcoord(const vec2& op)
+    constexpr void setTexcoord(const vec2& op) noexcept
     {
         m_texcoords = array<vec2, 4>{op, op, op, op};
     }
@@ -211,7 +302,7 @@ public:
     ///
     /// \param idx Vertex index.
     /// \return Texcoord for given vertex or nullopt.
-    constexpr optional<vec2> getTexcoordForVertex(unsigned idx)
+    constexpr optional<vec2> getTexcoordForVertex(unsigned idx) noexcept
     {
         if(!m_texcoords)
         {
@@ -232,7 +323,7 @@ public:
     /// Tell if the face is flat.
     ///
     /// \return True if flat, false if gouraud.
-    constexpr bool isFlat() const
+    constexpr bool isFlat() const noexcept
     {
         return m_flat;
     }
@@ -240,7 +331,7 @@ public:
     /// Tell if the face is a quad.
     ///
     /// \return True if quad, false if triangle.
-    constexpr bool isQuad() const
+    constexpr bool isQuad() const noexcept
     {
         return (m_num_corners >= 4);
     }
@@ -326,6 +417,25 @@ public:
             op.write(static_cast<uint16_t>(m_indices[0]));
         }
     }
+
+public:
+    /// Move operator.
+    ///
+    /// \param op Source face.
+    /// \return This object.
+    constexpr LogicalFace& operator=(LogicalFace&& op) noexcept
+    {
+        m_num_corners = op.m_num_corners;
+        m_indices = op.m_indices;
+        m_texcoords = op.m_texcoords;
+        m_color = op.m_color;
+        m_normal = op.m_normal;
+        m_flat = op.m_flat;
+        m_block = op.m_block;
+        return *this;
+    }
+
+
 
 public:
 #if defined(USE_LD)

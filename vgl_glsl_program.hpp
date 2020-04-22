@@ -1,6 +1,7 @@
 #ifndef VGL_GLSL_PROGRAM_HPP
 #define VGL_GLSL_PROGRAM_HPP
 
+#include "vgl_geometry_channel.hpp"
 #include "vgl_glsl_shader.hpp"
 #include "vgl_utility.hpp"
 #include "vgl_vec3.hpp"
@@ -17,7 +18,7 @@ class GlslLocation
 {
 protected:
     /// Name of the uniform.
-    string m_name;
+    string_view m_name;
 
     /// Location
     GLint m_location;
@@ -27,7 +28,7 @@ protected:
     ///
     /// \param name Name for the location info.
     /// \param location Location.
-    explicit GlslLocation(string_view name, GLint location) :
+    explicit GlslLocation(const char* name, GLint location) :
         m_name(name),
         m_location(location)
     {
@@ -37,7 +38,7 @@ public:
     /// Accessor.
     ///
     /// \return Name.
-    constexpr const string& getName() const
+    constexpr string_view getName() const noexcept
     {
         return m_name;
     }
@@ -45,7 +46,7 @@ public:
     /// Accessor.
     ///
     /// \return Location.
-    constexpr GLint getLocation() const
+    constexpr GLint getLocation() const noexcept
     {
         return m_location;
     }
@@ -54,7 +55,7 @@ public:
     /// Is this location entry valid?
     ///
     /// \return True if location >= 0, false otherwise.
-    constexpr bool isValid() const
+    constexpr bool isValid() const noexcept
     {
         return (m_location >= 0);
     }
@@ -64,13 +65,18 @@ public:
 /// GLSL attribute info.
 class GlslAttribute : public GlslLocation
 {
+private:
+    /// Channel semantic.
+    GeometryChannel m_channel;
+
 public:
     /// Constructor.
     ///
     /// \param program Program to look from.
     /// \param name Name for the location info.
-    explicit GlslAttribute(GLuint program, string_view name) :
-        GlslLocation(name, lookup(program, name))
+    explicit GlslAttribute(GLuint program, GeometryChannel channel, const char* name) :
+        GlslLocation(name, lookup(program, name)),
+        m_channel(channel)
     {
     }
 
@@ -79,19 +85,27 @@ private:
     ///
     /// \param program Program to look from.
     /// \param name Name for the location info.
-    static GLint lookup(GLuint program, string_view name)
+    static GLint lookup(GLuint program, const char* name)
     {
-        return dnload_glGetAttribLocation(program, name.data());
+        return dnload_glGetAttribLocation(program, name);
     }
 
 public:
+    /// Accessor.
+    ///
+    /// \return Channel semantic.
+    constexpr GeometryChannel getChannel() const noexcept
+    {
+        return m_channel;
+    }
+
 #if defined(USE_LD)
     /// Refresh name
     ///
     /// \param op Program ID to refresh for.
     void refresh(GLuint op)
     {
-        m_location = lookup(op, m_name);
+        m_location = lookup(op, m_name.data());
     }
 #endif
 };
@@ -104,7 +118,7 @@ public:
     ///
     /// \param program Program to look from.
     /// \param name Name for the location info.
-    explicit GlslUniform(GLuint program, string_view name) :
+    explicit GlslUniform(GLuint program, const char* name) :
         GlslLocation(name, lookup(program, name))
     {
     }
@@ -114,9 +128,9 @@ private:
     ///
     /// \param program Program to look from.
     /// \param name Name for the location info.
-    static GLint lookup(GLuint program, string_view name)
+    static GLint lookup(GLuint program, const char* name)
     {
-        return dnload_glGetUniformLocation(program, name.data());
+        return dnload_glGetUniformLocation(program, name);
     }
 
 public:
@@ -126,7 +140,7 @@ public:
     /// \param op Program ID to refresh for.
     void refresh(GLuint op)
     {
-        m_location = lookup(op, m_name);
+        m_location = lookup(op, m_name.data());
     }
 #endif
 };
@@ -285,48 +299,39 @@ private:
 
     /// Get an attribute location.
     ///
-    /// \param name Name to check.
-    GLint getAttribLocation(string_view name)
+    /// \param op Channel semantic.
+    GLint getAttribLocation(GeometryChannel op)
     {
         for(const auto& vv : m_attributes)
         {
-            if(vv.getName() == name)
+            if(vv.getChannel() == op)
             {
                 return vv.getLocation();
             }
         }
-        m_attributes.emplace_back(m_id, name);
-        detail::GlslAttribute& ret = m_attributes.back();
 #if defined(USE_LD)
-        if(!ret.isValid())
-        {
-            std::cerr << "WARNING: program " << m_id << " has no attribute " << name.data() << std::endl;
-        }
+        std::cerr << "WARNING: program " << m_id << " has no attribute for semantic '" << to_string(op) << "'" <<
+            std::endl;
 #endif
-        return ret.getLocation();
+        return -1;
     }
 
     /// Get an uniform location.
     ///
-    /// \param name Name to check.
-    GLint getUniformLocation(string_view name)
+    /// \param op Name.
+    GLint getUniformLocation(string_view op)
     {
         for(const auto& vv : m_uniforms)
         {
-            if(vv.getName() == name)
+            if(vv.getName() == op)
             {
                 return vv.getLocation();
             }
         }
-        m_uniforms.emplace_back(m_id, name);
-        detail::GlslUniform& ret = m_uniforms.back();
 #if defined(USE_LD)
-        if(!ret.isValid())
-        {
-            std::cerr << "WARNING: program " << m_id << " has no uniform " << name.data() << std::endl;
-        }
+        std::cerr << "WARNING: program " << m_id << " has no uniform " << op << std::endl;
 #endif
-        return ret.getLocation();
+        return -1;
     }
 
 #if defined(USE_LD)
@@ -352,6 +357,47 @@ public:
     constexpr GLuint getId() const
     {
         return m_id;
+    }
+
+    /// Add an attribute.
+    ///
+    /// \param channel Semantic channel associated with the attribute.
+    /// \param name Name of the attribute.
+    void addAttribute(GeometryChannel channel, const char* name)
+    {
+#if defined(USE_LD) && defined(DEBUG)
+        for(const auto& vv : m_attributes)
+        {
+            if(vv.getChannel() == channel)
+            {
+                BOOST_THROW_EXCEPTION(std::runtime_error("trying to add multiple channels of of type " +
+                            to_string(channel) + " into the same program"));
+            }
+        }
+#endif
+        m_attributes.emplace_back(m_id, channel, name);
+#if defined(USE_LD)
+        if(!m_attributes.back().isValid())
+        {
+            BOOST_THROW_EXCEPTION(std::runtime_error("cannot add uniform " + std::string(name) + " to program " +
+                       std::to_string(m_id)));
+        }
+#endif
+    }
+
+    /// Add an uniform.
+    ///
+    /// \param name Name of the uniform.
+    void addUniform(const char* name)
+    {
+        m_uniforms.emplace_back(m_id, name);
+#if defined(USE_LD)
+        if(!m_attributes.back().isValid())
+        {
+            BOOST_THROW_EXCEPTION(std::runtime_error("cannot add uniform " + std::string(name) + " to program " +
+                       std::to_string(m_id)));
+        }
+#endif
     }
 
     /// Bind for use.

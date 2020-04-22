@@ -20,7 +20,7 @@ protected:
 
 protected:
     /// Empty constructor.
-    explicit vec()
+    constexpr explicit vec()
     {
     }
 

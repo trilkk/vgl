@@ -104,7 +104,7 @@ public:
     /// Constructor.
     ///
     /// \param pos Position.
-    constexpr explicit LogicalVertex(const vec3 &pos) :
+    constexpr explicit LogicalVertex(const vec3& pos) :
         m_position(pos)
     {
     }
@@ -324,48 +324,48 @@ public:
     ///
     /// \param op Mesh to write to.
 #if defined(USE_LD)
-    bitset<static_cast<unsigned>(detail::GeometryChannel::COUNT)>
+    bitset<static_cast<unsigned>(GeometryChannel::COUNT)>
 #else
         void
 #endif
         write(Mesh& op) const
     {
 #if defined(USE_LD)
-        bitset<detail::GeometryChannel::COUNT> ret(detail::GeometryChannel::POSITION);
+        bitset<GeometryChannel::COUNT> ret(GeometryChannel::POSITION);
 #endif
-        op.write(detail::GeometryChannel::POSITION, m_position);
+        op.write(GeometryChannel::POSITION, m_position);
 
         if(m_normal)
         {
-            op.write(detail::GeometryChannel::NORMAL, *m_normal);
+            op.write(GeometryChannel::NORMAL, *m_normal);
 #if defined(USE_LD)
-            ret.set(detail::GeometryChannel::NORMAL);
+            ret.set(GeometryChannel::NORMAL);
 #endif
         }
 
         if(m_texcoord)
         {
-            op.write(detail::GeometryChannel::TEXCOORD, *m_texcoord);
+            op.write(GeometryChannel::TEXCOORD, *m_texcoord);
 #if defined(USE_LD)
-            ret.set(detail::GeometryChannel::TEXCOORD);
+            ret.set(GeometryChannel::TEXCOORD);
 #endif
         }
 
         if(m_color)
         {
-            op.write(detail::GeometryChannel::COLOR, *m_color);
+            op.write(GeometryChannel::COLOR, *m_color);
 #if defined(USE_LD)
-            ret.set(detail::GeometryChannel::COLOR);
+            ret.set(GeometryChannel::COLOR);
 #endif
         }
 
         if(m_bone_ref)
         {
-            op.write(detail::GeometryChannel::BONE_REF, m_bone_ref->getReferences());
-            op.write(detail::GeometryChannel::BONE_WEIGHT, m_bone_ref->getWeights());
+            op.write(GeometryChannel::BONE_REF, m_bone_ref->getReferences());
+            op.write(GeometryChannel::BONE_WEIGHT, m_bone_ref->getWeights());
 #if defined(USE_LD)
-            ret.set(detail::GeometryChannel::BONE_REF);
-            ret.set(detail::GeometryChannel::BONE_WEIGHT);
+            ret.set(GeometryChannel::BONE_REF);
+            ret.set(GeometryChannel::BONE_WEIGHT);
 #endif
         }
 

@@ -2,6 +2,7 @@
 #define VGL_MESH_DATA_HPP
 
 #include "vgl_buffer.hpp"
+#include "vgl_geometry_channel.hpp"
 #include "vgl_geometry_handle.hpp"
 #include "vgl_vec2.hpp"
 #include "vgl_vec3.hpp"
@@ -21,91 +22,6 @@ namespace detail
 void geometry_handle_update_mesh_data(const GeometryHandle&, const MeshData&);
 /// \endcond
 
-/// Different vertex data channels in a mesh.
-enum GeometryChannel
-{
-    /// Channel ID for position.
-    POSITION = 0,
-
-    /// Channel ID for normal.
-    NORMAL = 1,
-
-    /// Channel ID for texture coordinates.
-    TEXCOORD = 2,
-
-    /// Channel ID for color.
-    COLOR = 3,
-
-    /// Channel ID for bone ref.
-    BONE_REF = 4,
-
-    /// Channel ID for bone weight.
-    BONE_WEIGHT = 5,
-
-    /// Channel count.
-    COUNT = 6,
-};
-
-/// Returns the number of elements in a geometry channel.
-///
-/// \param op Channel ID.
-/// \return Number of elements.
-constexpr GLint geometry_channel_size(GeometryChannel op)
-{
-    switch(op)
-    {
-    case POSITION:
-    case NORMAL:
-        return 3;
-
-    case TEXCOORD:
-        return 2;
-
-    case COLOR:
-    case BONE_REF:
-    case BONE_WEIGHT:
-#if !defined(USE_LD)
-    default:
-#endif
-        return 4;
-
-#if defined(USE_LD)
-    default:
-        BOOST_THROW_EXCEPTION(std::runtime_error("no element count defined for channel " +
-                    std::to_string(static_cast<int>(op))));
-#endif
-    }
-}
-
-/// Returns element type for a geometry channel.
-///
-/// \param op Channel ID.
-/// \return Element type.
-constexpr GLenum geometry_channel_type(GeometryChannel op)
-{
-    switch(op)
-    {
-    case POSITION:
-    case NORMAL:
-    case TEXCOORD:
-        return GL_FLOAT;
-
-    case COLOR:
-    case BONE_REF:
-    case BONE_WEIGHT:
-#if !defined(USE_LD)
-    default:
-#endif
-        return GL_UNSIGNED_BYTE;
-
-#if defined(USE_LD)
-    default:
-        BOOST_THROW_EXCEPTION(std::runtime_error("no element count defined for channel " +
-                    std::to_string(static_cast<int>(op))));
-#endif
-    }
-}
-
 }
 
 /// Mesh data that can be uploaded to a GPU.
@@ -117,7 +33,7 @@ public:
     {
     private:
         /// Semantic.
-        const detail::GeometryChannel m_semantic;
+        const GeometryChannel m_semantic;
 
         /// Number of elements in this channel.
         const GLint m_element_count;
@@ -133,7 +49,7 @@ public:
         ///
         /// \param channel Channel ID.
         /// \param offset Offset of the channel.
-        constexpr explicit ChannelInfo(detail::GeometryChannel channel, unsigned offset) noexcept :
+        constexpr explicit ChannelInfo(GeometryChannel channel, unsigned offset) noexcept :
             m_semantic(channel),
             m_element_count(detail::geometry_channel_size(channel)),
             m_type(detail::geometry_channel_type(channel)),
@@ -145,7 +61,7 @@ public:
         /// Accessor.
         ///
         /// \return Semantic.
-        constexpr detail::GeometryChannel getSemantic() const noexcept
+        constexpr GeometryChannel getSemantic() const noexcept
         {
             return m_semantic;
         }
@@ -239,7 +155,7 @@ private:
     ///
     /// \param channel Channel to set.
     /// \param offset Offset into the channel.
-    void setChannel(detail::GeometryChannel channel, unsigned offset)
+    void setChannel(GeometryChannel channel, unsigned offset)
     {
         for(const auto& vv : m_channels)
         {
@@ -308,7 +224,7 @@ public:
     ///
     /// \param channel Associated channel.
     /// \param data Geometry data.
-    void write(detail::GeometryChannel channel, const vec2& data)
+    void write(GeometryChannel channel, const vec2& data)
     {
         setChannel(channel, getVertexOffset());
         writeInternal(data[0]);
@@ -319,7 +235,7 @@ public:
     ///
     /// \param channel Associated channel.
     /// \param data Geometry data.
-    void write(detail::GeometryChannel channel, const vec3& data)
+    void write(GeometryChannel channel, const vec3& data)
     {
         setChannel(channel, getVertexOffset());
         writeInternal(data[0]);
@@ -331,7 +247,7 @@ public:
     ///
     /// \param channel Associated channel.
     /// \param data Geometry data.
-    void write(detail::GeometryChannel channel, const uvec4& data)
+    void write(GeometryChannel channel, const uvec4& data)
     {
         setChannel(channel, getVertexOffset());
         writeInternal(data[0]);

@@ -15,7 +15,7 @@ private:
 
 public:
     /// Default constructor.
-    explicit vec2() = default;
+    constexpr explicit vec2() = default;
 
     /// Initialize with single float.
     ///
