@@ -1,9 +1,11 @@
 #ifndef VGL_MESH_DATA_HPP
 #define VGL_MESH_DATA_HPP
 
+#include "vgl_bitset.hpp"
 #include "vgl_buffer.hpp"
-#include "vgl_geometry_channel.hpp"
 #include "vgl_geometry_handle.hpp"
+#include "vgl_glsl_program.hpp"
+#include "vgl_state.hpp"
 #include "vgl_vec2.hpp"
 #include "vgl_vec3.hpp"
 #include "vgl_uvec4.hpp"
@@ -42,7 +44,7 @@ public:
         const GLenum m_type;
 
         /// Offset of the channel.
-        const GLsizei m_offset;
+        const unsigned m_offset;
 
     public:
         /// Constructor.
@@ -64,6 +66,23 @@ public:
         constexpr GeometryChannel getSemantic() const noexcept
         {
             return m_semantic;
+        }
+
+        /// Bind for drawing.
+        ///
+        /// \param prog Program to bind with.
+        /// \param stride Stride for binding.
+        int bind(const GlslProgram& prog, GLsizei stride) const
+        {
+            int ret = prog.getAttribLocation(m_semantic);
+            if(ret >= 0)
+            {
+                unsigned idx = static_cast<unsigned>(ret);            
+                attrib_array_enable(idx);
+                dnload_glVertexAttribPointer(idx, m_element_count, m_type, GL_FALSE, stride,
+                        reinterpret_cast<void*>(m_offset));
+            }
+            return ret;
         }
 
     public:
@@ -170,10 +189,18 @@ private:
 public:
     /// Accessor.
     ///
-    /// \return Current index buffer offset (for next append).
-    constexpr unsigned getIndexOffset() const noexcept
+    /// \return Size of index buffer.
+    constexpr unsigned getIndexCount() const noexcept
     {
         return m_index_data.size();
+    }
+
+    /// Accessor.
+    ///
+    /// \return Offset at the end of index buffer.
+    constexpr unsigned getIndexOffset() const noexcept
+    {
+        return m_index_data.getSizeBytes();
     }
 
     /// Accessor.
@@ -278,6 +305,53 @@ public:
         {
             m_index_data.push_back(static_cast<uint16_t>(vv + index_offset));
         }
+    }
+
+    /// Bind the attributes in this mesh data.
+    ///
+    /// \param op Program to bind with.
+    void bindAttributes(const GlslProgram& op) const
+    {
+#if defined(USE_LD) && defined(DEBUG)
+        bitset<detail::MAX_ATTRIB_ARRAYS> bound_attributes;
+#else
+        unsigned disable_attribs = 0;
+#endif
+
+        for(const auto& vv : m_channels)
+        {
+            int idx = vv.bind(op, m_stride);
+            if(idx >= 0)
+            {
+#if defined(USE_LD) && defined(DEBUG)
+                bound_attributes[idx] = true;
+#else
+                disable_attribs = max(disable_attribs, static_cast<unsigned>(idx) + 1);
+#endif
+            }
+        }
+
+#if defined(USE_LD) && defined(DEBUG)
+        unsigned disable_attribs = 0;
+        optional<unsigned> disabled_location;
+        for(unsigned ii = 0; (ii < detail::MAX_ATTRIB_ARRAYS); ++ii)
+        {
+            if(bound_attributes[ii])
+            {
+                if(disabled_location)
+                {
+                    BOOST_THROW_EXCEPTION(std::runtime_error("attribute binding gap at " +
+                                std::to_string(*disabled_location)));
+                }
+                disable_attribs = ii + 1;
+            }
+            else
+            {
+                disabled_location = ii;
+            }
+        }
+#endif
+        disable_excess_attrib_arrays(disable_attribs);
     }
 
     /// Update to GPU.

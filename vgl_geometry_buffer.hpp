@@ -81,6 +81,18 @@ public:
         }
         return appendInternal(op);
     }
+
+    /// Bind this geometry buffer for drawing.
+    ///
+    /// \param op Program to bind with.
+    void bind(const GlslProgram& op) const
+    {
+        if(m_vertex_buffer.bind())
+        {
+            m_data.bindAttributes(op);
+        }
+        m_index_buffer.bind();
+    }
 };
 
 /// Geometry buffer unique pointer type.
@@ -88,6 +100,15 @@ using GeometryBufferUptr = unique_ptr<GeometryBuffer>;
 
 namespace detail
 {
+
+/// Bind a geometry buffer for rendering.
+///
+/// \param geometry_buffer Geometry buffer to bind.
+/// \param prog Program to bind with.
+void geometry_buffer_bind(const GeometryBuffer& geometry_buffer, const GlslProgram& prog)
+{
+    geometry_buffer.bind(prog);
+}
 
 /// Update mesh data into GPU as described by geometry handle.
 ///

@@ -85,12 +85,16 @@ public:
     }
 
     /// Bind this buffer.
-    void bind() const
+    ///
+    /// \return True if the buffer was bound, false if no action was necessary.
+    bool bind() const
     {
         if(detail::update_bound_buffer<BufferType>(m_id))
         {
             dnload_glBindBuffer(BufferType, m_id);
+            return true;
         }
+        return false;
     }
 
     /// Update data to GPU.

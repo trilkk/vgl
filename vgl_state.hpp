@@ -132,11 +132,11 @@ unsigned g_data_size_vertex = 0;
 
 /// Enable one vertex attribute.
 ///
-/// \param name Name to enable.
-void attrib_array_enable(GLint name)
+/// \param name op to enable.
+void attrib_array_enable(unsigned name)
 {
 #if defined(USE_LD)
-    if((detail::MAX_ATTRIB_ARRAYS <= name) || (0 > name))
+    if((detail::MAX_ATTRIB_ARRAYS <= name))
     {
         std::ostringstream sstr;
         sstr << "enabling attribute index " << name << " (" << detail::MAX_ATTRIB_ARRAYS << " supported)";

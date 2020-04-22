@@ -37,6 +37,20 @@ public:
     explicit Mesh() = default;
 
 public:
+    /// Draw the mesh.
+    ///
+    /// \param op Program to draw with.
+    void draw(const GlslProgram& op)
+    {
+#if defined(USE_LD) && defined(DEBUG)
+        if(!m_handle)
+        {
+            BOOST_THROW_EXCEPTION(std::runtime_error("cannot draw mesh with invalid geometry handle"));
+        }
+#endif
+        m_handle->draw(op, GL_TRIANGLES, m_data.getIndexCount());
+    }
+
     /// End vertex input.
     ///
     /// Called after last vertes element has been written.

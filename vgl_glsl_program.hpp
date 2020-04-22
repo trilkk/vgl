@@ -297,29 +297,10 @@ private:
         return id;
     }
 
-    /// Get an attribute location.
-    ///
-    /// \param op Channel semantic.
-    GLint getAttribLocation(GeometryChannel op)
-    {
-        for(const auto& vv : m_attributes)
-        {
-            if(vv.getChannel() == op)
-            {
-                return vv.getLocation();
-            }
-        }
-#if defined(USE_LD)
-        std::cerr << "WARNING: program " << m_id << " has no attribute for semantic '" << to_string(op) << "'" <<
-            std::endl;
-#endif
-        return -1;
-    }
-
     /// Get an uniform location.
     ///
     /// \param op Name.
-    GLint getUniformLocation(string_view op)
+    GLint getUniformLocation(string_view op) const
     {
         for(const auto& vv : m_uniforms)
         {
@@ -383,6 +364,25 @@ public:
                        std::to_string(m_id)));
         }
 #endif
+    }
+
+    /// Get an attribute location.
+    ///
+    /// \param op Channel semantic.
+    GLint getAttribLocation(GeometryChannel op) const
+    {
+        for(const auto& vv : m_attributes)
+        {
+            if(vv.getChannel() == op)
+            {
+                return vv.getLocation();
+            }
+        }
+#if defined(USE_LD)
+        std::cerr << "WARNING: program " << m_id << " has no attribute for semantic '" << to_string(op) << "'" <<
+            std::endl;
+#endif
+        return -1;
     }
 
     /// Add an uniform.

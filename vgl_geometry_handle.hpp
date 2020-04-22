@@ -8,6 +8,15 @@ namespace vgl
 class GeometryBuffer;
 /// \endcond
 
+namespace detail
+{
+
+/// \cond
+void geometry_buffer_bind(const GeometryBuffer& geometry_buffer, const GlslProgram& prog);
+/// \endcond
+
+}
+
 /// Geometry handle.
 ///
 /// Contains a reference to geometry buffer and data index within for reuploading data.
@@ -20,7 +29,7 @@ private:
     /// Offset into the geometry buffer (bytes, for updating data).
     unsigned m_vertex_offset;
 
-    /// Offset into the index buffer (elements, for drawing).
+    /// Offset into the index buffer (bytes, for drawing).
     unsigned m_index_offset;
 
 public:
@@ -59,6 +68,18 @@ public:
     constexpr unsigned getIndexOffset() const noexcept
     {
         return m_index_offset;
+    }
+
+    /// Draw from this handle.
+    ///
+    /// \param prog Program to draw with.
+    /// \param mode Mode to draw with.
+    /// \param count Number of elements to draw.
+    void draw(const GlslProgram& prog, GLenum mode, unsigned count)
+    {
+        detail::geometry_buffer_bind(m_geometry_buffer, prog);
+        dnload_glDrawElements(mode, static_cast<GLsizei>(count), GL_UNSIGNED_SHORT,
+                reinterpret_cast<void*>(m_index_offset));
     }
 };
 
