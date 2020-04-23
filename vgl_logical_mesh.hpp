@@ -49,6 +49,112 @@ private:
         return ret;
     }
 
+    /// Clones a vertex.
+    ///
+    /// \param idx Index to clone with.
+    /// \return New vertex index.
+    unsigned cloneVertex(unsigned idx)
+    {
+        unsigned ret = m_vertices.size();
+        m_vertices.push_back(m_vertices[idx].clone());
+        return ret;
+    }
+    /// Clones a vertex by index for a face.
+    ///
+    /// \param face Face to clone for.
+    /// \param idx Index of vertex to clone.
+    /// \return New index.
+    unsigned cloneVertexForFace(LogicalFace& face, unsigned idx)
+    {
+        unsigned ret = cloneVertex(idx);
+        bool success = face.replaceVertexIndex(idx, ret);
+#if defined(USE_LD)
+        if(!success)
+        {
+            BOOST_THROW_EXCEPTION(std::runtime_error("replacing a new vertex turned a face degenerate"));
+        }
+#else
+        (void)success;
+#endif
+        return ret;
+    }
+
+    /// Tells whether a vertex at given index is orphaned.
+    ///
+    /// \param op Index of the vertex.
+    /// \return True if orphaned, false if in use.
+    bool isOrphanedVertex(unsigned op)
+    {
+        for(const auto& vv : m_faces)
+        {
+            if(vv.hasVertex(op))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// Erase orphaned vertex at given index.
+    ///
+    /// \param op Vertex index.
+    void eraseOrphanedVertex(unsigned op)
+    {
+#if defined(USE_LD) && defined(DEBUG)
+        if(!isOrphanedVertex(op))
+        {
+            BOOST_THROW_EXCEPTION(std::runtime_error("cannot erase non-orphaned vertex " + std::to_string(op)));
+        }
+#endif
+        if((op + 1) < m_vertices.size())
+        {
+            m_vertices[op] = move(m_vertices.back());
+            unsigned erase_count = replaceVertexIndex(m_vertices.size() - 1, op);
+#if defined(USE_LD)
+            if(erase_count)
+            {
+                BOOST_THROW_EXCEPTION(std::runtime_error("erasing orphaned vertex turned a face degenerate"));
+            }
+#else
+            (void)erase_count;
+#endif
+        }
+        m_vertices.pop_back();
+    }
+
+    /// Replaces vertex index.
+    ///
+    /// Erases faces that become degenerate as a consequence.
+    ///
+    /// \param src Source vertex index.
+    /// \param dst Destination vertex index.
+    /// \return Number of faces erased by the process.
+    unsigned replaceVertexIndex(unsigned src, unsigned dst)
+    {
+        unsigned ret = 0;
+
+        for(unsigned ii = 0; (ii < m_faces.size());)
+        {
+            LogicalFace& face = m_faces[ii];
+
+            if(!face.replaceVertexIndex(src, dst))
+            {
+                if((ii + 1) < m_faces.size())
+                {
+                    face = move(m_faces.back());
+                }
+                m_faces.pop_back();
+                ++ret;
+            }
+            else
+            {
+                ++ii;
+            }
+        }
+
+        return ret;
+    }
+        
 public:
     /// Add face.
     ///
@@ -81,36 +187,6 @@ public:
         vec3 l2 = v2.getPosition() - v0.getPosition();
 
         face.setNormal(cross(l1, l2));
-    }
-
-    /// Clones a vertex.
-    ///
-    /// \param idx Index to clone with.
-    /// \return New vertex index.
-    unsigned cloneVertex(unsigned idx)
-    {
-        unsigned ret = m_vertices.size();
-        m_vertices.push_back(m_vertices[idx].clone());
-        return ret;
-    }
-    /// Clones a vertex by index for a face.
-    ///
-    /// \param face Face to clone for.
-    /// \param idx Index of vertex to clone.
-    /// \return New index.
-    unsigned cloneVertexForFace(LogicalFace& face, unsigned idx)
-    {
-        unsigned ret = cloneVertex(idx);
-        bool success = face.replaceVertexIndex(ret, idx);
-#if defined(USE_LD)
-        if(!success)
-        {
-            BOOST_THROW_EXCEPTION(std::runtime_error("replacing a new vertex turned face degenerate"));
-        }
-#else
-        (void)success;
-#endif
-        return ret;
     }
 
     /// Compiles the logical mesh into a mesh.
@@ -211,28 +287,34 @@ public:
             }
         }
 
-        // All vertex data is set.
+        // Loop through vertices, and remove vertices that are not used by any face.
+        for(unsigned ii = 0; (ii < m_vertices.size());)
+        {
+            if(isOrphanedVertex(ii))
+            {
+                eraseOrphanedVertex(ii);
+            }
+            else
+            {
+                ++ii;
+            }
+        }
+        
         // Loop through vertices and remove identical ones.
         for(unsigned ii = 0; (ii < m_vertices.size()); ++ii)
         {
             LogicalVertex& vertex = m_vertices[ii];
 
-            for(unsigned jj = ii + 1; (jj < m_vertices.size()); ++jj)
+            for(unsigned jj = ii + 1; (jj < m_vertices.size());)
             {
                 if(vertex.matches(m_vertices[jj]))
                 {
-                    for(unsigned kk = 0; (kk < m_faces.size()); ++kk)
-                    {
-                        LogicalFace& face = m_faces[jj];
-                        if(!face.replaceVertexIndex(ii, jj))
-                        {
-                            if((m_faces.size() - 1) > kk)
-                            {
-                                face = move(m_faces.back());
-                            }
-                            m_faces.pop_back();
-                        }
-                    }
+                    replaceVertexIndex(jj, ii);
+                    eraseOrphanedVertex(jj);
+                }
+                else
+                {
+                    ++jj;
                 }
             }
         }

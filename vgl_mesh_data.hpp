@@ -53,8 +53,8 @@ public:
         /// \param offset Offset of the channel.
         constexpr explicit ChannelInfo(GeometryChannel channel, unsigned offset) noexcept :
             m_semantic(channel),
-            m_element_count(detail::geometry_channel_size(channel)),
-            m_type(detail::geometry_channel_type(channel)),
+            m_element_count(detail::geometry_channel_element_count(channel)),
+            m_type(detail::geometry_channel_element_type(channel)),
             m_offset(offset)
         {
         }
@@ -362,6 +362,10 @@ public:
     {
         vertex_buffer.update(m_vertex_data);
         index_buffer.update(m_index_data);
+#if defined(USE_LD)
+        increment_data_size_vertex(m_vertex_data.getSizeBytes());
+        increment_data_size_index(m_index_data.getSizeBytes());
+#endif
     }
     /// Update vertex subdata GPU.
     ///

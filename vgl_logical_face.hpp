@@ -336,12 +336,28 @@ public:
         return (m_num_corners >= 4);
     }
 
+    /// Tells if the face references vertex by given index.
+    ///
+    /// \param op Vertex index.
+    /// \return True if vertex is referenced, false otherwise.
+    constexpr bool hasVertex(unsigned op) const
+    {
+        for(unsigned ii = 0; (ii < m_num_corners); ++ii)
+        {
+            if(m_indices[ii] == op)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /// Replace vertex index.
     ///
-    /// \param dst Destination index.
     /// \param src Source index.
+    /// \param dst Destination index.
     /// \return True if the face is still valid after the replace, false if not.
-    constexpr bool replaceVertexIndex(unsigned dst, unsigned src)
+    constexpr bool replaceVertexIndex(unsigned src, unsigned dst)
     {
         for(unsigned ii = 0; (ii < m_num_corners); ++ii)
         {

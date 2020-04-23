@@ -76,7 +76,7 @@ public:
         /// \return True if bitst is not empty.
         constexpr operator bool() const
         {
-            return (*m_ref)[m_index];
+            return m_ref->getInternal(m_index);
         }
     };
 
@@ -152,6 +152,23 @@ private:
 #endif
     }
 
+    /// Gets a bit value from the set.
+    ///
+    /// \param idx Bit index.
+    constexpr bool getInternal(unsigned idx)
+    {
+        accessCheck(idx);
+        return ((m_data & (static_cast<uint32_t>(idx) << idx)) != 0);
+    }
+    /// Gets a bit value from the set.
+    ///
+    /// \param idx Bit index.
+    constexpr bool getInternal(int idx)
+    {
+        accessCheck(idx);
+        return ((m_data & (static_cast<uint32_t>(idx) << idx)) != 0);
+    }
+
 public:
     /// Checks if all bits are set to true.
     ///
@@ -216,8 +233,7 @@ public:
     /// \return Element reference.
     constexpr bool operator[](unsigned idx) const
     {
-        accessCheck(idx);
-        return ((m_data & (static_cast<uint32_t>(idx) << idx)) != 0);
+        return getInternal(idx);
     }
     /// Access operator.
     ///
@@ -232,8 +248,7 @@ public:
     /// \return Element reference.
     constexpr bool operator[](int idx) const
     {
-        accessCheck(idx);
-        return ((m_data & (static_cast<uint32_t>(idx) << idx)) != 0);
+        return getInternal(idx);
     }
 
     /// AND assignment operator.

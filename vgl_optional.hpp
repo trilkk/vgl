@@ -271,7 +271,7 @@ public:
     /// Boolean operator.
     ///
     /// \return True if this optional value is populated.
-    constexpr operator bool() const
+    constexpr operator bool() const noexcept
     {
         return has_value();
     }
@@ -280,7 +280,7 @@ public:
     ///
     /// \param rhs Right-hand-side operand.
     /// \return Truth value.
-    constexpr bool operator==(const optional<T>& rhs) const
+    constexpr bool operator==(const optional<T>& rhs) const noexcept
     {
         if(has_value())
         {
@@ -300,7 +300,7 @@ public:
     ///
     /// \param rhs Right-hand-side operand.
     /// \return Truth value.
-    constexpr bool operator!=(const optional<T>& rhs) const
+    constexpr bool operator!=(const optional<T>& rhs) const noexcept
     {
         return !(*this == rhs);
     }

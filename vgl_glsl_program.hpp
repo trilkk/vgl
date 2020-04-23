@@ -378,10 +378,6 @@ public:
                 return vv.getLocation();
             }
         }
-#if defined(USE_LD)
-        std::cerr << "WARNING: program " << m_id << " has no attribute for semantic '" << to_string(op) << "'" <<
-            std::endl;
-#endif
         return -1;
     }
 

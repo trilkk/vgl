@@ -79,7 +79,7 @@ namespace detail
 ///
 /// \param op Channel ID.
 /// \return Number of elements.
-constexpr GLint geometry_channel_size(GeometryChannel op)
+constexpr GLint geometry_channel_element_count(GeometryChannel op)
 {
     switch(op)
     {
@@ -110,7 +110,7 @@ constexpr GLint geometry_channel_size(GeometryChannel op)
 ///
 /// \param op Channel ID.
 /// \return Element type.
-constexpr GLenum geometry_channel_type(GeometryChannel op)
+constexpr GLenum geometry_channel_element_type(GeometryChannel op)
 {
     switch(op)
     {

@@ -84,15 +84,15 @@ private:
     /// Normal data.
     optional<vec3> m_normal;
 
+    /// Texture coordinate data.
+    /// Assumed to be from faces.
+    optional<vec2> m_texcoord;
+
     /// Color data.
     optional<uvec4> m_color;
 
     /// Bone data.
     optional<BoneRef> m_bone_ref;
-
-    /// Texture coordinate data.
-    /// Assumed to be from faces.
-    optional<vec2> m_texcoord;
 
     /// Face listing.
     vector<LogicalFace*> m_face_references;
@@ -163,9 +163,9 @@ public:
     constexpr LogicalVertex(LogicalVertex&& op) :
         m_position(move(op.m_position)),
         m_normal(move(op.m_normal)),
+        m_texcoord(move(op.m_texcoord)),
         m_color(move(op.m_color)),
         m_bone_ref(move(op.m_bone_ref)),
-        m_texcoord(move(op.m_texcoord)),
         m_face_references(move(op.m_face_references))
     {
     }
@@ -315,9 +315,9 @@ public:
     {
         return almost_equal(m_position, rhs.m_position) &&
             almost_equal(m_normal, rhs.m_normal) &&
+            almost_equal(m_texcoord, rhs.m_texcoord) &&
             (m_color == rhs.m_color) &&
-            (m_bone_ref == rhs.m_bone_ref) &&
-            almost_equal(m_texcoord, rhs.m_texcoord);
+            (m_bone_ref == rhs.m_bone_ref);
     }
 
     /// Write this vertex into a mesh.
@@ -337,41 +337,58 @@ public:
 
         if(m_normal)
         {
-            op.write(GeometryChannel::NORMAL, *m_normal);
 #if defined(USE_LD)
             ret.set(GeometryChannel::NORMAL);
 #endif
+            op.write(GeometryChannel::NORMAL, *m_normal);
         }
 
         if(m_texcoord)
         {
-            op.write(GeometryChannel::TEXCOORD, *m_texcoord);
 #if defined(USE_LD)
             ret.set(GeometryChannel::TEXCOORD);
 #endif
+            op.write(GeometryChannel::TEXCOORD, *m_texcoord);
         }
 
         if(m_color)
         {
-            op.write(GeometryChannel::COLOR, *m_color);
 #if defined(USE_LD)
             ret.set(GeometryChannel::COLOR);
 #endif
+            op.write(GeometryChannel::COLOR, *m_color);
         }
 
         if(m_bone_ref)
         {
-            op.write(GeometryChannel::BONE_REF, m_bone_ref->getReferences());
-            op.write(GeometryChannel::BONE_WEIGHT, m_bone_ref->getWeights());
 #if defined(USE_LD)
             ret.set(GeometryChannel::BONE_REF);
             ret.set(GeometryChannel::BONE_WEIGHT);
 #endif
+            op.write(GeometryChannel::BONE_REF, m_bone_ref->getReferences());
+            op.write(GeometryChannel::BONE_WEIGHT, m_bone_ref->getWeights());
         }
+
+        op.endVertex();
 
 #if defined(USE_LD)
         return ret;
 #endif
+    }
+
+public:
+    /// Move operator.
+    ///
+    /// \param op Source vertex.
+    LogicalVertex& operator=(LogicalVertex&& op)
+    {
+        m_position = op.m_position;
+        m_normal = op.m_normal;
+        m_texcoord = op.m_texcoord;
+        m_color = op.m_color;
+        m_bone_ref = op.m_bone_ref;
+        m_face_references = move(op.m_face_references);
+        return *this;
     }
 
 public:
