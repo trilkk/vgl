@@ -1,9 +1,7 @@
-#ifndef VGL_VEC_HPP
-#define VGL_VEC_HPP
+#ifndef VGL_MAT_HPP
+#define VGL_MAT_HPP
 
-#include "vgl_array.hpp"
-#include "vgl_math.hpp"
-#include "vgl_optional.hpp"
+#include "vgl_vec.hpp"
 
 namespace vgl
 {
@@ -11,23 +9,27 @@ namespace vgl
 namespace detail
 {
 
-/// Mathematical GLSL-lookalike templated vector class.
-template<unsigned N, typename CrtpType> class vec
+/// Mathematical GLSL-lookalike templated matrix class.
+template<unsigned A, typename CrtpType> class mat
 {
-protected:
-    /// Vector data.
+public:
+    /// Number of elements (not axis).
+    static const unsigned N = A * A;
+
+private:
+    /// Matrix data.
     array<float, N> m_data;
 
 protected:
     /// Empty constructor.
-    constexpr explicit vec() noexcept
+    constexpr explicit mat()
     {
     }
 
     /// Constructor.
     ///
     /// \param op Value for all components.
-    constexpr explicit vec(float op) noexcept
+    constexpr explicit mat(float op)
     {
         for(unsigned ii = 0; (ii < N); ++ii)
         {
@@ -37,75 +39,109 @@ protected:
 
     /// Clunky initializing constructor.
     ///
-    /// \param px First element.
-    /// \param py Second element.
-    constexpr vec(float px, float py) noexcept
+    /// \param op1 First value.
+    /// \param op2 Second value.
+    /// \param op3 Third value.
+    /// \param op4 Fourth value.
+    constexpr explicit mat4(float op1, float op2, float op3, float op4)
     {
-        m_data[0u] = px;
-        m_data[1u] = py;
+        m_data[0u] = op1;
+        m_data[1u] = op2;
+        m_data[2u] = op3;
+        m_data[3u] = op4;
     }
 
     /// Clunky initializing constructor.
     ///
-    /// \param px First element.
-    /// \param py Second element.
-    /// \param pz Third element.
-    constexpr vec(float px, float py, float pz) noexcept
+    /// \param op1 First value.
+    /// \param op2 Second value.
+    /// \param op3 Third value.
+    /// \param op4 Fourth value.
+    /// \param op5 Fifth value.
+    /// \param op6 Sixth value.
+    /// \param op7 Seventh value.
+    /// \param op8 Eighth value.
+    /// \param op9 Ninth value.
+    constexpr explicit mat4(float op1, float op2, float op3, float op4, float op5, float op6, float op7, float op8,
+            float op9)
     {
-        m_data[0u] = px;
-        m_data[1u] = py;
-        m_data[2u] = pz;
+        m_data[0u] = op1;
+        m_data[1u] = op2;
+        m_data[2u] = op3;
+        m_data[3u] = op4;
+        m_data[4u] = op5;
+        m_data[5u] = op6;
+        m_data[6u] = op7;
+        m_data[7u] = op8;
+        m_data[8u] = op9;
     }
 
     /// Clunky initializing constructor.
     ///
-    /// \param px First element.
-    /// \param py Second element.
-    /// \param pz Third element.
-    /// \param pz Fourth element.
-    constexpr vec(float px, float py, float pz, float pw) noexcept
+    /// \param op1 First value.
+    /// \param op2 Second value.
+    /// \param op3 Third value.
+    /// \param op4 Fourth value.
+    /// \param op5 Fifth value.
+    /// \param op6 Sixth value.
+    /// \param op7 Seventh value.
+    /// \param op8 Eighth value.
+    /// \param op9 Ninth value.
+    /// \param op10 Tenth value.
+    /// \param op11 Eleventh value.
+    /// \param op12 Twelwth value.
+    /// \param op13 Thirteenth value.
+    /// \param op14 Foiurteenth value.
+    /// \param op15 Fifteenth value.
+    /// \param op16 Sixteenth value.
+    constexpr explicit mat4(float op1, float op2, float op3, float op4, float op5, float op6, float op7, float op8,
+            float op9, float op10, float op11, float op12, float op13, float op14, float op15, float op16)
     {
-        m_data[0u] = px;
-        m_data[1u] = py;
-        m_data[2u] = pz;
-        m_data[3u] = pw;
+        m_data[0u] = op1;
+        m_data[1u] = op2;
+        m_data[2u] = op3;
+        m_data[3u] = op4;
+        m_data[4u] = op5;
+        m_data[5u] = op6;
+        m_data[6u] = op7;
+        m_data[7u] = op8;
+        m_data[8u] = op9;
+        m_data[9u] = op10;
+        m_data[10u] = op11;
+        m_data[11u] = op12;
+        m_data[12u] = op13;
+        m_data[13u] = op14;
+        m_data[14u] = op15;
+        m_data[15u] = op16;
     }
 
 public:
     /// Accessor.
     ///
     /// \return Data.
-    constexpr float* data() noexcept
+    constexpr float* data()
     {
-      return m_data.data();
+        return m_data.data();
     }
     /// Accessor.
     ///
     /// \return Data.
-    constexpr const float* data() const noexcept
+    constexpr const float* data() const
     {
-      return m_data.data();
-    }
-
-    /// Accessor.
-    ///
-    /// \return X component.
-    constexpr float x() const noexcept
-    {
-        return m_data[0];
+        return m_data.data();
     }
 
     /// Gets this object as the CRTP type.
     ///
     /// \return This as CRTP type.
-    CrtpType* crtpThis() noexcept
+    CrtpType* crtpThis()
     {
         return static_cast<CrtpType*>(this);
     }
     /// Gets this object as the CRTP type.
     ///
     /// \return This as CRTP type.
-    const CrtpType* crtpThis() const noexcept
+    const CrtpType* crtpThis() const
     {
         return static_cast<const CrtpType*>(this);
     }
@@ -266,10 +302,17 @@ public:
     /// \return Result vector.
     constexpr CrtpType operator*(const CrtpType& rhs) const noexcept
     {
-        CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            ret[ii] = m_data[ii] * rhs[ii];
+        CrtpType ret(0.0f);
+        for(unsigned ii = 0; (ii < N); ii += A)
+        { 
+            for(unsigned jj = 0; (jj < A); ++jj)
+            {
+                float& dst = ret[ii + jj];
+                for(unsigned kk = 0; (kk < A); ++kk)
+                {
+                    dst += m_data[(kk * A) + jj] * rhs[ii + kk];
+                }
+            }
         }
         return ret;
     }
@@ -309,19 +352,6 @@ public:
     ///
     /// \param rhs Right-hand-side operand.
     /// \return Result vector.
-    constexpr CrtpType operator/(const CrtpType& rhs) const noexcept
-    {
-        CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            ret[ii] = m_data[ii] / rhs[ii];
-        }
-        return ret;
-    }
-    /// Division operator.
-    ///
-    /// \param rhs Right-hand-side operand.
-    /// \return Result vector.
     constexpr CrtpType operator/(float rhs) const noexcept
     {
         CrtpType ret;
@@ -330,15 +360,6 @@ public:
             ret[ii] = m_data[ii] / rhs;
         }
         return ret;
-    }
-    /// Division into operator.
-    ///
-    /// \param rhs Right-hand-side operand.
-    /// \return This vector.
-    constexpr CrtpType& operator/=(const CrtpType& rhs) noexcept
-    {
-        *crtpThis() = *crtpThis() / rhs;
-        return *crtpThis();
     }
     /// Division into operator.
     ///
@@ -374,7 +395,7 @@ public:
         return !(*crtpThis() == rhs);
     }
 
-  public:
+public:
     /// Addition operator.
     ///
     /// \param lhs Left-hand-side operand.
@@ -434,7 +455,7 @@ public:
     friend std::ostream& operator<<(std::ostream& lhs, const CrtpType& rhs)
     {
         lhs << "[ " << rhs.x();
-        for(unsigned ii = 1; (ii < N); ++ii)
+        for(unsigned ii = 1; (ii < N); ii += A)
         {
             lhs << " ; " << rhs[ii];
         }
@@ -442,23 +463,8 @@ public:
     }
 #endif
 
-  public:
-    /// Dot product.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return Result value.
-    constexpr friend float dot(const CrtpType& lhs, const CrtpType& rhs) noexcept
-    {
-        float ret = 0.0f;
-        for(unsigned ii = 1; (ii < N); ++ii)
-        {
-            ret += lhs[ii] * rhs[ii];
-        }
-        return ret;
-    }
-
-    /// Mix two vectors.
+public:
+    /// Mix between two matrices.
     ///
     /// \param lhs Left-hand-side operand.
     /// \param rhs Right-hand-side operand.
@@ -468,59 +474,7 @@ public:
         return lhs + (rhs - lhs) * ratio;
     }
 
-    /// Component-wise maximum.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return Result value.
-    constexpr friend CrtpType max(const CrtpType& lhs, const CrtpType& rhs) noexcept
-    {
-        CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            ret[ii] = max(lhs[ii], rhs[ii]);
-        }
-        return ret;
-    }
-    /// Component-wise minimum.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return Result value.
-    constexpr friend CrtpType min(const CrtpType& lhs, const CrtpType& rhs) noexcept
-    {
-        CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            ret[ii] = min(lhs[ii], rhs[ii]);
-        }
-        return ret;
-    }
-
-    /// Calculates the length of a vector.
-    ///
-    /// \param op Vector input.
-    /// \return Length.
-    friend float length(const CrtpType& op)
-    {
-        return dnload_sqrtf(dot(op, op));
-    }
-
-    /// Normalize a vector.
-    ///
-    /// \param op Vector to normalize.
-    /// \return Result vector.
-    friend CrtpType normalize(const CrtpType& op)
-    {
-        float len = length(op);
-        if(len > 0.0f)
-        {
-            return op / len;
-        }
-        return CrtpType(0.0f);
-    }
-
-    /// Test if vectors are almost equal.
+    /// Test if matrices are almost equal.
     ///
     /// \param lhs Left-hand-side operand.
     /// \param rhs Right-hand-side operand.
@@ -536,7 +490,7 @@ public:
         }
         return true;
     }
-    /// Test if optional vectors are almost equal.
+    /// Test if optional matrices are almost equal.
     ///
     /// \param lhs Left-hand-side operand.
     /// \param rhs Right-hand-side operand.

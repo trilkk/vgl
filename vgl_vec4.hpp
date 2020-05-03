@@ -20,7 +20,7 @@ public:
     /// Initialize with single float.
     ///
     /// \param op Single float.
-    constexpr explicit vec4(float op) :
+    constexpr explicit vec4(float op) noexcept :
         base_type(op)
     {
     }
@@ -31,7 +31,7 @@ public:
     /// \param py Second element.
     /// \param pz Third element.
     /// \param pw Fourth element.
-    constexpr explicit vec4(float px, float py, float pz, float pw) :
+    constexpr explicit vec4(float px, float py, float pz, float pw) noexcept :
         base_type(px, py, pz, pw)
     {
     }
