@@ -1,7 +1,7 @@
 #ifndef VGL_QUAT_HPP
 #define VGL_QUAT_HPP
 
-#include "verbatim_realloc.hpp"
+#include "vgl_array.hpp"
 
 namespace vgl
 {
@@ -15,7 +15,8 @@ private:
 
 public:
     /// Empty constructor.
-    constexpr explicit quat() noexcept
+    constexpr explicit quat() noexcept :
+        m_data()
     {
     }
 
@@ -25,12 +26,9 @@ public:
     /// \param op2 Second value.
     /// \param op3 Third value.
     /// \param op4 Fourth value.
-    quat(float op1, float op2, float op3, float op4)
+    constexpr explicit quat(float op1, float op2, float op3, float op4) noexcept :
+        m_data{op1, op2, op3, op4}
     {
-        m_data[0] = op1;
-        m_data[1] = op2;
-        m_data[2] = op3;
-        m_data[3] = op4;
     }
 
 public:
@@ -39,84 +37,111 @@ public:
     /// Analogous to 4-component vector length.
     ///
     /// \return Magnitude.
-    float magnitude() const
+    constexpr float magnitude() const
     {
-        return dnload_sqrtf(m_data[0] * m_data[0] +
-                m_data[1] * m_data[1] +
-                m_data[2] * m_data[2] +
-                m_data[3] * m_data[3]);
+        return dnload_sqrtf(m_data[0u] * m_data[0u] +
+                m_data[1u] * m_data[1u] +
+                m_data[2u] * m_data[2u] +
+                m_data[3u] * m_data[3u]);
     }
 
-    /// Accessor.
+public:
+    /// Access operator.
     ///
     /// \param idx Index.
-    float& operator[](unsigned idx)
+    /// \return Value.
+    constexpr float& operator[](unsigned idx)
     {
         return m_data[idx];
     }
-    /// Const accessor.
+    /// Const access operator.
     ///
     /// \param idx Index.
-    const float& operator[](unsigned idx) const
+    /// \return Value.
+    constexpr const float& operator[](unsigned idx) const
     {
         return m_data[idx];
+    }
+    /// Access operator.
+    ///
+    /// \param idx Index.
+    /// \return Value.
+    constexpr float& operator[](int idx)
+    {
+        return m_data[idx];
+    }
+    /// Const access operator.
+    ///
+    /// \param idx Index.
+    /// \return Value.
+    constexpr const float& operator[](int idx) const
+    {
+        return m_data[idx];
+    }
+
+    /// Assignment operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return This vector.
+    constexpr quat& operator=(const quat& rhs) noexcept
+    {
+        m_data[0u] = rhs[0u];
+        m_data[1u] = rhs[1u];
+        m_data[2u] = rhs[2u];
+        m_data[3u] = rhs[3u];
+        return *this;
     }
 
     /// Unary minus operator.
     ///
     /// \return Result quaternion.
-    quat operator-() const
+    constexpr quat operator-() const noexcept
     {
-        return quat(-m_data[0],
-                -m_data[1],
-                -m_data[2],
-                -m_data[3]);
-    }
-    /// Subtraction operator.
-    ///
-    /// \param rhs Right-hand-side operand.
-    /// \return Result quaternion.
-    quat operator-(const quat &rhs) const
-    {
-        return quat(m_data[0] - rhs[0],
-                m_data[1] - rhs[1],
-                m_data[2] - rhs[2],
-                m_data[3] - rhs[3]);
-    }
-    /// Subtraction into operator.
-    ///
-    /// \param rhs Right-hand-side operand.
-    /// \return This quaternion.
-    quat operator-=(const quat &rhs)
-    {
-        m_data[0] -= rhs[0];
-        m_data[1] -= rhs[1];
-        m_data[2] -= rhs[2];
-        m_data[3] -= rhs[3];
-        return *this;
+        return quat(-m_data[0u],
+                -m_data[1u],
+                -m_data[2u],
+                -m_data[3u]);
     }
 
     /// Addition operator.
     ///
     /// \param rhs Right-hand-side operand.
     /// \return Result quaternion.
-    quat operator+(const quat &rhs) const
+    constexpr quat operator+(const quat &rhs) const noexcept
     {
-        return quat(m_data[0] + rhs[0],
-                m_data[1] + rhs[1],
-                m_data[2] + rhs[2],
-                m_data[3] + rhs[3]);
+        return quat(m_data[0u] + rhs[0u],
+                m_data[1u] + rhs[1u],
+                m_data[2u] + rhs[2u],
+                m_data[3u] + rhs[3u]);
     }
     /// Addition into operator.
     ///
     /// \param rhs Right-hand-side operand.
     /// \return This quaternion.
-    quat& operator+=(const quat &rhs)
+    constexpr quat& operator+=(const quat &rhs) noexcept
     {
-        m_data[0] += rhs[0];
-        m_data[1] += rhs[1];
-        m_data[2] += rhs[2];
-        m_data[3] += rhs[3];
+        *this = *this + rhs;
+        return *this;
+    }
+
+    /// Subtraction operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return Result quaternion.
+    constexpr quat operator-(const quat &rhs) const noexcept
+    {
+        return quat(m_data[0u] - rhs[0u],
+                m_data[1u] - rhs[1u],
+                m_data[2u] - rhs[2u],
+                m_data[3u] - rhs[3u]);
+    }
+    /// Subtraction into operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return This quaternion.
+    constexpr quat& operator-=(const quat &rhs) noexcept
+    {
+        *this = *this - rhs;
         return *this;
     }
 
@@ -124,7 +149,22 @@ public:
     ///
     /// \param rhs Right-hand-side operand.
     /// \return Result quaternion.
-    quat operator*(float rhs) const
+    constexpr quat operator*(const quat &rhs) const noexcept
+    {
+        // (Q1 * Q2).w = (w1w2 - x1x2 - y1y2 - z1z2)
+        // (Q1 * Q2).x = (w1x2 + x1w2 + y1z2 - z1y2)
+        // (Q1 * Q2).y = (w1y2 - x1z2 + y1w2 + z1x2)
+        // (Q1 * Q2).z = (w1z2 + x1y2 - y1x2 + z1w2)
+        return quat((m_data[0u] * rhs[0u]) - (m_data[1u] * rhs[1u]) - (m_data[2u] * rhs[2u]) - (m_data[3u] * rhs[3u]),
+                (m_data[0u] * rhs[1u]) + (m_data[1u] * rhs[0u]) + (m_data[2u] * rhs[3u]) - (m_data[3u] * rhs[2u]),
+                (m_data[0u] * rhs[2u]) - (m_data[1u] * rhs[3u]) + (m_data[2u] * rhs[0u]) + (m_data[3u] * rhs[1u]),
+                (m_data[0u] * rhs[3u]) + (m_data[1u] * rhs[2u]) - (m_data[2u] * rhs[1u]) + (m_data[3u] * rhs[0u]));
+    }
+    /// Multiplication operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return Result quaternion.
+    constexpr quat operator*(float rhs) const noexcept
     {
         return quat(m_data[0] * rhs,
                 m_data[1] * rhs,
@@ -135,29 +175,64 @@ public:
     ///
     /// \param rhs Right-hand-side operand.
     /// \return This quaternion.
-    quat& operator*=(float rhs)
+    constexpr quat& operator*=(const quat &rhs) noexcept
     {
-        m_data[0] *= rhs;
-        m_data[1] *= rhs;
-        m_data[2] *= rhs;
-        m_data[3] *= rhs;
+        *this = *this * rhs;
         return *this;
     }
-    /// Multiplication operator.
+    /// Multiplication into operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return This quaternion.
+    constexpr quat& operator*=(float rhs) noexcept
+    {
+        *this = *this * rhs;
+        return *this;
+    }
+
+    /// Division operator.
     ///
     /// \param rhs Right-hand-side operand.
     /// \return Result quaternion.
-    quat operator*(const quat &rhs) const
+    constexpr quat operator/(float rhs) const noexcept
     {
-        // (Q1 * Q2).w = (w1w2 - x1x2 - y1y2 - z1z2)
-        // (Q1 * Q2).x = (w1x2 + x1w2 + y1z2 - z1y2)
-        // (Q1 * Q2).y = (w1y2 - x1z2 + y1w2 + z1x2)
-        // (Q1 * Q2).z = (w1z2 + x1y2 - y1x2 + z1w2)
-        return quat((m_data[0] * rhs[0]) - (m_data[1] * rhs[1]) - (m_data[2] * rhs[2]) - (m_data[3] * rhs[3]),
-                (m_data[0] * rhs[1]) + (m_data[1] * rhs[0]) + (m_data[2] * rhs[3]) - (m_data[3] * rhs[2]),
-                (m_data[0] * rhs[2]) - (m_data[1] * rhs[3]) + (m_data[2] * rhs[0]) + (m_data[3] * rhs[1]),
-                (m_data[0] * rhs[3]) + (m_data[1] * rhs[2]) - (m_data[2] * rhs[1]) + (m_data[3] * rhs[0]));
+        return quat(m_data[0u] / rhs,
+                m_data[1u] / rhs,
+                m_data[2u] / rhs,
+                m_data[3u] / rhs);
     }
+    /// Division into operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return This quaternion.
+    constexpr quat& operator/=(float rhs) noexcept
+    {
+        *this = *this / rhs;
+        return *this;
+    }
+
+public:
+    /// Multiplication operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Result quaternion.
+    constexpr friend quat operator*(float lhs, const quat& rhs) noexcept
+    {
+        return rhs * lhs;
+    }
+
+#if defined(USE_LD)
+    /// Output to stream.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Output stream.
+    friend std::ostream& operator<<(std::ostream& lhs, const quat& rhs)
+    {
+        return lhs << "[ " << rhs[0u] << " ; " << rhs[1u] << " ; " << rhs[2u] << " ; " << rhs[3u] << " ]";
+    }
+#endif
 
 public:
     /// Mix two quaternions.
@@ -165,23 +240,10 @@ public:
     /// \param lhs Left-hand-side operand.
     /// \param rhs Right-hand-side operand.
     /// \param ratio Mixing ratio.
-    friend quat mix(const quat &lhs, const quat &rhs, float ratio)
+    constexpr friend quat mix(const quat &lhs, const quat &rhs, float ratio) noexcept
     {
         return lhs + (rhs - lhs) * ratio;
     }
-
-#if defined(USE_LD)
-public:
-    /// Output to stream.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return Output stream.
-    friend std::ostream& operator<<(std::ostream& lhs, const quat& rhs) const
-    {
-        return lhs << "[ " << rhs[0] << " ; " << rhs[1] << " ; " << rhs[2] << " ; " << rhs[3] << " ]";
-    }
-#endif
 };
 
 }

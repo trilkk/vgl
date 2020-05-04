@@ -18,7 +18,8 @@ private:
 
 public:
     /// Default constructor.
-    explicit uvec4()
+    constexpr explicit uvec4() noexcept :
+        m_data()
     {
     }
 
@@ -28,7 +29,7 @@ public:
     /// \param cg Green component.
     /// \param cb Blue component.
     /// \param ca Alpha component.
-    constexpr explicit uvec4(uint8_t cr, uint8_t cg, uint8_t cb, uint8_t ca) :
+    constexpr explicit uvec4(uint8_t cr, uint8_t cg, uint8_t cb, uint8_t ca) noexcept :
         m_data{cr, cg, cb, ca}
     {
     }
@@ -36,7 +37,7 @@ public:
     /// Constructor.
     ///
     /// \param op Input vector.
-    constexpr explicit uvec4(const vec3 &op) :
+    constexpr explicit uvec4(const vec3 &op) noexcept :
         m_data{static_cast<uint8_t>(iround(op[0u] * 255.0f)),
             static_cast<uint8_t>(iround(op[1u] * 255.0f)),
             static_cast<uint8_t>(iround(op[2u] * 255.0f)),
@@ -47,7 +48,7 @@ public:
     /// Constructor.
     ///
     /// \param op Input vector.
-    constexpr explicit uvec4(const vec4 &op) :
+    constexpr explicit uvec4(const vec4 &op) noexcept :
         m_data{static_cast<uint8_t>(iround(op[0u] * 255.0f)),
             static_cast<uint8_t>(iround(op[1u] * 255.0f)),
             static_cast<uint8_t>(iround(op[2u] * 255.0f)),
@@ -59,14 +60,14 @@ public:
     /// Accessor.
     ///
     /// \return Data.
-    constexpr uint8_t* data()
+    constexpr uint8_t* data() noexcept
     {
         return m_data.data();
     }
     /// Accessor.
     ///
     /// \return Data.
-    constexpr const uint8_t* data() const
+    constexpr const uint8_t* data() const noexcept
     {
         return m_data.data();
     }
@@ -74,7 +75,7 @@ public:
     /// Accessor.
     ///
     /// \return R component.
-    constexpr uint8_t r() const
+    constexpr uint8_t r() const noexcept
     {
         return m_data[0u];
     }
@@ -82,7 +83,7 @@ public:
     /// Accessor.
     ///
     /// \return G component.
-    constexpr uint8_t g() const
+    constexpr uint8_t g() const noexcept
     {
         return m_data[1u];
     }
@@ -90,7 +91,7 @@ public:
     /// Accessor.
     ///
     /// \return B component.
-    constexpr uint8_t b() const
+    constexpr uint8_t b() const noexcept
     {
         return m_data[2u];
     }
@@ -98,7 +99,7 @@ public:
     /// Accessor.
     ///
     /// \return A component.
-    constexpr uint8_t a() const
+    constexpr uint8_t a() const noexcept
     {
         return m_data[3u];
     }
@@ -106,7 +107,7 @@ public:
     /// Conversion operator.
     ///
     /// \return Normalized vec4 representation.
-    constexpr vec4 toNormVec4() const
+    constexpr vec4 toNormVec4() const noexcept
     {
         return vec4(to_fnorm(m_data[0u]),
                 to_fnorm(m_data[1u]),
@@ -147,7 +148,7 @@ public:
     /// Equals operator.
     ///
     /// \param rhs Right-hand-side operand.
-    constexpr bool operator==(const uvec4& rhs) const
+    constexpr bool operator==(const uvec4& rhs) const noexcept
     {
         return (m_data[0u] ==  rhs[0u]) &&
             (m_data[1u] == rhs[1u]) &&
@@ -157,7 +158,7 @@ public:
     /// Not equals operator.
     ///
     /// \param rhs Right-hand-side operand.
-    constexpr bool operator!=(const uvec4& rhs) const
+    constexpr bool operator!=(const uvec4& rhs) const noexcept
     {
         return !(*this == rhs);
     }
@@ -186,7 +187,7 @@ public:
     /// \param rhs Right-hand-side operand.
     /// \param ratio Mixing ratio.
     /// \return Result color.
-    friend uvec4 mix(const uvec4& lhs, const uvec4& rhs, float ratio)
+    friend uvec4 mix(const uvec4& lhs, const uvec4& rhs, float ratio) noexcept
     {
         return uvec4(mix(lhs[0], rhs[0], ratio),
                 mix(lhs[1], rhs[1], ratio),
@@ -199,7 +200,7 @@ public:
     /// \param lhs Left-hand-side operand.
     /// \param rhs Right-hand-side operand.
     /// \return Result color.
-    friend uvec4 modulate(const uvec4& lhs, const uvec4& rhs)
+    friend uvec4 modulate(const uvec4& lhs, const uvec4& rhs) noexcept
     {
         return uvec4(modulate(lhs[0], rhs[0]),
                 modulate(lhs[1], rhs[1]),

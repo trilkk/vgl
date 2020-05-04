@@ -3,16 +3,17 @@
 
 #include "vgl_mat.hpp"
 #include "vgl_quat.hpp"
+#include "vgl_vec3.hpp"
 
 namespace vgl
 {
 
 /// 3x3 matrix class.
-class mat3 : public detail::mat<3, mat3>
+class mat3 : public detail::mat<3, mat3, vec3>
 {
 private:
     /// Parent type.
-    using base_type = detail::mat<3, mat3>;
+    using base_type = detail::mat<3, mat3, vec3>;
 
 public:
     /// Empty constructor.
@@ -83,11 +84,10 @@ public:
     /// \return Output stream.
     friend std::ostream& operator<<(std::ostream& lhs, const mat3& rhs)
     {
-        return ostr << "[ " <<
-            m_data[0] << " ;  " << m_data[3] << " ; " << m_data[6] << "\n  " <<
-            m_data[1] << " ; " << m_data[4] << " ; " << m_data[7] << "\n  " <<
-            m_data[2] << " ; " << m_data[5] << " ; " << m_data[8] <<
-            " ]";
+        return lhs << "[ " <<
+            rhs[0] << " ; " << rhs[3] << " ; " << rhs[6] << "\n  " <<
+            rhs[1] << " ; " << rhs[4] << " ; " << rhs[7] << "\n  " <<
+            rhs[2] << " ; " << rhs[5] << " ; " << rhs[8] << " ]";
     }
 #endif
 
@@ -151,18 +151,11 @@ public:
     ///
     /// \param op Input matrix.
     /// \return Transposed matrix.
-    constexpr friend mat3 transpose(const CrtpType& op) noexcept
+    constexpr friend mat3 transpose(const mat3& op) noexcept
     {
-        CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ii += A + 1)
-        {
-            ret[ii] = op[ii]; 
-        }
-        for(unsigned ii = 1; (ii < A); ++ii)
-        {
-            ret[ii]
-        }
-        return ret;
+        return mat3(op[0], op[3], op[6],
+                op[1], op[4], op[7],
+                op[2], op[5], op[8]);
     }
 };
 

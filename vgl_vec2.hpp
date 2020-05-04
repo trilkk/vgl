@@ -20,7 +20,7 @@ public:
     /// Initialize with single float.
     ///
     /// \param op Single float.
-    constexpr explicit vec2(float op) :
+    constexpr explicit vec2(float op) noexcept :
         base_type(op)
     {
     }
@@ -29,7 +29,7 @@ public:
     ///
     /// \param px First element.
     /// \param py Second element.
-    constexpr explicit vec2(float px, float py) :
+    constexpr explicit vec2(float px, float py) noexcept :
         base_type(px, py)
     {
     }
@@ -38,9 +38,9 @@ public:
     /// Accessor.
     ///
     /// \return Y component.
-    constexpr float y()
+    constexpr float y() noexcept
     {
-        return base_type::m_data[1];
+        return base_type::m_data[1u];
     }
 };
 

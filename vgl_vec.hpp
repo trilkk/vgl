@@ -71,6 +71,22 @@ protected:
         m_data[3u] = pw;
     }
 
+protected:
+    /// Gets this object as the CRTP type.
+    ///
+    /// \return This as CRTP type.
+    CrtpType* crtpThis() noexcept
+    {
+        return static_cast<CrtpType*>(this);
+    }
+    /// Gets this object as the CRTP type.
+    ///
+    /// \return This as CRTP type.
+    const CrtpType* crtpThis() const noexcept
+    {
+        return static_cast<const CrtpType*>(this);
+    }
+
 public:
     /// Accessor.
     ///
@@ -93,21 +109,6 @@ public:
     constexpr float x() const noexcept
     {
         return m_data[0];
-    }
-
-    /// Gets this object as the CRTP type.
-    ///
-    /// \return This as CRTP type.
-    CrtpType* crtpThis() noexcept
-    {
-        return static_cast<CrtpType*>(this);
-    }
-    /// Gets this object as the CRTP type.
-    ///
-    /// \return This as CRTP type.
-    const CrtpType* crtpThis() const noexcept
-    {
-        return static_cast<const CrtpType*>(this);
     }
 
 public:
@@ -451,7 +452,7 @@ public:
     constexpr friend float dot(const CrtpType& lhs, const CrtpType& rhs) noexcept
     {
         float ret = 0.0f;
-        for(unsigned ii = 1; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < N); ++ii)
         {
             ret += lhs[ii] * rhs[ii];
         }

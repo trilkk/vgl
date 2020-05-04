@@ -2,16 +2,17 @@
 #define VGL_MAT4_HPP
 
 #include "vgl_mat3.hpp"
+#include "vgl_vec4.hpp"
 
 namespace vgl
 {
 
 /// 4x4 matrix class.
-class mat4 : public detail::mat<4, mat4>
+class mat4 : public detail::mat<4, mat4, vec4>
 {
 private:
     /// Parent type.
-    using base_type = detail::mat<4, mat4>;
+    using base_type = detail::mat<4, mat4, vec4>;
 
 public:
     /// Empty constructor.
@@ -155,6 +156,19 @@ public:
     }
 
 public:
+    /// Vector multiplication operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return Result vector.
+    constexpr vec3 operator*(const vec3& rhs) const noexcept
+    {
+        mat3 lhs(m_data[0], m_data[1], m_data[2],
+                m_data[4], m_data[5], m_data[6],
+                m_data[8], m_data[9], m_data[10]);
+        return lhs * rhs;
+    }
+
+public:
     /// Create an identity matrix.
     ///
     /// \return Result matrix.
@@ -172,7 +186,7 @@ public:
     /// \param eye Eye focal point.
     /// \param up Up direction.
     /// \return Result matrix.
-    constexpr static mat4 lookat(const vec3& pos, const vec3& eye, const vec3& up = vec3(0.0f, 1.0f, 0.0f)) noexcept
+    static mat4 lookat(const vec3& pos, const vec3& eye, const vec3& up = vec3(0.0f, 1.0f, 0.0f)) noexcept
     {
         vec3 unit_fw = normalize(pos - eye);
         vec3 unit_up = normalize(up);
@@ -196,7 +210,7 @@ public:
     /// \param znear Near clip plane.
     /// \param zfar Near clip plane.
     /// \return Result matrix.
-    constexpr static mat4 projection(float xfov, unsigned width, unsigned height, float znear, float zfar) noexcept
+    static mat4 projection(float xfov, unsigned width, unsigned height, float znear, float zfar) noexcept
     {
         float ff = dnload_tanf(static_cast<float>(M_PI * 0.5) - xfov * 0.5f);
         float n_f = 1.0f / (znear - zfar);
@@ -223,8 +237,7 @@ public:
     /// \param roll Roll rotation.
     /// \param pos Translation vector.
     /// \return Result matrix.
-    constexpr static mat4 rotation_euler(float yaw, float pitch, float roll,
-            const vec3& pos = vec3(0.0f, 0.0f, 0.0f)) noexcept
+    static mat4 rotation_euler(float yaw, float pitch, float roll, const vec3& pos = vec3(0.0f, 0.0f, 0.0f)) noexcept
     {
         return mat4(mat3::rotation_euler(yaw, pitch, roll), pos);
     }
@@ -258,7 +271,7 @@ public:
     /// \param roll Roll rotation.
     /// \param translation Translation vector.
     /// \return Result matrix.
-    constexpr static mat4 transformation_euler(const vec3 &sca, const vec3 &rot, const vec3 &tra) noexcept
+    static mat4 transformation_euler(const vec3 &sca, const vec3 &rot, const vec3 &tra) noexcept
     {
         mat3 rpart = mat3::rotation_euler(rot[0], rot[1], rot[2]);
         return mat4(
@@ -299,15 +312,27 @@ public:
     /// \return Output stream.
     friend std::ostream& operator<<(std::ostream& lhs, const mat4& rhs)
     {
-        return ostr << "[ " <<
-            m_data[0] << " ;  " << m_data[4] << " ; " << m_data[8] << " ; " << m_data[12] << "\n  " <<
-            m_data[1] << " ;  " << m_data[5] << " ; " << m_data[9] << " ; " << m_data[13] << "\n  " <<
-            m_data[2] << " ;  " << m_data[6] << " ; " << m_data[10] << " ; " << m_data[14] << "\n  " <<
-            m_data[3] << " ;  " << m_data[7] << " ; " << m_data[11] << " ; " << m_data[15] << " ]";
+        return lhs << "[ " <<
+            rhs[0] << " ;  " << rhs[4] << " ; " << rhs[8] << " ; " << rhs[12] << "\n  " <<
+            rhs[1] << " ;  " << rhs[5] << " ; " << rhs[9] << " ; " << rhs[13] << "\n  " <<
+            rhs[2] << " ;  " << rhs[6] << " ; " << rhs[10] << " ; " << rhs[14] << "\n  " <<
+            rhs[3] << " ;  " << rhs[7] << " ; " << rhs[11] << " ; " << rhs[15] << " ]";
     }
 #endif
 
 public:
+    /// Transpose a matrix.
+    ///
+    /// \param op Input matrix.
+    /// \return Transposed matrix.
+    constexpr friend mat4 transpose(const mat4& op) noexcept
+    {
+        return mat4(op[0], op[4], op[8], op[12],
+                op[1], op[5], op[9], op[13],
+                op[2], op[6], op[10], op[14],
+                op[3], op[7], op[11], op[15]);
+    }
+
     /// Convert to camera matrix.
     ///
     /// \param op Input matrix.

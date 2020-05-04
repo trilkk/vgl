@@ -4,7 +4,11 @@
 #include "vgl_geometry_channel.hpp"
 #include "vgl_glsl_shader.hpp"
 #include "vgl_utility.hpp"
+#include "vgl_mat2.hpp"
+#include "vgl_mat4.hpp"
+#include "vgl_vec2.hpp"
 #include "vgl_vec3.hpp"
+#include "vgl_vec4.hpp"
 #include "vgl_vector.hpp"
 
 namespace vgl
@@ -446,7 +450,66 @@ public:
     }
 #endif
 
-public:
+    /// Feed uniform to the program.
+    ///
+    /// \param name Uniform name.
+    /// \param value Uniform value.
+    void uniform(string_view name, const vec2& value)
+    {
+        GLint location = getUniformLocation(name);
+        dnload_glUniform2fv(location, 1, value.data());
+    }
+
+    /// Feed uniform to the program.
+    ///
+    /// \param name Uniform name.
+    /// \param value Uniform value.
+    void uniform(string_view name, const vec3& value)
+    {
+        GLint location = getUniformLocation(name);
+        dnload_glUniform3fv(location, 1, value.data());
+    }
+
+    /// Feed uniform to the program.
+    ///
+    /// \param name Uniform name.
+    /// \param value Uniform value.
+    void uniform(string_view name, const vec4& value)
+    {
+        GLint location = getUniformLocation(name);
+        dnload_glUniform4fv(location, 1, value.data());
+    }
+
+    /// Feed uniform to the program.
+    ///
+    /// \param name Uniform name.
+    /// \param value Uniform value.
+    void uniform(string_view name, const mat2& value)
+    {
+        GLint location = getUniformLocation(name);
+        dnload_glUniformMatrix2fv(location, 1, GL_FALSE, value.data());
+    }
+
+    /// Feed uniform to the program.
+    ///
+    /// \param name Uniform name.
+    /// \param value Uniform value.
+    void uniform(string_view name, const mat3& value)
+    {
+        GLint location = getUniformLocation(name);
+        dnload_glUniformMatrix3fv(location, 1, GL_FALSE, value.data());
+    }
+
+    /// Feed uniform to the program.
+    ///
+    /// \param name Uniform name.
+    /// \param value Uniform value.
+    void uniform(string_view name, const mat4& value)
+    {
+        GLint location = getUniformLocation(name);
+        dnload_glUniformMatrix4fv(location, 1, GL_FALSE, value.data());
+    }
+
     /// Feed uniform to the program.
     ///
     /// \param ptr Pointer to uniform data.
