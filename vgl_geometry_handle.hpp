@@ -81,6 +81,20 @@ public:
         dnload_glDrawElements(mode, static_cast<GLsizei>(count), GL_UNSIGNED_SHORT,
                 reinterpret_cast<void*>(m_index_offset));
     }
+
+public:
+#if defined(USE_LD)
+    /// Stream output operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Output stream.
+    friend std::ostream& operator<<(std::ostream& lhs, const GeometryHandle& rhs)
+    {
+        return lhs << "Handle(" << &rhs.m_geometry_buffer << " @ " << rhs.m_vertex_offset << " ; " <<
+            rhs.m_index_offset << ")";
+    }
+#endif
 };
 
 }

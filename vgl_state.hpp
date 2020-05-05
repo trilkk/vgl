@@ -132,20 +132,21 @@ unsigned g_data_size_vertex = 0;
 
 /// Enable one vertex attribute.
 ///
-/// \param name op to enable.
-void attrib_array_enable(unsigned name)
+/// \param op Index of array to enable.
+void attrib_array_enable(unsigned op)
 {
 #if defined(USE_LD)
-    if((detail::MAX_ATTRIB_ARRAYS <= name))
+    if((detail::MAX_ATTRIB_ARRAYS <= op))
     {
         std::ostringstream sstr;
-        sstr << "enabling attribute index " << name << " (" << detail::MAX_ATTRIB_ARRAYS << " supported)";
+        sstr << "enabling attribute index " << op << " (" << detail::MAX_ATTRIB_ARRAYS << " supported)";
         BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
     }
 #endif
-    if(!detail::g_attrib_arrays_enabled[name])
+    if(!detail::g_attrib_arrays_enabled[op])
     {
-        dnload_glEnableVertexAttribArray(name);
+        dnload_glEnableVertexAttribArray(op);
+        detail::g_attrib_arrays_enabled[op] = true;
     }
 }
 
@@ -209,7 +210,7 @@ void blend_mode(OperationMode op)
 /// Clear current framebuffer.
 ///
 /// \param op Bit mask of buffers to clear.
-void clear_buffers(optional<uvec4> color, optional<float> depth, optional<uint8_t> stencil)
+void clear_buffers(optional<uvec4> color, optional<float> depth, optional<uint8_t> stencil = nullopt)
 {
     GLbitfield clear_mask = 0;
 

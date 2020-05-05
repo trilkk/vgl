@@ -219,6 +219,17 @@ public:
     {
     }
 
+    /// Constructor from strings.
+    ///
+    /// \param vert Vertex shader.
+    /// \param frag Fragmment shader.
+    explicit GlslProgram(const char* vert, const char* frag) :
+        m_vert(GL_VERTEX_SHADER, vert),
+        m_frag(GL_FRAGMENT_SHADER, frag),
+        m_id(link())
+    {
+    }
+
     /// Move constructor.
     ///
     /// \param op Source program.

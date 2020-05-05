@@ -104,6 +104,19 @@ public:
         {
             return !(*this == op);
         }
+
+#if defined(USE_LD)
+        /// Stream output operator.
+        ///
+        /// \param lhs Left-hand-side operand.
+        /// \param rhs Right-hand-side operand.
+        /// \return Output stream.
+        friend std::ostream& operator<<(std::ostream& lhs, const ChannelInfo& rhs)
+        {
+            return lhs << to_string(rhs.m_semantic) << ": " << rhs.m_element_count << ", " << rhs.m_type << ", " <<
+                rhs.m_offset;
+        }
+#endif
     };
 
 private:

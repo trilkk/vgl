@@ -319,31 +319,30 @@ public:
             rhs[3] << " ;  " << rhs[7] << " ; " << rhs[11] << " ; " << rhs[15] << " ]";
     }
 #endif
-
-public:
-    /// Transpose a matrix.
-    ///
-    /// \param op Input matrix.
-    /// \return Transposed matrix.
-    constexpr friend mat4 transpose(const mat4& op) noexcept
-    {
-        return mat4(op[0], op[4], op[8], op[12],
-                op[1], op[5], op[9], op[13],
-                op[2], op[6], op[10], op[14],
-                op[3], op[7], op[11], op[15]);
-    }
-
-    /// Convert to camera matrix.
-    ///
-    /// \param op Input matrix.
-    /// \return View matrix from the given input.
-    constexpr friend mat4 viewify(const mat4 &op) noexcept
-    {
-        mat3 rotation = transpose(op.getRotation());
-        vec3 translation = rotation * (-op.getTranslation());
-        return mat4(rotation, translation);
-    }
 };
+
+/// Transpose a matrix.
+///
+/// \param op Input matrix.
+/// \return Transposed matrix.
+constexpr mat4 transpose(const mat4& op) noexcept
+{
+    return mat4(op[0], op[4], op[8], op[12],
+            op[1], op[5], op[9], op[13],
+            op[2], op[6], op[10], op[14],
+            op[3], op[7], op[11], op[15]);
+}
+
+/// Convert to camera matrix.
+///
+/// \param op Input matrix.
+/// \return View matrix from the given input.
+constexpr mat4 viewify(const mat4 &op) noexcept
+{
+    mat3 rotation = transpose(op.getRotation());
+    vec3 translation = rotation * (-op.getTranslation());
+    return mat4(rotation, translation);
+}
 
 }
 

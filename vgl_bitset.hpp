@@ -18,10 +18,16 @@ public:
     {
     private:
         /// Target bitset.
-        bitset<N>* m_ref;
+        bitset<N>& m_ref;
 
         /// Index.
         unsigned m_index;
+
+    private:
+        /// Deleted copy constructor.
+        reference(const reference&) = delete;
+        /// Deleted assignment.
+        reference& operator=(const reference&) = delete;
 
     public:
         /// Constructor.
@@ -29,17 +35,8 @@ public:
         /// \param src Source bitset.
         /// \param idx Index.
         constexpr explicit reference(bitset<N>& src, unsigned idx) noexcept :
-            m_ref(&src),
+            m_ref(src),
             m_index(idx)
-        {
-        }
-
-        /// Copy constructor.
-        ///
-        /// \param op Source object.
-        constexpr explicit reference(const reference& op) noexcept:
-            m_ref(op.m_ref),
-            m_index(op.m_index)
         {
         }
 
@@ -47,7 +44,7 @@ public:
         /// Flips the select bit.
         constexpr reference& flip()
         {
-            m_ref->flip(m_index);
+            m_ref.flip(m_index);
             return *this;
         }
 
@@ -57,17 +54,7 @@ public:
         /// \param op Bool value to write to the bitset.
         constexpr reference& operator=(bool op)
         {
-            m_ref->set(m_index, op);
-            return *this;
-        }
-
-        /// Copy assignment operator.
-        ///
-        /// \param op Source object.
-        constexpr reference& operator=(const reference& op) noexcept
-        {
-            m_ref = op.m_ref;
-            m_index = op.m_index;
+            m_ref.set(m_index, op);
             return *this;
         }
 
@@ -76,8 +63,21 @@ public:
         /// \return True if bitst is not empty.
         constexpr operator bool() const
         {
-            return m_ref->getInternal(m_index);
+            return m_ref.getInternal(m_index);
         }
+
+    public:
+#if defined(USE_LD)
+        /// Stream output operator.
+        ///
+        /// \param lhs Left-hand-side operand.
+        /// \param rhs Right-hand-side operand.
+        /// \return Output stream.
+        friend std::ostream& operator<<(std::ostream& lhs, const reference& rhs)
+        {
+            return lhs << static_cast<bool>(rhs);
+        }
+#endif
     };
 
 private:
@@ -139,7 +139,6 @@ private:
         accessCheck(static_cast<unsigned>(idx));
     }
 
-
     /// Assert that the data only has bits in the valid range.
     constexpr void assertData() const
     {
@@ -158,7 +157,7 @@ private:
     constexpr bool getInternal(unsigned idx)
     {
         accessCheck(idx);
-        return ((m_data & (static_cast<uint32_t>(idx) << idx)) != 0);
+        return ((m_data & (static_cast<uint32_t>(1) << idx)) != 0);
     }
     /// Gets a bit value from the set.
     ///
@@ -166,7 +165,7 @@ private:
     constexpr bool getInternal(int idx)
     {
         accessCheck(idx);
-        return ((m_data & (static_cast<uint32_t>(idx) << idx)) != 0);
+        return ((m_data & (static_cast<uint32_t>(1) << idx)) != 0);
     }
 
 public:

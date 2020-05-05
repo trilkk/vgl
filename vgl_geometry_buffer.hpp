@@ -8,6 +8,18 @@
 namespace vgl
 {
 
+/// \cond
+class GeometryBuffer;
+/// \endcond
+
+namespace detail
+{
+
+/// Currently bound geometry buffer.
+const GeometryBuffer* g_current_geometry_buffer = nullptr;
+
+}
+
 /// Geometry buffer.
 ///
 /// Collection attribute data.
@@ -36,6 +48,16 @@ public:
         m_data(op)
     {
         update();
+    }
+
+    ~GeometryBuffer()
+    {
+#if defined(USE_LD)
+        if(detail::g_current_geometry_buffer == this)
+        {
+            detail::g_current_geometry_buffer = nullptr;
+        }
+#endif
     }
 
 private:
@@ -87,12 +109,27 @@ public:
     /// \param op Program to bind with.
     void bind(const GlslProgram& op) const
     {
-        if(m_vertex_buffer.bind())
+        if(detail::g_current_geometry_buffer != this)
         {
+            m_vertex_buffer.bind();
+            m_index_buffer.bind();
             m_data.bindAttributes(op);
+            detail::g_current_geometry_buffer = this;
         }
-        m_index_buffer.bind();
     }
+
+public:
+#if defined(USE_LD)
+    /// Stream output operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Output stream.
+    friend std::ostream& operator<<(std::ostream& lhs, const GeometryBuffer& rhs)
+    {
+        return lhs << "GeometryBuffer(" << rhs.m_vertex_buffer.getId() << ", " << rhs.m_index_buffer.getId() << ")";
+    }
+#endif
 };
 
 /// Geometry buffer unique pointer type.

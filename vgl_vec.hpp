@@ -171,32 +171,6 @@ public:
         return ret;
     }
 
-    /// Addition operator.
-    ///
-    /// \param rhs Right-hand-side operand.
-    /// \return Result vector.
-    constexpr CrtpType operator+(const CrtpType& rhs) const noexcept
-    {
-        CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            ret[ii] = m_data[ii] + rhs[ii];
-        }
-        return ret;
-    }
-    /// Addition operator.
-    ///
-    /// \param rhs Right-hand-side operand.
-    /// \return Result vector.
-    constexpr CrtpType operator+(float rhs) const noexcept
-    {
-        CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            ret[ii] = m_data[ii] + rhs;
-        }
-        return ret;
-    }
     /// Addition into operator.
     ///
     /// \param rhs Right-hand-side operand.
@@ -216,32 +190,6 @@ public:
         return *crtpThis();
     }
 
-    /// Subtraction operator.
-    ///
-    /// \param rhs Right-hand-side operand.
-    /// \return Result vector.
-    constexpr CrtpType operator-(const CrtpType& rhs) const noexcept
-    {
-        CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            ret[ii] = m_data[ii] - rhs[ii];
-        }
-        return ret;
-    }
-    /// Subtraction operator.
-    ///
-    /// \param rhs Right-hand-side operand.
-    /// \return Result vector.
-    constexpr CrtpType operator-(float rhs) const noexcept
-    {
-        CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            ret[ii] = m_data[ii] - rhs;
-        }
-        return ret;
-    }
     /// Subtraction into operator.
     ///
     /// \param rhs Right-hand-side operand.
@@ -261,32 +209,6 @@ public:
         return *crtpThis();
     }
 
-    /// Multiplication operator.
-    ///
-    /// \param rhs Right-hand-side operand.
-    /// \return Result vector.
-    constexpr CrtpType operator*(const CrtpType& rhs) const noexcept
-    {
-        CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            ret[ii] = m_data[ii] * rhs[ii];
-        }
-        return ret;
-    }
-    /// Multiplication operator.
-    ///
-    /// \param rhs Right-hand-side operand.
-    /// \return Result vector.
-    constexpr CrtpType operator*(float rhs) const noexcept
-    {
-        CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            ret[ii] = m_data[ii] * rhs;
-        }
-        return ret;
-    }
     /// Multiplication into operator.
     ///
     /// \param rhs Right-hand-side operand.
@@ -306,32 +228,6 @@ public:
         return *crtpThis();
     }
 
-    /// Division operator.
-    ///
-    /// \param rhs Right-hand-side operand.
-    /// \return Result vector.
-    constexpr CrtpType operator/(const CrtpType& rhs) const noexcept
-    {
-        CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            ret[ii] = m_data[ii] / rhs[ii];
-        }
-        return ret;
-    }
-    /// Division operator.
-    ///
-    /// \param rhs Right-hand-side operand.
-    /// \return Result vector.
-    constexpr CrtpType operator/(float rhs) const noexcept
-    {
-        CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            ret[ii] = m_data[ii] / rhs;
-        }
-        return ret;
-    }
     /// Division into operator.
     ///
     /// \param rhs Right-hand-side operand.
@@ -351,31 +247,35 @@ public:
         return *crtpThis();
     }
 
-    /// Equals operator.
+public:
+    /// Addition operator.
     ///
+    /// \param lhs Left-hand-side operand.
     /// \param rhs Right-hand-side operand.
-    /// \return Truth value.
-    constexpr bool operator==(const CrtpType& rhs) const noexcept
+    /// \return Result vector.
+    constexpr friend CrtpType operator+(const CrtpType& lhs, const CrtpType& rhs) noexcept
     {
+        CrtpType ret;
         for(unsigned ii = 0; (ii < N); ++ii)
         {
-            if(m_data[ii] != rhs[ii])
-            {
-                return false;
-            }
+            ret[ii] = lhs[ii] + rhs[ii];
         }
-        return true;
+        return ret;
     }
-    /// Not equals operator.
+    /// Addition operator.
     ///
+    /// \param lhs Left-hand-side operand.
     /// \param rhs Right-hand-side operand.
-    /// \return Truth value.
-    constexpr bool operator!=(const CrtpType& rhs) const noexcept
+    /// \return Result vector.
+    constexpr friend CrtpType operator+(const CrtpType& lhs, float rhs) noexcept
     {
-        return !(*crtpThis() == rhs);
+        CrtpType ret;
+        for(unsigned ii = 0; (ii < N); ++ii)
+        {
+            ret[ii] = lhs[ii] + rhs;
+        }
+        return ret;
     }
-
-  public:
     /// Addition operator.
     ///
     /// \param lhs Left-hand-side operand.
@@ -386,6 +286,34 @@ public:
         return rhs + lhs;
     }
 
+    /// Subtraction operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Result vector.
+    constexpr friend CrtpType operator-(const CrtpType& lhs, const CrtpType& rhs) noexcept
+    {
+        CrtpType ret;
+        for(unsigned ii = 0; (ii < N); ++ii)
+        {
+            ret[ii] = lhs[ii] - rhs[ii];
+        }
+        return ret;
+    }
+    /// Subtraction operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Result vector.
+    constexpr friend CrtpType operator-(const CrtpType& lhs, float rhs) noexcept
+    {
+        CrtpType ret;
+        for(unsigned ii = 0; (ii < N); ++ii)
+        {
+            ret[ii] = lhs[ii] - rhs;
+        }
+        return ret;
+    }
     /// Subtraction operator.
     ///
     /// \param lhs Left-hand-side operand.
@@ -406,11 +334,67 @@ public:
     /// \param lhs Left-hand-side operand.
     /// \param rhs Right-hand-side operand.
     /// \return Result vector.
+    constexpr friend CrtpType operator*(const CrtpType& lhs, const CrtpType& rhs) noexcept
+    {
+        CrtpType ret;
+        for(unsigned ii = 0; (ii < N); ++ii)
+        {
+            ret[ii] = lhs[ii] * rhs[ii];
+        }
+        return ret;
+    }
+    /// Multiplication operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Result vector.
+    constexpr friend CrtpType operator*(const CrtpType& lhs, float rhs) noexcept
+    {
+        CrtpType ret;
+        for(unsigned ii = 0; (ii < N); ++ii)
+        {
+            ret[ii] = lhs[ii] * rhs;
+        }
+        return ret;
+    }
+    /// Multiplication operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Result vector.
     constexpr friend CrtpType operator*(float lhs, const CrtpType& rhs) noexcept
     {
         return rhs * lhs;
     }
 
+    /// Division operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Result vector.
+    constexpr friend CrtpType operator/(const CrtpType& lhs, const CrtpType& rhs) noexcept
+    {
+        CrtpType ret;
+        for(unsigned ii = 0; (ii < N); ++ii)
+        {
+            ret[ii] = lhs[ii] / rhs[ii];
+        }
+        return ret;
+    }
+    /// Division operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Result vector.
+    constexpr friend CrtpType operator/(const CrtpType& lhs, float rhs) noexcept
+    {
+        CrtpType ret;
+        for(unsigned ii = 0; (ii < N); ++ii)
+        {
+            ret[ii] = lhs[ii] / rhs;
+        }
+        return ret;
+    }
     /// Division operator.
     ///
     /// \param lhs Left-hand-side operand.
@@ -424,6 +408,32 @@ public:
             ret[ii] = lhs / rhs[ii];
         }
         return ret;
+    }
+
+    /// Equals operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Truth value.
+    constexpr friend bool operator==(const CrtpType& lhs, const CrtpType& rhs) noexcept
+    {
+        for(unsigned ii = 0; (ii < N); ++ii)
+        {
+            if(lhs[ii] != rhs[ii])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    /// Not equals operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Truth value.
+    constexpr friend bool operator!=(const CrtpType& lhs, const CrtpType& rhs) noexcept
+    {
+        return !(lhs == rhs);
     }
 
 #if defined(USE_LD)
@@ -443,7 +453,7 @@ public:
     }
 #endif
 
-  public:
+public:
     /// Dot product.
     ///
     /// \param lhs Left-hand-side operand.
