@@ -375,7 +375,7 @@ public:
 #if defined(USE_LD)
         if(!m_attributes.back().isValid())
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("cannot add uniform " + std::string(name) + " to program " +
+            BOOST_THROW_EXCEPTION(std::runtime_error("cannot add attribute '" + std::string(name) + "' to program " +
                        std::to_string(m_id)));
         }
 #endif
@@ -405,7 +405,7 @@ public:
 #if defined(USE_LD)
         if(!m_attributes.back().isValid())
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("cannot add uniform " + std::string(name) + " to program " +
+            BOOST_THROW_EXCEPTION(std::runtime_error("cannot add uniform '" + std::string(name) + "' to program " +
                        std::to_string(m_id)));
         }
 #endif
