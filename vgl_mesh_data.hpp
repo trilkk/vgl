@@ -172,7 +172,8 @@ private:
         {
             m_vertex_data.push_back(0u);
         }
-        return reinterpret_cast<T*>(m_vertex_data.data() + m_vertex_data.size() - sizeof(T));
+        void* ret = m_vertex_data.data() + m_vertex_data.size() - sizeof(T);
+        return reinterpret_cast<T*>(ret);
     }
 
     /// Write data.
