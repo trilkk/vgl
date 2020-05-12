@@ -6,6 +6,7 @@
 #include "vgl_utility.hpp"
 #include "vgl_mat2.hpp"
 #include "vgl_mat4.hpp"
+#include "vgl_texture.hpp"
 #include "vgl_vec2.hpp"
 #include "vgl_vec3.hpp"
 #include "vgl_vec4.hpp"
@@ -460,6 +461,27 @@ public:
         return false;
     }
 #endif
+
+    /// Feed uniform to the program.
+    ///
+    /// \param name Uniform name.
+    /// \param value Uniform value.
+    void uniform(string_view name, int value)
+    {
+        GLint location = getUniformLocation(name);
+        dnload_glUniform1i(location, value);
+    }
+
+    /// Feed uniform to the program.
+    ///
+    /// \param name Uniform name.
+    /// \param tex Texture to bind.
+    /// \param value Texture unit.
+    void uniform(string_view name, const Texture& tex, unsigned value)
+    {
+        tex.bind(value);
+        uniform(name, static_cast<int>(value));
+    }
 
     /// Feed uniform to the program.
     ///
