@@ -5,6 +5,7 @@
 #include "vgl_buffer.hpp"
 #include "vgl_geometry_handle.hpp"
 #include "vgl_glsl_program.hpp"
+#include "vgl_packed_data.hpp"
 #include "vgl_state.hpp"
 #include "vgl_vec2.hpp"
 #include "vgl_vec3.hpp"
@@ -121,7 +122,7 @@ public:
 
 private:
     /// Raw data.
-    vector<uint8_t> m_vertex_data;
+    PackedData m_vertex_data;
 
     /// Raw data.
     vector<uint16_t> m_index_data;
@@ -143,14 +144,10 @@ public:
     ///
     /// \param op Source mesh data.
     MeshData(const MeshData& op) :
+        m_vertex_data(op.m_vertex_data),
         m_stride(op.m_stride),
         m_vertex_count(op.m_vertex_count)
     {
-        for(const auto& vv : op.m_vertex_data)
-        {
-            m_vertex_data.push_back(vv);
-        }
-
         for(const auto& vv : op.m_index_data)
         {
             m_index_data.push_back(vv);
@@ -163,27 +160,6 @@ public:
     }
 
 private:
-    /// Expand data with the size of a type.
-    ///
-    /// \return Pointer to where the value can be written.
-    template<typename T> T* expand()
-    {
-        for(unsigned ii = 0; (ii < sizeof(T)); ++ii)
-        {
-            m_vertex_data.push_back(0u);
-        }
-        void* ret = m_vertex_data.data() + m_vertex_data.size() - sizeof(T);
-        return reinterpret_cast<T*>(ret);
-    }
-
-    /// Write data.
-    ///
-    /// \param op Value to be written.
-    template<typename T> void writeInternal(const T& op)
-    {
-        *expand<T>() = op;
-    }
-
     /// Set channel information.
     ///
     /// \param channel Channel to set.
@@ -222,7 +198,7 @@ public:
     /// \return Current vertex buffer offset (for next append).
     constexpr unsigned getVertexOffset() const noexcept
     {
-        return m_vertex_data.getSizeBytes();
+        return m_vertex_data.size();
     }
 
     /// Accessor.
@@ -268,8 +244,7 @@ public:
     void write(GeometryChannel channel, const vec2& data)
     {
         setChannel(channel, getVertexOffset());
-        writeInternal(data[0]);
-        writeInternal(data[1]);
+        m_vertex_data.push(data);
     }
 
     /// Write vertex data with semantic.
@@ -279,9 +254,7 @@ public:
     void write(GeometryChannel channel, const vec3& data)
     {
         setChannel(channel, getVertexOffset());
-        writeInternal(data[0]);
-        writeInternal(data[1]);
-        writeInternal(data[2]);
+        m_vertex_data.push(data);
     }
 
     /// Write vertex data with semantic.
@@ -291,10 +264,7 @@ public:
     void write(GeometryChannel channel, const uvec4& data)
     {
         setChannel(channel, getVertexOffset());
-        writeInternal(data[0]);
-        writeInternal(data[1]);
-        writeInternal(data[2]);
-        writeInternal(data[3]);
+        m_vertex_data.push(data);
     }
 
     /// Append another mesh data block into this.
@@ -310,10 +280,7 @@ public:
 #endif
         uint16_t index_offset = static_cast<uint16_t>(m_vertex_count);
 
-        for(const auto& vv : op.m_vertex_data)
-        {
-            m_vertex_data.push_back(vv);
-        }
+        m_vertex_data.append(op.m_vertex_data);
 
         for(const auto& vv : op.m_index_data)
         {
@@ -377,7 +344,7 @@ public:
         vertex_buffer.update(m_vertex_data);
         index_buffer.update(m_index_data);
 #if defined(USE_LD)
-        increment_data_size_vertex(m_vertex_data.getSizeBytes());
+        increment_data_size_vertex(m_vertex_data.size());
         increment_data_size_index(m_index_data.getSizeBytes());
 #endif
     }

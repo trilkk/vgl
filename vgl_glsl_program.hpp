@@ -15,6 +15,60 @@
 namespace vgl
 {
 
+/// Uniform semantic.
+///
+/// Used to assign uniforms in a manner not directly tied to a name.
+///
+/// Some of the naming here is taken di
+enum UniformSemantic
+{
+    /// No semantic.
+    NONE = 0,
+
+    /// Projection matrix.
+    PROJECTION = 1,
+
+    /// Camera matrix.
+    ///
+    /// This is called the view matrix in e.g. Blender.
+    CAMERA = 2,
+
+    /// Modelview matrix.
+    MODELVIEW = 3,
+
+    /// Complete matrix stack.
+    PROJECTION_CAMERA_MODELVIEW = 4,
+
+    /// Matrix stack without modelview.
+    PROJECTION_CAMERA = 5,
+};
+
+#if defined(USE_LD)
+
+/// Get human-readable string corresponding to a channel
+///
+/// \param op Channel ID.
+/// \return String representation for channel.
+std::string to_string(UniformSemantic op)
+{
+    switch(op)
+    {
+    case PROJECTION:
+        return std::string("PROJECTION");
+
+    case CAMERA:
+        return std::string("CAMERA");
+
+    case MODELVIEW:
+        return std::string("MODELVIEW");
+
+    default:
+        return std::string("NONE");
+    }
+}
+
+#endif
+
 namespace detail
 {
 
@@ -119,12 +173,17 @@ public:
 class GlslUniform : public GlslLocation
 {
 public:
+    /// Corresponding uniform semantic.
+    UniformSemantic m_semantic;
+
+public:
     /// Constructor.
     ///
     /// \param program Program to look from.
     /// \param name Name for the location info.
-    explicit GlslUniform(GLuint program, const char* name) :
-        GlslLocation(name, lookup(program, name))
+    explicit GlslUniform(GLuint program, UniformSemantic semantic, const char* name) :
+        GlslLocation(name, lookup(program, name)),
+        m_semantic(semantic)
     {
     }
 
@@ -139,6 +198,14 @@ private:
     }
 
 public:
+    /// Accessor.
+    ///
+    /// \return Uniform semantic.
+    constexpr UniformSemantic getSemantic() const noexcept
+    {
+        return m_semantic;
+    }
+
 #if defined(USE_LD)
     /// Refresh name
     ///
@@ -330,6 +397,20 @@ private:
 #endif
         return -1;
     }
+    /// Get an uniform location.
+    ///
+    /// \param op Semantic.
+    GLint getUniformLocation(UniformSemantic op) const
+    {
+        for(const auto& vv : m_uniforms)
+        {
+            if(vv.getSemantic() == op)
+            {
+                return vv.getLocation();
+            }
+        }
+        return -1;
+    }
 
 #if defined(USE_LD)
     /// Refresh attribute and uniform locations.
@@ -400,16 +481,25 @@ public:
     /// Add an uniform.
     ///
     /// \param name Name of the uniform.
-    void addUniform(const char* name)
+    void addUniform(UniformSemantic semantic, const char* name)
     {
-        m_uniforms.emplace_back(m_id, name);
+        m_uniforms.emplace_back(m_id, semantic, name);
 #if defined(USE_LD)
         if(!m_attributes.back().isValid())
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("cannot add uniform '" + std::string(name) + "' to program " +
-                       std::to_string(m_id)));
+            BOOST_THROW_EXCEPTION(std::runtime_error("cannot add uniform '" + std::string(name) + "' with semantic " +
+                        to_string(semantic) + " to program " + std::to_string(m_id)));
         }
 #endif
+    }
+    /// Add an uniform.
+    ///
+    /// Semantic is set to NONE.
+    ///
+    /// \param name Name of the uniform.
+    void addUniform(const char* name)
+    {
+        addUniform(NONE, name);
     }
 
     /// Bind for use.
@@ -464,93 +554,119 @@ public:
 
     /// Feed uniform to the program.
     ///
+    /// Uniform name must be present, or it's considered an error.
+    ///
     /// \param name Uniform name.
     /// \param value Uniform value.
-    void uniform(string_view name, int value)
+    template<typename...Args> void uniform(string_view name, Args&&... args)
     {
         GLint location = getUniformLocation(name);
+#if defined(USE_LD)
+        if(location >= 0)
+#endif
+        {
+            applyUniform(location, args...);
+        }
+    }
+    /// Feed uniform to the program.
+    ///
+    /// If uniform semantic is not present, this function silently does nothing.
+    ///
+    /// \param semantic Uniform semantic.
+    /// \param value Uniform value.
+    template<typename...Args> bool uniform(UniformSemantic semantic, Args&&... args)
+    {
+        GLint location = getUniformLocation(semantic);
+        if(location >= 0)
+        {
+            applyUniform(location, args...);
+            return true;
+        }
+        return false;
+    }
+
+public:
+    /// Apply uniform.
+    ///
+    /// \param location Uniform location.
+    /// \param value Uniform value.
+    static void applyUniform(GLint location, int value)
+    {
         dnload_glUniform1i(location, value);
     }
 
-    /// Feed uniform to the program.
+    /// Apply uniform.
     ///
-    /// \param name Uniform name.
-    /// \param tex Texture to bind.
-    /// \param value Texture unit.
-    void uniform(string_view name, const Texture& tex, unsigned value)
-    {
-        tex.bind(value);
-        uniform(name, static_cast<int>(value));
-    }
-
-    /// Feed uniform to the program.
-    ///
-    /// \param name Uniform name.
+    /// \param location Uniform location.
     /// \param value Uniform value.
-    void uniform(string_view name, const vec2& value)
+    static void applyUniform(GLint location, const vec2& value)
     {
-        GLint location = getUniformLocation(name);
         dnload_glUniform2fv(location, 1, value.data());
     }
 
-    /// Feed uniform to the program.
+    /// Apply uniform.
     ///
-    /// \param name Uniform name.
+    /// \param location Uniform location.
     /// \param value Uniform value.
-    void uniform(string_view name, const vec3& value)
+    static void applyUniform(GLint location, const vec3& value)
     {
-        GLint location = getUniformLocation(name);
         dnload_glUniform3fv(location, 1, value.data());
     }
+    /// Apply uniform.
+    ///
+    /// \param location Uniform location.
+    /// \param ptr Pointer to uniform data.
+    /// \param count Number of entries.
+    static void applyUniform(GLint location, const vec3* ptr, unsigned count)
+    {
+        dnload_glUniform3fv(location, count, ptr->data());
+    }
 
-    /// Feed uniform to the program.
+    /// Apply uniform.
     ///
     /// \param name Uniform name.
     /// \param value Uniform value.
-    void uniform(string_view name, const vec4& value)
+    static void applyUniform(GLint location, const vec4& value)
     {
-        GLint location = getUniformLocation(name);
         dnload_glUniform4fv(location, 1, value.data());
     }
 
-    /// Feed uniform to the program.
+    /// Apply uniform.
     ///
-    /// \param name Uniform name.
+    /// \param location Uniform location.
     /// \param value Uniform value.
-    void uniform(string_view name, const mat2& value)
+    static void applyUniform(GLint location, const mat2& value)
     {
-        GLint location = getUniformLocation(name);
         dnload_glUniformMatrix2fv(location, 1, GL_FALSE, value.data());
     }
 
-    /// Feed uniform to the program.
+    /// Apply uniform.
     ///
-    /// \param name Uniform name.
+    /// \param location Uniform location.
     /// \param value Uniform value.
-    void uniform(string_view name, const mat3& value)
+    static void applyUniform(GLint location, const mat3& value)
     {
-        GLint location = getUniformLocation(name);
         dnload_glUniformMatrix3fv(location, 1, GL_FALSE, value.data());
     }
 
-    /// Feed uniform to the program.
+    /// Apply uniform.
     ///
-    /// \param name Uniform name.
+    /// \param location Uniform location.
     /// \param value Uniform value.
-    void uniform(string_view name, const mat4& value)
+    static void applyUniform(GLint location, const mat4& value)
     {
-        GLint location = getUniformLocation(name);
         dnload_glUniformMatrix4fv(location, 1, GL_FALSE, value.data());
     }
 
-    /// Feed uniform to the program.
+    /// Apply uniform.
     ///
-    /// \param ptr Pointer to uniform data.
-    /// \param count Number of entries.
-    void uniform(string_view name, const vec3* ptr, unsigned count)
+    /// \param location Uniform location.
+    /// \param tex Texture to bind.
+    /// \param value Texture unit.
+    static void applyUniform(GLint location, const Texture& tex, unsigned value)
     {
-        GLint location = getUniformLocation(name);
-        dnload_glUniform3fv(location, count, ptr->data());
+        tex.bind(value);
+        applyUniform(location, static_cast<int>(value));
     }
 
 public:

@@ -396,16 +396,16 @@ public:
 
     /// Move operator.
     ///
-    /// \param op Source object.
+    /// \param rhs Right-hand-side operand.
     /// \return This object.
-    constexpr vector<T>& operator=(vector<T>&& op) noexcept
+    constexpr vector<T>& operator=(vector<T>&& rhs) noexcept
     {
-        m_data = op.m_data;
-        m_size = op.m_size;
-        m_capacity = op.m_capacity;
-        op.m_data = nullptr;
-        op.m_size = 0;
-        op.m_capacity = 0;
+        m_data = rhs.m_data;
+        m_size = rhs.m_size;
+        m_capacity = rhs.m_capacity;
+        rhs.m_data = nullptr;
+        rhs.m_size = 0;
+        rhs.m_capacity = 0;
         return *this;
     }
 

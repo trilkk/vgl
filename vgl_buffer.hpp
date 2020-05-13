@@ -1,7 +1,7 @@
 #ifndef VGL_BUFFER_HPP
 #define VGL_BUFFER_HPP
 
-#include "vgl_vector.hpp"
+#include "vgl_packed_data.hpp"
 
 namespace vgl
 {
@@ -75,6 +75,28 @@ public:
         dnload_glDeleteBuffers(1, &m_id);
     }
 
+private:
+    /// Update data to GPU.
+    ///
+    /// \param ptr Pointer to data to update.
+    /// \param count Number of bytes to update.
+    void update(const void* ptr, unsigned count) const
+    {
+        bind();
+        dnload_glBufferData(BufferType, count, ptr, GL_STATIC_DRAW);
+    }
+
+    /// Update sub-data to GPU.
+    ///
+    /// \param ptr Pointer to data to update.
+    /// \param count Number of bytes to update.
+    /// \param offset Offset into the buffer.
+    void update(const void* ptr, unsigned count, unsigned offset) const
+    {
+        bind();
+        dnload_glBufferSubData(BufferType, offset, count, ptr);
+    }
+
 public:
     /// Accessor.
     ///
@@ -100,22 +122,33 @@ public:
     /// Update data to GPU.
     ///
     /// \param op Data to update.
-    template<typename T> void update(const vector<T>& op) const
+    void update(const PackedData& op) const
     {
-        bind();
-        dnload_glBufferData(BufferType, op.getSizeBytes(), op.data(), GL_STATIC_DRAW);
-
+        update(op.data(), op.size());
     }
-
     /// Update data to GPU.
     ///
     /// \param data Data to update.
     /// \param offset Offset to update into.
-    template<typename T> void update(const vector<T>& data, unsigned offset) const
+    void update(const PackedData& data, unsigned offset) const
     {
-        bind();
-        dnload_glBufferSubData(BufferType, offset, data.getSizeBytes(), data.data());
+        update(data.data(), data.size(), offset);
+    }
 
+    /// Update data to GPU.
+    ///
+    /// \param op Data to update.
+    void update(const vector<uint16_t>& op) const
+    {
+        update(op.data(), op.getSizeBytes());
+    }
+    /// Update data to GPU.
+    ///
+    /// \param data Data to update.
+    /// \param offset Offset to update into.
+    void update(const vector<uint16_t>& data, unsigned offset) const
+    {
+        update(data.data(), data.getSizeBytes(), offset);
     }
 };
 
