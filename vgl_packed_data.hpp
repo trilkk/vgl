@@ -95,6 +95,12 @@ public:
         return m_data.size();
     }
 
+    /// Clear all data.
+    constexpr void clear() noexcept
+    {
+        m_data.clear();
+    }
+
     /// Append another set of packed data.
     ///
     /// \param op Source to append.

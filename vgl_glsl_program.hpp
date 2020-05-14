@@ -19,28 +19,33 @@ namespace vgl
 ///
 /// Used to assign uniforms in a manner not directly tied to a name.
 ///
-/// Some of the naming here is taken di
+/// Some of the naming here is taken directly from legacy OpenGL.
 enum UniformSemantic
 {
     /// No semantic.
     NONE = 0,
 
     /// Projection matrix.
-    PROJECTION = 1,
+    PROJECTION,
 
     /// Camera matrix.
     ///
-    /// This is called the view matrix in e.g. Blender.
-    CAMERA = 2,
+    /// This is often called 'view matrix'.
+    CAMERA,
 
     /// Modelview matrix.
-    MODELVIEW = 3,
-
-    /// Complete matrix stack.
-    PROJECTION_CAMERA_MODELVIEW = 4,
+    ///
+    /// This is often called 'object matrix'.
+    MODELVIEW,
 
     /// Matrix stack without modelview.
-    PROJECTION_CAMERA = 5,
+    PROJECTION_CAMERA,
+
+    /// Matrix stack without projection.
+    CAMERA_MODELVIEW,
+    
+    /// Complete matrix stack.
+    PROJECTION_CAMERA_MODELVIEW,
 };
 
 #if defined(USE_LD)
@@ -380,38 +385,6 @@ private:
         return id;
     }
 
-    /// Get an uniform location.
-    ///
-    /// \param op Name.
-    GLint getUniformLocation(string_view op) const
-    {
-        for(const auto& vv : m_uniforms)
-        {
-            if(vv.getName() == op)
-            {
-                return vv.getLocation();
-            }
-        }
-#if defined(USE_LD)
-        std::cerr << "WARNING: program " << m_id << " has no uniform " << op << std::endl;
-#endif
-        return -1;
-    }
-    /// Get an uniform location.
-    ///
-    /// \param op Semantic.
-    GLint getUniformLocation(UniformSemantic op) const
-    {
-        for(const auto& vv : m_uniforms)
-        {
-            if(vv.getSemantic() == op)
-            {
-                return vv.getLocation();
-            }
-        }
-        return -1;
-    }
-
 #if defined(USE_LD)
     /// Refresh attribute and uniform locations.
     void refreshLocations()
@@ -462,7 +435,6 @@ public:
         }
 #endif
     }
-
     /// Get an attribute location.
     ///
     /// \param op Channel semantic.
@@ -500,6 +472,37 @@ public:
     void addUniform(const char* name)
     {
         addUniform(NONE, name);
+    }
+    /// Get an uniform location.
+    ///
+    /// \param op Name.
+    GLint getUniformLocation(string_view op) const
+    {
+        for(const auto& vv : m_uniforms)
+        {
+            if(vv.getName() == op)
+            {
+                return vv.getLocation();
+            }
+        }
+#if defined(USE_LD)
+        std::cerr << "WARNING: program " << m_id << " has no uniform " << op << std::endl;
+#endif
+        return -1;
+    }
+    /// Get an uniform location.
+    ///
+    /// \param op Semantic.
+    GLint getUniformLocation(UniformSemantic op) const
+    {
+        for(const auto& vv : m_uniforms)
+        {
+            if(vv.getSemantic() == op)
+            {
+                return vv.getLocation();
+            }
+        }
+        return -1;
     }
 
     /// Bind for use.
@@ -593,6 +596,15 @@ public:
     static void applyUniform(GLint location, int value)
     {
         dnload_glUniform1i(location, value);
+    }
+
+    /// Apply uniform.
+    ///
+    /// \param location Uniform location.
+    /// \param value Uniform value.
+    static void applyUniform(GLint location, float value)
+    {
+        dnload_glUniform1f(location, value);
     }
 
     /// Apply uniform.

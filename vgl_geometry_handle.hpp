@@ -6,6 +6,7 @@ namespace vgl
 
 /// \cond
 class GeometryBuffer;
+class GlslProgram;
 /// \endcond
 
 namespace detail
