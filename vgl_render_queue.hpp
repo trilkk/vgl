@@ -23,20 +23,13 @@ enum RenderCommand
 {
     /// Framebuffer switch.
     /// - Framebuffer reference.
-    FBO = 0,
+    FBO,
 
     /// Clear.
-    /// - Bits 1, 2 and 4 signify clear for color, depth and stencil.
-    /// - Color is uvec4.
-    /// - Depth is float.
-    /// - Stencil is integer.
-    CLEAR_COLOR = 1,
-    CLEAR_DEPTH = 2,
-    CLEAR_STENCIL = 4,
-    CLEAR_COLOR_DEPTH = 3,
-    CLEAR_COLOR_STENCIL = 5,
-    CLEAR_DEPTH_STENCIL = 6,
-    CLEAR_COLOR_DEPTH_STENCIL = 7,
+    /// - Color is optional uvec4.
+    /// - Depth is optional float.
+    /// - Stencil is optional integer.
+    CLEAR,
 
     /// Blend mode setting.
     /// - Blending mode.
@@ -347,6 +340,15 @@ private:
                     }
                     break;
 
+                case detail::RenderCommand::CLEAR:
+                    {
+                        optional<uvec4> color = iter.read<optional<uvec4>>();
+                        optional<float> depth = iter.read<optional<float>>();
+                        optional<uint8_t> stencil = iter.read<optional<uint8_t>>();
+                        clear_buffers(color, depth, stencil);
+                    }
+                    break;
+
                 case detail::RenderCommand::BLEND_MODE:
                     {
                         OperationMode mode = static_cast<OperationMode>(iter.read<int>());
@@ -425,6 +427,9 @@ private:
 
                     // Texture uniforms are stateful and require more work.
                 case detail::RenderCommand::UNIFORM_TEXTURE:
+#if !defined(USE_LD)
+                default:
+#endif
                     {
                         GLint location = getUniformLocation(iter);
                         Texture* tex = iter.read<Texture*>();
@@ -433,33 +438,11 @@ private:
                     }
                     break;
 
-                default:
-                    {
-                        optional<uvec4> color;
-                        optional<float> depth;
-                        optional<uint8_t> stencil;
-                        if(command & detail::RenderCommand::CLEAR_COLOR)
-                        {
-                            color = iter.read<uvec4>();
-                        }
-                        if(command & detail::RenderCommand::CLEAR_DEPTH)
-                        {
-                            depth = iter.read<float>();
-                        }
-                        if(command & detail::RenderCommand::CLEAR_STENCIL)
-                        {
-                            stencil = static_cast<uint8_t>(iter.read<int>());
-                        }
 #if defined(USE_LD)
-                        if(!color && !depth && !stencil)
-                        {
-                            BOOST_THROW_EXCEPTION(std::runtime_error("unknown render command: " +
-                                        std::to_string(static_cast<int>(command))));
-                        }
+                default:
+                    BOOST_THROW_EXCEPTION(std::runtime_error("unknown render command: " +
+                                std::to_string(static_cast<int>(command))));
 #endif
-                        clear_buffers(color, depth, stencil);
-                    }
-                    break;
                 }
             }
 
@@ -498,9 +481,9 @@ private:
     /// \param value Value of the uniform.
     template<typename T> void pushUniform(string_view name, UniformSemantic semantic, const T& value)
     {
-        m_data.push(detail::get_uniform_render_command_type<T>());
+        m_data.push(static_cast<int>(detail::get_uniform_render_command_type<T>()));
         m_data.push(name);
-        m_data.push(semantic);
+        m_data.push(static_cast<int>(semantic));
         m_data.push(detail::get_uniform_push_value_type(value));
     }
 
@@ -522,7 +505,7 @@ public:
     /// \param op Framebuffer ptr.
     void push(const FrameBuffer& op)
     {
-        m_data.push(detail::RenderCommand::FBO);
+        m_data.push(static_cast<int>(detail::RenderCommand::FBO));
         m_data.push(&op);
     }
 
@@ -533,22 +516,10 @@ public:
     /// \param stencil Optional clear stencil.
     void push(optional<uvec4> color, optional<float> depth, optional<uint8_t> stencil = nullopt)
     {
-        detail::RenderCommand& command = m_data.push(static_cast<detail::RenderCommand>(0));
-        if(color)
-        {
-            m_data.push(*color);
-            command |= detail::RenderCommand::CLEAR_COLOR;
-        }
-        if(depth)
-        {
-            m_data.push(*depth);
-            command |= detail::RenderCommand::CLEAR_DEPTH;
-        }
-        if(stencil)
-        {
-            m_data.push(static_cast<int>(*stencil));
-            command |= detail::RenderCommand::CLEAR_STENCIL;
-        }
+        m_data.push(static_cast<int>(detail::RenderCommand::CLEAR));
+        m_data.push(color);
+        m_data.push(depth);
+        m_data.push(stencil);
     }
 
     /// Push view settings switch.
@@ -564,7 +535,7 @@ public:
         m_projection_camera = proj * m_camera;
 #endif
 
-        m_data.push(detail::RenderCommand::VIEW);
+        m_data.push(static_cast<int>(detail::RenderCommand::VIEW));
         m_data.push(proj);
 #if defined(USE_LD)
         m_data.push(*m_camera);
@@ -580,7 +551,7 @@ public:
     /// \param op Program to use starting from this point.
     void push(const GlslProgram& op)
     {
-        m_data.push(detail::RenderCommand::PROGRAM);
+        m_data.push(static_cast<int>(detail::RenderCommand::PROGRAM));
         m_data.push(&op);
     }
 
@@ -590,7 +561,7 @@ public:
     /// \param modelview Mesh modelview matrix.
     void push(const Mesh& msh, const mat4& modelview)
     {
-        m_data.push(detail::RenderCommand::MESH);
+        m_data.push(static_cast<int>(detail::RenderCommand::MESH));
         m_data.push(&msh);
         m_data.push(modelview);
 #if defined(USE_LD)
