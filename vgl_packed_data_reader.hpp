@@ -52,6 +52,18 @@ public:
     /// Default move operator.
     constexpr PackedDataReader& operator=(PackedDataReader&&) noexcept = default;
 
+private:
+    /// Advance pointer.
+    ///
+    /// \param op Number of bytes to advance.
+    /// \return Pointer before advance.
+    const void* advance(unsigned op)
+    {
+        const void* ret = reinterpret_cast<const void*>(m_data + m_idx);
+        m_idx += op;
+        return ret;
+    }
+
 public:
     /// Gets the number of remaining bytes.
     ///
@@ -71,9 +83,7 @@ public:
                         std::to_string(remaining()) + " bytes remaining"));
         }
 #endif
-        const T* ret = reinterpret_cast<const T*>(reinterpret_cast<const void*>(m_data + m_idx));
-        m_idx += static_cast<unsigned>(sizeof(T));
-        return *ret;
+        return *reinterpret_cast<const T*>(advance(static_cast<unsigned>(sizeof(T))));
     }
 };
 

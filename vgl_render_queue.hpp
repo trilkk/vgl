@@ -21,6 +21,36 @@ namespace detail
 /// Other commands have specific formats.
 enum RenderCommand
 {
+    /// Framebuffer switch.
+    /// - Framebuffer reference.
+    FBO = 0,
+
+    /// Clear.
+    /// - Bits 1, 2 and 4 signify clear for color, depth and stencil.
+    /// - Color is uvec4.
+    /// - Depth is float.
+    /// - Stencil is integer.
+    CLEAR_COLOR = 1,
+    CLEAR_DEPTH = 2,
+    CLEAR_STENCIL = 4,
+    CLEAR_COLOR_DEPTH = 3,
+    CLEAR_COLOR_STENCIL = 5,
+    CLEAR_DEPTH_STENCIL = 6,
+    CLEAR_COLOR_DEPTH_STENCIL = 7,
+
+    /// Blend mode setting.
+    /// - Blending mode.
+    BLEND_MODE,
+
+    /// Cull face setting.
+    /// - Culling mode.
+    CULL_FACE,
+
+    /// Depth test setting.
+    /// - Testing mode.
+    /// - Write enable.
+    DEPTH_TEST,
+
     /// View switch.
     /// - Projection matrix.
     /// - Camera matrix.
@@ -66,46 +96,105 @@ enum RenderCommand
     UNIFORM_TEXTURE,
 };
 
+/// RenderCommand or operation
+///
+/// \param lhs Left-hand-side operand.
+/// \param rhs Right-hand-side operand.
+/// \return Operation result.
+RenderCommand operator|(const RenderCommand& lhs, const RenderCommand& rhs)
+{
+    return static_cast<RenderCommand>(static_cast<int>(lhs) | static_cast<int>(rhs));
+}
+/// RenderCommand or into operation
+///
+/// \param lhs Left-hand-side operand.
+/// \param rhs Right-hand-side operand.
+/// \return Operation result.
+RenderCommand& operator|=(RenderCommand& lhs, const RenderCommand& rhs)
+{
+    lhs = lhs | rhs;
+    return lhs;
+}
+
 /// Get a render value type for an uniform type.
 ///
 /// \return Render value type.
-template<typename T> constexpr RenderCommand getUniformRenderCommandType() noexcept;
+template<typename T> constexpr RenderCommand get_uniform_render_command_type() noexcept;
 /// \cond
-template<> constexpr RenderCommand getUniformRenderCommandType<int>() noexcept
+template<> constexpr RenderCommand get_uniform_render_command_type<int>() noexcept
 {
     return UNIFORM_INT;
 }
-template<> constexpr RenderCommand getUniformRenderCommandType<float>() noexcept
+template<> constexpr RenderCommand get_uniform_render_command_type<float>() noexcept
 {
     return UNIFORM_FLOAT;
 }
-template<> constexpr RenderCommand getUniformRenderCommandType<vec2>() noexcept
+template<> constexpr RenderCommand get_uniform_render_command_type<vec2>() noexcept
 {
     return UNIFORM_VEC2;
 }
-template<> constexpr RenderCommand getUniformRenderCommandType<vec3>() noexcept
+template<> constexpr RenderCommand get_uniform_render_command_type<vec3>() noexcept
 {
     return UNIFORM_VEC3;
 }
-template<> constexpr RenderCommand getUniformRenderCommandType<vec4>() noexcept
+template<> constexpr RenderCommand get_uniform_render_command_type<vec4>() noexcept
 {
     return UNIFORM_VEC4;
 }
-template<> constexpr RenderCommand getUniformRenderCommandType<mat2>() noexcept
+template<> constexpr RenderCommand get_uniform_render_command_type<mat2>() noexcept
 {
     return UNIFORM_MAT2;
 }
-template<> constexpr RenderCommand getUniformRenderCommandType<mat3>() noexcept
+template<> constexpr RenderCommand get_uniform_render_command_type<mat3>() noexcept
 {
     return UNIFORM_MAT3;
 }
-template<> constexpr RenderCommand getUniformRenderCommandType<mat4>() noexcept
+template<> constexpr RenderCommand get_uniform_render_command_type<mat4>() noexcept
 {
     return UNIFORM_MAT4;
 }
-template<> constexpr RenderCommand getUniformRenderCommandType<Texture>() noexcept
+template<> constexpr RenderCommand get_uniform_render_command_type<Texture>() noexcept
 {
     return UNIFORM_TEXTURE;
+}
+/// \endcond
+
+/// \cond
+const int& get_uniform_push_value_type(const int& op)
+{
+    return op;
+}
+const float& get_uniform_push_value_type(const float& op)
+{
+    return op;
+}
+const vec2& get_uniform_push_value_type(const vec2& op)
+{
+    return op;
+}
+const vec3& get_uniform_push_value_type(const vec3& op)
+{
+    return op;
+}
+const vec4& get_uniform_push_value_type(const vec4& op)
+{
+    return op;
+}
+const mat2& get_uniform_push_value_type(const mat2& op)
+{
+    return op;
+}
+const mat3& get_uniform_push_value_type(const mat3& op)
+{
+    return op;
+}
+const mat4& get_uniform_push_value_type(const mat4& op)
+{
+    return op;
+}
+const Texture* get_uniform_push_value_type(const Texture& op)
+{
+    return &op;
 }
 /// \endcond
 
@@ -190,7 +279,7 @@ private:
             m_program->uniform(UniformSemantic::PROJECTION_CAMERA, *m_projection_camera);
             m_program->uniform(UniformSemantic::MODELVIEW, *m_modelview);
             m_program->uniform(UniformSemantic::CAMERA_MODELVIEW, *m_camera_modelview);
-            m_program->uniform(UniformSemantic::PROJECTION_CAMERA_MODELVIEW, *m_camera_modelview);
+            m_program->uniform(UniformSemantic::PROJECTION_CAMERA_MODELVIEW, *m_projection_camera_modelview);
 
             m_mesh->draw(*m_program);
             m_mesh = nullptr;
@@ -233,7 +322,7 @@ private:
         /// Render using the packed data reader.
         ///
         /// \param op Render queue to render.
-        void render(const RenderQueue& op)
+        void draw(const RenderQueue& op)
         {
             /// Packed data reader.
             PackedDataReader iter(op.m_data);
@@ -250,6 +339,37 @@ private:
                 detail::RenderCommand command = iter.read<detail::RenderCommand>();
                 switch(command)
                 {
+                case detail::RenderCommand::FBO:
+                    {
+                        applyMesh();
+                        FrameBuffer* fbo = iter.read<FrameBuffer*>();
+                        fbo->bind();
+                    }
+                    break;
+
+                case detail::RenderCommand::BLEND_MODE:
+                    {
+                        OperationMode mode = static_cast<OperationMode>(iter.read<int>());
+                        blend_mode(mode);
+                    }
+                    break;
+
+                case detail::RenderCommand::CULL_FACE:
+                    {
+                        GLenum mode = static_cast<GLenum>(iter.read<int>());
+                        cull_face(mode);
+                    }
+                    break;
+
+                case detail::RenderCommand::DEPTH_TEST:
+                    {
+                        GLenum mode = static_cast<GLenum>(iter.read<int>());
+                        bool write = static_cast<bool>(iter.read<int>());
+                        depth_test(mode);
+                        depth_write(write);
+                    }
+                    break;
+
                 case detail::RenderCommand::VIEW:
                     applyMesh();
                     m_projection = &(iter.read<mat4>());
@@ -305,9 +425,6 @@ private:
 
                     // Texture uniforms are stateful and require more work.
                 case detail::RenderCommand::UNIFORM_TEXTURE:
-#if !defined(USE_LD)
-                default:
-#endif
                     {
                         GLint location = getUniformLocation(iter);
                         Texture* tex = iter.read<Texture*>();
@@ -316,11 +433,33 @@ private:
                     }
                     break;
 
-#if defined(USE_LD)
                 default:
-                    BOOST_THROW_EXCEPTION(std::runtime_error("unknown render command: " +
-                                std::to_string(static_cast<int>(command))));
+                    {
+                        optional<uvec4> color;
+                        optional<float> depth;
+                        optional<uint8_t> stencil;
+                        if(command & detail::RenderCommand::CLEAR_COLOR)
+                        {
+                            color = iter.read<uvec4>();
+                        }
+                        if(command & detail::RenderCommand::CLEAR_DEPTH)
+                        {
+                            depth = iter.read<float>();
+                        }
+                        if(command & detail::RenderCommand::CLEAR_STENCIL)
+                        {
+                            stencil = static_cast<uint8_t>(iter.read<int>());
+                        }
+#if defined(USE_LD)
+                        if(!color && !depth && !stencil)
+                        {
+                            BOOST_THROW_EXCEPTION(std::runtime_error("unknown render command: " +
+                                        std::to_string(static_cast<int>(command))));
+                        }
 #endif
+                        clear_buffers(color, depth, stencil);
+                    }
+                    break;
                 }
             }
 
@@ -357,12 +496,12 @@ private:
     /// \param name Name of the uniform.
     /// \param semantic Uniform semantic.
     /// \param value Value of the uniform.
-    template<typename T> void push(string_view name, UniformSemantic semantic, const T& value)
+    template<typename T> void pushUniform(string_view name, UniformSemantic semantic, const T& value)
     {
-        m_data.push(detail::getUniformRenderCommandType<T>());
+        m_data.push(detail::get_uniform_render_command_type<T>());
         m_data.push(name);
         m_data.push(semantic);
-        m_data.push(value);
+        m_data.push(detail::get_uniform_push_value_type(value));
     }
 
 public:
@@ -376,6 +515,40 @@ public:
         m_camera = nullopt;
         m_projection_camera = nullopt;
 #endif
+    }
+
+    /// Push fbo switch.
+    ///
+    /// \param op Framebuffer ptr.
+    void push(const FrameBuffer& op)
+    {
+        m_data.push(detail::RenderCommand::FBO);
+        m_data.push(&op);
+    }
+
+    /// Push clear.
+    ///
+    /// \param color Optional clear color.
+    /// \param depth Optional clear depth.
+    /// \param stencil Optional clear stencil.
+    void push(optional<uvec4> color, optional<float> depth, optional<uint8_t> stencil = nullopt)
+    {
+        detail::RenderCommand& command = m_data.push(static_cast<detail::RenderCommand>(0));
+        if(color)
+        {
+            m_data.push(*color);
+            command |= detail::RenderCommand::CLEAR_COLOR;
+        }
+        if(depth)
+        {
+            m_data.push(*depth);
+            command |= detail::RenderCommand::CLEAR_DEPTH;
+        }
+        if(stencil)
+        {
+            m_data.push(static_cast<int>(*stencil));
+            command |= detail::RenderCommand::CLEAR_STENCIL;
+        }
     }
 
     /// Push view settings switch.
@@ -446,11 +619,40 @@ public:
         pushUniform(string_view(), semantic, value);
     }
 
+    /// Push blend mode switch.
+    ///
+    /// \param op Blend mode.
+    void pushBlend(OperationMode op)
+    {
+        m_data.push(static_cast<int>(detail::RenderCommand::BLEND_MODE));
+        m_data.push(static_cast<int>(op));
+    }
+
+    /// Push cull mode switch.
+    ///
+    /// \param op Cull mode.
+    void pushCull(GLenum op)
+    {
+        m_data.push(static_cast<int>(detail::RenderCommand::CULL_FACE));
+        m_data.push(static_cast<int>(op));
+    }
+
+    /// Push depth test switch.
+    ///
+    /// \param mode Depth test mode.
+    /// \param write Depth write enabled.
+    void pushDepth(GLenum mode, bool write)
+    {
+        m_data.push(static_cast<int>(detail::RenderCommand::DEPTH_TEST));
+        m_data.push(static_cast<int>(mode));
+        m_data.push(static_cast<int>(write));
+    }
+
     /// Render the contents in the queue.
-    void render()
+    void draw()
     {
         RenderState state;
-        state.render(*this);
+        state.draw(*this);
     }
 };
 

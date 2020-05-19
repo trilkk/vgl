@@ -13,6 +13,9 @@ private:
     /// Currently active framebuffer.
     static const FrameBuffer* g_current_frame_buffer;
 
+    /// Default frame buffer.
+    static FrameBuffer g_default_frame_buffer;
+
 private:
     /// Framebuffer id.
     GLuint m_id = 0;
@@ -24,16 +27,22 @@ private:
     Texture2DUptr m_depth_texture;
 
     /// Width of this framebuffer.
-    unsigned m_width;
+    unsigned m_width = 0;
 
     /// Height of this framebuffer.
-    unsigned m_height;
+    unsigned m_height = 0;
 
 private:
     /// Deleted copy constructor.
     FrameBuffer(const FrameBuffer&) = delete;
     /// Deleted assignment.
     FrameBuffer& operator=(const FrameBuffer&) = delete;
+
+private:
+    /// Default constructor.
+    constexpr explicit FrameBuffer() noexcept
+    {
+    }
 
 public:
     /// Constructor.
@@ -93,7 +102,10 @@ public:
     ~FrameBuffer()
     {
 #if defined(USE_LD)
-        glDeleteFramebuffers(1, &m_id);
+        if(m_id)
+        {
+            glDeleteFramebuffers(1, &m_id);
+        }
 #endif
     }
 
@@ -187,6 +199,24 @@ public:
         return unique_ptr<FrameBuffer>(new FrameBuffer(width, height, bpc, bpd, filtering, wrap));
     }
 
+    /// Accesses the default frame buffer.
+    ///
+    /// \return Frame buffer reference.
+    static const FrameBuffer& get_default()
+    {
+        return g_default_frame_buffer;
+    }
+
+    /// Initialize the default frame buffer.
+    ///
+    /// \param width Width.
+    /// \param height Height.
+    static void initialize_default(unsigned width, unsigned height)
+    {
+        g_default_frame_buffer.m_width = width;
+        g_default_frame_buffer.m_height = height;
+    }
+
 public:
 #if defined(USE_LD)
     /// Output to stream.
@@ -203,6 +233,7 @@ public:
 };
 
 const FrameBuffer* FrameBuffer::g_current_frame_buffer = nullptr;
+FrameBuffer FrameBuffer::g_default_frame_buffer;
 
 /// FrameBuffer unique pointer type.
 using FrameBufferUptr = unique_ptr<FrameBuffer>;

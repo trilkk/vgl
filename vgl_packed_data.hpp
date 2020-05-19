@@ -44,13 +44,15 @@ private:
     ///
     /// \param value Pointer to value to add.
     /// \param cound Value size in bytes.
-    void addData(const void* value, unsigned count)
+    void* addData(const void* value, unsigned count)
     {
+        void* ret = reinterpret_cast<void*>(m_data.data() + m_data.size());
         const uint8_t* src = reinterpret_cast<const uint8_t*>(value);
         for(unsigned ii = 0; (ii < count); ++ii)
         {
             m_data.push_back(src[ii]);
         }
+        return ret;
     }
 
 public:
@@ -115,9 +117,9 @@ public:
     /// Push an element of data to the rendering queue.
     ///
     /// \param op Data to add.
-    template<typename T> void push(const T& op)
+    template<typename T> T& push(const T& op)
     {
-        addData(reinterpret_cast<const void*>(&op), sizeof(T));
+        return *reinterpret_cast<T*>(addData(reinterpret_cast<const void*>(&op), sizeof(T)));
     }
 };
 
