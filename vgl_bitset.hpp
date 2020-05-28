@@ -259,19 +259,19 @@ public:
         return *this;
     }
 
-    /// OR assignment operator.
+    /// OR into operator.
     ///
-    /// \param op Source object
-    constexpr bitset<N>& operator|=(const bitset<N>& op)
+    /// \param op Source value.
+    constexpr bitset<N>& operator|=(const bitset<N>& op) noexcept
     {
         m_data |= op.m_data;
         return *this;
     }
 
-    /// XOR assignment operator.
+    /// XOR into operator.
     ///
-    /// \param op Source object
-    constexpr bitset<N>& operator^=(const bitset<N>& op)
+    /// \param op Source value.
+    constexpr bitset<N>& operator^=(const bitset<N>& op) noexcept
     {
         m_data ^= op.m_data;
         return *this;
