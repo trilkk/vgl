@@ -138,20 +138,28 @@ private:
     /// \return Texture internal format.
     GLint determine_internal_format_r(unsigned bpc, void* data)
     {
+#if defined(DNLOAD_GLESV2)
+        (void)data;
+#else
         if(bpc == 4)
         {
             return GL_R32F;
         }
-        else if(bpc == 2)
+        else
+#endif
+            if(bpc == 2)
         {
+#if defined(DNLOAD_GLESV2)
+            return GL_FLOAT;
+#else
             return data ? GL_R16 : GL_R16F;
+#endif
         }
 #if defined(USE_LD)
         if(bpc != 1)
         {
-            std::ostringstream sstr;
-            sstr << "invalid bytes per channel count for R format: " << bpc;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            BOOST_THROW_EXCEPTION(std::runtime_error("invalid bytes per channel count for R format: " +
+                        std::to_string(bpc)));
         }
 #endif
 #if defined(DNLOAD_GLESV2)
@@ -168,6 +176,9 @@ private:
     /// \return Texture internal format.
     GLint determine_internal_format_rg(unsigned bpc, void* data)
     {
+#if defined(DNLOAD_GLESV2)
+        (void)data;
+#else
         if(bpc == 4)
         {
             return GL_RG32F;
@@ -176,12 +187,12 @@ private:
         {
             return data ? GL_RG16 : GL_RG16F;
         }
+#endif
 #if defined(USE_LD)
         if(bpc != 1)
         {
-            std::ostringstream sstr;
-            sstr << "invalid bytes per channel count for RG format: " << bpc;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            BOOST_THROW_EXCEPTION(std::runtime_error("invalid bytes per channel count for RG format: " +
+                        std::to_string(bpc)));
         }
 #endif
 #if defined(DNLOAD_GLESV2)
@@ -198,6 +209,9 @@ private:
     /// \return Texture internal format.
     GLint determine_internal_format_rgb(unsigned bpc, void* data)
     {
+#if defined(DNLOAD_GLESV2)
+        (void)data;
+#else
         if(bpc == 4)
         {
             return GL_RGB32F;
@@ -206,12 +220,12 @@ private:
         {
             return data ? GL_RGB16 : GL_RGB16F;
         }
+#endif
 #if defined(USE_LD)
         if(bpc >= 3)
         {
-            std::ostringstream sstr;
-            sstr << "invalid bytes per channel count for RGB format: " << bpc;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            BOOST_THROW_EXCEPTION(std::runtime_error("invalid bytes per channel count for RGB format: " +
+                        std::to_string(bpc)));
         }
 #endif
         return GL_RGB;
@@ -224,6 +238,9 @@ private:
     /// \return Texture internal format.
     GLint determine_internal_format_rgba(unsigned bpc, void* data)
     {
+#if defined(DNLOAD_GLESV2)
+        (void)data;
+#else
         if(bpc == 4)
         {
             return GL_RGBA32F;
@@ -232,12 +249,12 @@ private:
         {
             return data ? GL_RGBA16 : GL_RGBA16F;
         }
+#endif
 #if defined(USE_LD)
         if(bpc != 1)
         {
-            std::ostringstream sstr;
-            sstr << "invalid bytes per channel count for RGBA format: " << bpc;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            BOOST_THROW_EXCEPTION(std::runtime_error("invalid bytes per channel count for RGBA format: " +
+                        std::to_string(bpc)));
         }
 #endif
         return GL_RGBA;
@@ -257,7 +274,11 @@ private:
         }
         if(bpc == 2)
         {
+#if defined(DNLOAD_GLESV2)
+            return GL_UNSIGNED_SHORT;
+#else
             return data ? GL_UNSIGNED_SHORT : GL_FLOAT;
+#endif
         }
         if(bpc == 1)
         {
@@ -266,9 +287,8 @@ private:
 #if defined(USE_LD)
         if((bpc != 0) || (channels != 3))
         {
-            std::ostringstream sstr;
-            sstr << "invalid channel and bpc combination to determine type: " << channels << " / " << bpc;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            BOOST_THROW_EXCEPTION(std::runtime_error("invalid channel and bpc combination to determine type: " +
+                        std::to_string(channels) + " / " + std::to_string(bpc)));
         }      
 #endif
         return GL_UNSIGNED_SHORT_5_6_5;
