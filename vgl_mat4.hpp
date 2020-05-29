@@ -337,11 +337,12 @@ constexpr mat4 transpose(const mat4& op) noexcept
 ///
 /// \param op Input matrix.
 /// \return View matrix from the given input.
-constexpr mat4 viewify(const mat4 &op) noexcept
+mat4 viewify(const mat4 &op)
 {
     mat3 rotation = transpose(op.getRotation());
     vec3 translation = rotation * (-op.getTranslation());
-    return mat4(rotation, translation);
+    mat4 ret(rotation, translation);
+    return ret;
 }
 
 }

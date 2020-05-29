@@ -342,9 +342,21 @@ private:
 
                 case detail::RenderCommand::CLEAR:
                     {
-                        optional<uvec4> color = iter.read<optional<uvec4>>();
-                        optional<float> depth = iter.read<optional<float>>();
-                        optional<uint8_t> stencil = iter.read<optional<uint8_t>>();
+                        optional<uvec4> color;
+                        if(iter.read<int>())
+                        {
+                            color = iter.read<uvec4>();
+                        }
+                        optional<float> depth;
+                        if(iter.read<int>())
+                        {
+                            depth = iter.read<float>();
+                        }
+                        optional<uint8_t> stencil;
+                        if(iter.read<int>())
+                        {
+                            stencil = static_cast<uint8_t>(iter.read<int>());
+                        }
                         clear_buffers(color, depth, stencil);
                     }
                     break;
@@ -517,9 +529,30 @@ public:
     void push(optional<uvec4> color, optional<float> depth, optional<uint8_t> stencil = nullopt)
     {
         m_data.push(static_cast<int>(detail::RenderCommand::CLEAR));
-        m_data.push(color);
-        m_data.push(depth);
-        m_data.push(stencil);
+        {
+            int color_enable = static_cast<int>(static_cast<bool>(color));
+            if(color_enable)
+            {
+                m_data.push(static_cast<int>(1));
+                m_data.push(*color);
+            }
+        }
+        {
+            int depth_enable = static_cast<int>(static_cast<bool>(depth));
+            m_data.push(depth_enable);
+            if(depth_enable)
+            {
+                m_data.push(*depth);
+            }
+        }
+        {
+            int stencil_enable = static_cast<int>(static_cast<bool>(stencil));
+            m_data.push(stencil_enable);
+            if(stencil)
+            {
+                m_data.push(static_cast<int>(*stencil));
+            }
+        }
     }
 
     /// Push view settings switch.
@@ -528,7 +561,8 @@ public:
     /// \param cam Camera matrix.
     void push(const mat4& proj, const mat4& cam)
     {
-        m_camera = vgl::viewify(cam);
+        mat4 camera = viewify(cam);
+        m_camera = camera;
 #if defined(USE_LD)
         m_projection_camera = proj * (*m_camera);
 #else
