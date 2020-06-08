@@ -38,7 +38,7 @@ public:
     /// Accessor.
     ///
     /// \return Y component.
-    constexpr float y() noexcept
+    constexpr float y() const noexcept
     {
         return base_type::m_data[1u];
     }

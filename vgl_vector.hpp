@@ -45,7 +45,7 @@ public:
 
     /// Constructor.
     ///
-    /// \param op Starting capacity.
+    /// \param op Starting size.
     explicit vector(unsigned op) :
         m_data(array_new<T>(nullptr, op)),
         m_size(op),
@@ -398,8 +398,10 @@ public:
     ///
     /// \param rhs Right-hand-side operand.
     /// \return This object.
-    constexpr vector<T>& operator=(vector<T>&& rhs) noexcept
+    vector<T>& operator=(vector<T>&& rhs)
     {
+        destructInternal();
+        array_delete(m_data);
         m_data = rhs.m_data;
         m_size = rhs.m_size;
         m_capacity = rhs.m_capacity;

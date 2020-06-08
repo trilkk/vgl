@@ -15,7 +15,7 @@ using std::abs;
 /// \param lhs Left-hand-side operand.
 /// \param rhs Right-hand-side operand.
 /// \return True if match, false if floats definitely differ.
-constexpr bool floats_almost_equal(float lhs, float rhs)
+constexpr bool floats_almost_equal(float lhs, float rhs) noexcept
 {
     if(lhs == rhs)
     {
@@ -33,7 +33,7 @@ constexpr bool floats_almost_equal(float lhs, float rhs)
 /// \param val Value.
 /// \param min_val Minimum value.
 /// \param max_val Maximum value.
-constexpr float clamp(float val, float min_val, float max_val)
+constexpr float clamp(float val, float min_val, float max_val) noexcept
 {
     return min(max(val, min_val), max_val);
 }
@@ -42,7 +42,7 @@ constexpr float clamp(float val, float min_val, float max_val)
 ///
 /// \param val Value to round.
 /// \return Rounded integer value.
-constexpr int ifloor(float val)
+constexpr int ifloor(float val) noexcept
 {
     if(val < 0.0f)
     {
@@ -54,7 +54,7 @@ constexpr int ifloor(float val)
 ///
 /// \param val Value to round.
 /// \return Rounded integer value.
-constexpr float floor(float val)
+constexpr float floor(float val) noexcept
 {
     return static_cast<float>(ifloor(val));
 }
@@ -65,7 +65,7 @@ constexpr float floor(float val)
 ///
 /// \param val Value to round.
 /// \return Rounded integer value.
-constexpr int iround(float val)
+constexpr int iround(float val) noexcept
 {
     if(val < 0.0f)
     {
@@ -79,7 +79,7 @@ constexpr int iround(float val)
 ///
 /// \param val Value to round.
 /// \return Rounded integer value.
-constexpr float round(float val)
+constexpr float round(float val) noexcept
 {
     return static_cast<float>(iround(val));
 }
@@ -88,7 +88,7 @@ constexpr float round(float val)
 ///
 /// \param op Input number.
 /// \return Converted number.
-constexpr float fixed_4_12_to_float(int16_t op)
+constexpr float fixed_4_12_to_float(int16_t op) noexcept
 {
     return static_cast<float>(op) * (1.0f / 4096.0f);
 }
@@ -97,7 +97,7 @@ constexpr float fixed_4_12_to_float(int16_t op)
 ///
 /// \param op Input number.
 /// \return Converted number.
-constexpr float fixed_8_8_to_float(int16_t op)
+constexpr float fixed_8_8_to_float(int16_t op) noexcept
 {
     return static_cast<float>(op) * (1.0f / 256.0f);
 }
@@ -106,7 +106,7 @@ constexpr float fixed_8_8_to_float(int16_t op)
 ///
 /// \param op Input number.
 /// \return Converted number.
-constexpr float fixed_14_2_to_float(int16_t op)
+constexpr float fixed_14_2_to_float(int16_t op) noexcept
 {
     return static_cast<float>(op) * 0.25f;
 }
@@ -115,7 +115,7 @@ constexpr float fixed_14_2_to_float(int16_t op)
 ///
 /// \param op Input integer value.
 /// \return Normalized floating point value.
-constexpr float to_fnorm(uint8_t op)
+constexpr float to_fnorm(uint8_t op) noexcept
 {
     return static_cast<float>(op) * (1.0f / 255.0f);
 }
@@ -124,7 +124,7 @@ constexpr float to_fnorm(uint8_t op)
 ///
 /// \param op Input value.
 /// \return Weighted value.
-constexpr float fnorm_weigh_away(float op)
+constexpr float fnorm_weigh_away(float op) noexcept
 {
     if(op > 0.5f)
     {
@@ -141,7 +141,7 @@ constexpr float fnorm_weigh_away(float op)
 /// \param edge1 Second edge.
 /// \param value Value.
 /// \return 0 if value <= edge0, 1 if value >= edge1, linearly interpolated value otherwise.
-constexpr float linear_step(float edge0, float edge1, float value)
+constexpr float linear_step(float edge0, float edge1, float value) noexcept
 {
     if(value <= edge0)
     {
@@ -160,7 +160,7 @@ constexpr float linear_step(float edge0, float edge1, float value)
 /// \param edge1 Second edge.
 /// \param value Value.
 /// \return Linearly stepped value between edges, otherwise 1 before edge0 and 0 after edge1.
-constexpr float linear_step_down(float edge0, float edge1, float value)
+constexpr float linear_step_down(float edge0, float edge1, float value) noexcept
 {
     return 1.0f - linear_step(edge0, edge1, value);
 }
@@ -171,7 +171,7 @@ constexpr float linear_step_down(float edge0, float edge1, float value)
 /// \param edge1 Second edge.
 /// \param value Value.
 /// \return 0 if value <= edge0, 1 if value >= edge1, smoothstep interpolated value otherwise.
-constexpr float smooth_step(float edge0, float edge1, float value)
+constexpr float smooth_step(float edge0, float edge1, float value) noexcept
 {
     float ret = clamp((value - edge0) / (edge1 - edge0), 0.0f, 1.0f);
     return ret * ret * (3.0f - 2.0f * ret);
@@ -183,7 +183,7 @@ constexpr float smooth_step(float edge0, float edge1, float value)
 /// \param rhs Right-hand-side operand.
 /// \param ratio Ratio.
 /// \return Value mixed from lhs and rhs. Overflows if ratio is outside [0, 1].
-constexpr float mix(float lhs, float rhs, float ratio)
+constexpr float mix(float lhs, float rhs, float ratio) noexcept
 {
     return lhs + (rhs - lhs) * ratio;
 }
@@ -194,7 +194,7 @@ constexpr float mix(float lhs, float rhs, float ratio)
 /// \param rhs Right-hand-side operand.
 /// \param ratio Mixing ratio.
 /// \return Mixing value.
-uint8_t constexpr mix(uint8_t lhs, uint8_t rhs, float ratio)
+uint8_t constexpr mix(uint8_t lhs, uint8_t rhs, float ratio) noexcept
 {
     float c1 = static_cast<float>(lhs);
     float c2 = static_cast<float>(rhs);
@@ -208,7 +208,7 @@ uint8_t constexpr mix(uint8_t lhs, uint8_t rhs, float ratio)
 /// \param rhs Right-hand-side operand.
 /// \param ratio Mixing ratio.
 /// \return Linearly mixed value between lhs and rhs. Clamped if ratio is outside [0, 1].
-constexpr float linear_mix(float lhs, float rhs, float ratio)
+constexpr float linear_mix(float lhs, float rhs, float ratio) noexcept
 {
     return mix(lhs, rhs, clamp(ratio, 0.0f, 1.0f));
 }
@@ -219,7 +219,7 @@ constexpr float linear_mix(float lhs, float rhs, float ratio)
 /// \param rhs Right-hand-side operand.
 /// \param ratio Mixing ratio.
 /// \return Smoothly mixed value between lhs and rhs. Clamped if ratio is outside [0, 1].
-constexpr float smooth_mix(float lhs, float rhs, float ratio)
+constexpr float smooth_mix(float lhs, float rhs, float ratio) noexcept
 {
     return mix(lhs, rhs, smooth_step(0.0f, 1.0f, ratio));
 }
@@ -229,7 +229,7 @@ constexpr float smooth_mix(float lhs, float rhs, float ratio)
 /// \param lhs Left-hand-side operand.
 /// \param rhs Right-hand-side operand.
 /// \return Modulated value.
-constexpr uint8_t modulate(uint8_t lhs, uint8_t rhs)
+constexpr uint8_t modulate(uint8_t lhs, uint8_t rhs) noexcept
 {
     float ret = to_fnorm(lhs) * to_fnorm(rhs);
     return static_cast<uint8_t>(iround(ret * 255.0f));
@@ -240,7 +240,7 @@ constexpr uint8_t modulate(uint8_t lhs, uint8_t rhs)
 /// \param val Value to divide.
 /// \param divisor Divisor to the value.
 /// \return Remainder of val / divisor.
-constexpr float remainder(float val, float divisor)
+constexpr float remainder(float val, float divisor) noexcept
 {
     return val - (floor(val / divisor) * divisor);
 }
@@ -250,7 +250,7 @@ constexpr float remainder(float val, float divisor)
 /// \param val Value to divide.
 /// \param divisor Divisor, must be positive.
 /// \return Value in [0, divisor[.
-constexpr float congr(float val, float divisor)
+constexpr float congr(float val, float divisor) noexcept
 {
     if(0.0f <= val)
     {
@@ -265,7 +265,7 @@ constexpr float congr(float val, float divisor)
 /// \param gg Green.
 /// \param bb Blue.
 /// \return Luma.
-constexpr float rgb_to_luma(float rr, float gg, float bb)
+constexpr float rgb_to_luma(float rr, float gg, float bb) noexcept
 {
     return rr * 0.2126f + gg * 0.7152f + bb * 0.0722f;
 }

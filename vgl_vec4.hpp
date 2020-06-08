@@ -40,7 +40,7 @@ public:
     /// Accessor.
     ///
     /// \return Y component.
-    constexpr float y() noexcept
+    constexpr float y() const noexcept
     {
         return base_type::m_data[1u];
     }
@@ -48,7 +48,7 @@ public:
     /// Accessor.
     ///
     /// \return Z component.
-    constexpr float z() noexcept
+    constexpr float z() const noexcept
     {
         return base_type::m_data[2u];
     }
@@ -56,7 +56,7 @@ public:
     /// Accessor.
     ///
     /// \return W component.
-    constexpr float w() noexcept
+    constexpr float w() const noexcept
     {
         return base_type::m_data[3u];
     }
