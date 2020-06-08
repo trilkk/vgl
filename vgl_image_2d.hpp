@@ -26,7 +26,9 @@ public:
     explicit Image2D(unsigned width, unsigned height, unsigned channels) :
         Image(width * height, channels),
         m_width(width),
-        m_height(height) { }
+        m_height(height)
+    {
+    }
 
 private:
     /// Check that accessed index is valid.
