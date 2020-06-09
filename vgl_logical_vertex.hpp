@@ -103,6 +103,16 @@ public:
 
     /// Constructor.
     ///
+    /// \param px X position.
+    /// \param py Y position.
+    /// \param pz Z position.
+    constexpr explicit LogicalVertex(float px, float py, float pz) :
+        m_position(px, py, pz)
+    {
+    }
+
+    /// Constructor.
+    ///
     /// \param pos Position.
     constexpr explicit LogicalVertex(const vec3& pos) :
         m_position(pos)
@@ -176,6 +186,15 @@ public:
     /// \param op Face.
     void addFaceReference(LogicalFace *op)
     {
+#if defined(USE_LD) && defined(DEBUG)
+        for(const auto& vv : m_face_references)
+        {
+            if(vv == op)
+            {
+                BOOST_THROW_EXCEPTION(std::runtime_error("trying to add duplicate face references"));
+            }
+        }
+#endif
         m_face_references.push_back(op);
     }
     /// Add reference to face wrapper.
@@ -184,6 +203,45 @@ public:
     void addFaceReference(LogicalFace &op)
     {
         addFaceReference(&op);
+    }
+    /// Remove a face reference.
+    ///
+    /// \param op face.
+    void removeFaceReference(LogicalFace* op)
+    {
+#if defined(USE_LD) && defined(DEBUG)
+        bool face_found = false;
+#endif
+        for(unsigned ii = 0; (ii < m_face_references.size());)
+        {
+            if(m_face_references[ii] == op)
+            {
+#if defined(USE_LD) && defined(DEBUG)
+                if(face_found)
+                {
+                    BOOST_THROW_EXCEPTION(std::runtime_error("face reference found multiple times"));
+                }
+#endif
+                if(ii < (m_face_references.size() - 1))
+                {
+                    m_face_references[ii] = m_face_references.back();
+                }
+                m_face_references.pop_back();
+#if defined(USE_LD) && defined(DEBUG)
+                continue;
+#else
+                return;
+#endif
+            }
+            ++ii;
+        }
+    }
+    /// Remove a face reference wrapper.
+    ///
+    /// \param op face.
+    void removeFaceReference(LogicalFace& op)
+    {
+        removeFaceReference(&op);
     }
 
     /// Clear face references.

@@ -249,6 +249,20 @@ constexpr float remainder(float val, float divisor) noexcept
 ///
 /// \param val Value to divide.
 /// \param divisor Divisor, must be positive.
+/// \return Value in [0, divisor[
+constexpr int congr(int val, int divisor) noexcept
+{
+    if(0 <= val)
+    {
+        return val % divisor;
+    }
+    return divisor - (-val % divisor);
+}
+
+/// Congruence function.
+///
+/// \param val Value to divide.
+/// \param divisor Divisor, must be positive.
 /// \return Value in [0, divisor[.
 constexpr float congr(float val, float divisor) noexcept
 {

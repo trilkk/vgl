@@ -78,10 +78,10 @@ public:
             int ret = prog.getAttribLocation(m_semantic);
             if(ret >= 0)
             {
-                unsigned idx = static_cast<unsigned>(ret);            
+                unsigned idx = static_cast<unsigned>(ret);
+                const void* offset = reinterpret_cast<const void*>(m_offset);
                 attrib_array_enable(idx);
-                dnload_glVertexAttribPointer(idx, m_element_count, m_type, GL_FALSE, stride,
-                        reinterpret_cast<void*>(m_offset));
+                dnload_glVertexAttribPointer(idx, m_element_count, m_type, GL_FALSE, stride, offset);
             }
             return ret;
         }

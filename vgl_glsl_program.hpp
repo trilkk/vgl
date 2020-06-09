@@ -3,10 +3,10 @@
 
 #include "vgl_geometry_channel.hpp"
 #include "vgl_glsl_shader.hpp"
-#include "vgl_utility.hpp"
 #include "vgl_mat2.hpp"
 #include "vgl_mat4.hpp"
 #include "vgl_texture.hpp"
+#include "vgl_utility.hpp"
 #include "vgl_vec2.hpp"
 #include "vgl_vec3.hpp"
 #include "vgl_vec4.hpp"
@@ -14,6 +14,11 @@
 
 namespace vgl
 {
+
+/// \cond
+class GeometryBuffer;
+class GlslProgram;
+/// \endcond
 
 /// Uniform semantic.
 ///
@@ -255,6 +260,12 @@ bool get_program_link_status(GLuint op)
     return (GL_FALSE != ret);
 }
 #endif
+
+/// Currently bound geometry buffer.
+const GeometryBuffer* g_current_geometry_buffer = nullptr;
+
+/// Currently active program.
+const GlslProgram* g_current_program = nullptr;
 
 }
 
@@ -508,7 +519,14 @@ public:
     /// Bind for use.
     void bind() const
     {
-        dnload_glUseProgram(m_id);
+        if(detail::g_current_program != this)
+        {
+            dnload_glUseProgram(m_id);
+            detail::g_current_program = this;
+
+            // Must also clear current geometry buffer.
+            detail::g_current_geometry_buffer = nullptr;
+        }
     }
 
     /// Set shader.

@@ -8,18 +8,6 @@
 namespace vgl
 {
 
-/// \cond
-class GeometryBuffer;
-/// \endcond
-
-namespace detail
-{
-
-/// Currently bound geometry buffer.
-const GeometryBuffer* g_current_geometry_buffer = nullptr;
-
-}
-
 /// Geometry buffer.
 ///
 /// Collection attribute data.

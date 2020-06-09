@@ -66,7 +66,9 @@ private:
     /// \return New index.
     unsigned cloneVertexForFace(LogicalFace& face, unsigned idx)
     {
+        m_vertices[idx].removeFaceReference(face);
         unsigned ret = cloneVertex(idx);
+        m_vertices[ret].addFaceReference(face);
         bool success = face.replaceVertexIndex(idx, ret);
 #if defined(USE_LD)
         if(!success)
@@ -85,14 +87,7 @@ private:
     /// \return True if orphaned, false if in use.
     bool isOrphanedVertex(unsigned op)
     {
-        for(const auto& vv : m_faces)
-        {
-            if(vv.hasVertex(op))
-            {
-                return false;
-            }
-        }
-        return true;
+        return (m_vertices[op].getFaceReferences().size() <= 0);
     }
 
     /// Erase orphaned vertex at given index.
@@ -191,8 +186,9 @@ public:
 
     /// Compiles the logical mesh into a mesh.
     ///
+    /// \param removeIdentical Flag determining whether to perform the identical vertex erase pass (default: true).
     /// \return Mesh.
-    MeshUptr compile()
+    MeshUptr compile(bool removeIdentical = true)
     {
         // First, calculate normals for all faces and duplicate vertices as needed.
         for(auto& face : m_faces)
@@ -202,32 +198,29 @@ public:
                 unsigned vidx = face.getIndex(ii);
                 LogicalVertex* vertex = &(m_vertices[vidx]);
 
+                // Face references this vertex.
+                vertex->addFaceReference(face);
+
                 // Calculate normal and create a new vertex if face flatness decision requires it.
                 calculateNormal(face);
                 {
                     optional<vec3> vertex_nor = vertex->getNormal();
                     optional<vec3> face_nor = face.isFlat() ? optional<vec3>(face.getNormal()) : nullopt;
-                    if(!almost_equal(vertex_nor, face_nor))
+                    if(static_cast<bool>(vertex_nor) != static_cast<bool>(face_nor))
                     {
-                        vidx = cloneVertexForFace(face, vidx);
-                        vertex = &(m_vertices[vidx]);
-
-                        // Apply texcoord since it was not cloned.
-                        optional<vec2> face_tc = face.getTexcoordForVertex(vidx);
-                        if(face_tc)
-                        {
-                            vertex->setTexcoord(*face_tc);
-                        }
                         // Apply normal if face was flat.
-                        if(face_nor)
+                        if(!vertex_nor)
                         {
                             vertex->setNormal(*face_nor);
                         }
                     }
+                    else if(!almost_equal(vertex_nor, face_nor))
+                    {
+                        vidx = cloneVertexForFace(face, vidx);
+                        vertex = &(m_vertices[vidx]);
+                        vertex->setNormal(*face_nor);
+                    }
                 }
-
-                // Face now decidedly references this vertex.
-                vertex->addFaceReference(&face);
             }
         }
 
@@ -277,7 +270,7 @@ public:
                             vertex->setTexcoord(*face_tc);
                         }
                     }
-                    else if(vertex_tc != face_tc)
+                    else if(!almost_equal(vertex_tc, face_tc))
                     {
                         vidx = cloneVertexForFace(face, vidx);
                         vertex = &(m_vertices[vidx]);
@@ -301,20 +294,23 @@ public:
         }
         
         // Loop through vertices and remove identical ones.
-        for(unsigned ii = 0; (ii < m_vertices.size()); ++ii)
+        if(removeIdentical)
         {
-            LogicalVertex& vertex = m_vertices[ii];
-
-            for(unsigned jj = ii + 1; (jj < m_vertices.size());)
+            for(unsigned ii = 0; (ii < m_vertices.size()); ++ii)
             {
-                if(vertex.matches(m_vertices[jj]))
+                LogicalVertex& vertex = m_vertices[ii];
+
+                for(unsigned jj = ii + 1; (jj < m_vertices.size());)
                 {
-                    replaceVertexIndex(jj, ii);
-                    eraseOrphanedVertex(jj);
-                }
-                else
-                {
-                    ++jj;
+                    if(vertex.matches(m_vertices[jj]))
+                    {
+                        replaceVertexIndex(jj, ii);
+                        eraseOrphanedVertex(jj);
+                    }
+                    else
+                    {
+                        ++jj;
+                    }
                 }
             }
         }
