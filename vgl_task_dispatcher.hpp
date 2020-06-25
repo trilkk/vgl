@@ -83,13 +83,9 @@ private:
             return new detail::FenceData();
         }
 
-#if defined(USE_LD) && defined(DEBUG)
-        BOOST_ASSERT(m_fence_pool.front());
-#endif
+        VGL_ASSERT(m_fence_pool.front());
         detail::FenceData* ret = m_fence_pool.front().release();
-#if defined(USE_LD) && defined(DEBUG)
-        BOOST_ASSERT(ret);
-#endif
+        VGL_ASSERT(ret);
         m_fence_pool.pop();
         return ret;
     }

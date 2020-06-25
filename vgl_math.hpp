@@ -2,6 +2,7 @@
 #define VGL_MATH_HPP
 
 #include "vgl_algorithm.hpp"
+#include "vgl_assert.hpp"
 
 #include <cmath>
 
@@ -252,11 +253,13 @@ constexpr float remainder(float val, float divisor) noexcept
 /// \return Value in [0, divisor[
 constexpr int congr(int val, int divisor) noexcept
 {
+    VGL_ASSERT(divisor > 0);
     if(0 <= val)
     {
         return val % divisor;
     }
-    return divisor - (-val % divisor);
+    int ret = divisor - ((-val) % divisor);
+    return (ret < divisor) ? ret : 0;
 }
 
 /// Congruence function.
@@ -266,11 +269,13 @@ constexpr int congr(int val, int divisor) noexcept
 /// \return Value in [0, divisor[.
 constexpr float congr(float val, float divisor) noexcept
 {
+    VGL_ASSERT(divisor > 0.0f);
     if(0.0f <= val)
     {
         return remainder(val, divisor);
     }
-    return divisor - remainder(-val, divisor);
+    float ret = divisor - remainder(-val, divisor);
+    return (ret < divisor) ? ret : 0.0f;
 }
 
 /// Convert RGB values to luma.

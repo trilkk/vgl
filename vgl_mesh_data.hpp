@@ -281,6 +281,7 @@ public:
         uint16_t index_offset = static_cast<uint16_t>(m_vertex_count);
 
         m_vertex_data.append(op.m_vertex_data);
+        m_vertex_count += op.getVertexCount();
 
         for(const auto& vv : op.m_index_data)
         {

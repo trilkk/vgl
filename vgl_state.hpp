@@ -90,8 +90,7 @@ OperationMode g_blend_mode = DISABLED;
 uvec4 g_clear_color(0, 0, 0, 0);
 /// Current clear depth.
 float g_clear_depth = 1.0f;
-/// Current clear stencil.
-uint8_t g_clear_stencil = 0u;
+
 /// Current color write state.
 bool g_color_write = true;
 /// Is face culling enabled.
@@ -108,6 +107,11 @@ bool g_depth_write = true;
 bool g_polygon_offset = false;
 /// Current polygon offset in units.
 int g_polygon_offset_units = 0;
+
+#if !defined(VGL_DISABLE_STENCIL)
+
+/// Current clear stencil.
+uint8_t g_clear_stencil = 0u;
 /// Current stencil function.
 GLenum g_stencil_func = GL_FALSE;
 /// Current stencil operation mode.
@@ -115,10 +119,17 @@ OperationMode g_stencil_operation = DISABLED;
 /// Is stencil test enabled?
 bool g_stencil_test = false;
 
+#endif
+
 #if defined(USE_LD)
+
+#if !defined(VGL_DISABLE_EDGE)
 
 /// Total GPU data size spent on edges.
 static unsigned g_data_size_edge = 0;
+
+#endif
+
 /// Total GPU data size spent on indices.
 static unsigned g_data_size_index = 0;
 /// Total GPU data size spent on textures.
@@ -235,6 +246,9 @@ void clear_buffers(optional<uvec4> color, optional<float> depth, optional<uint8_
         clear_mask |= GL_DEPTH_BUFFER_BIT;
     }
 
+#if defined(VGL_DISABLE_STENCIL)
+    (void)stencil;
+#else
     if(stencil)
     {
         if(*stencil != detail::g_clear_stencil)
@@ -244,6 +258,7 @@ void clear_buffers(optional<uvec4> color, optional<float> depth, optional<uint8_
         }
         clear_mask |= GL_STENCIL_BUFFER_BIT;
     }
+#endif
 
     dnload_glClear(clear_mask);
 }
@@ -360,6 +375,8 @@ void polygon_offset(int op)
     }
 }
 
+#if !defined(VGL_DISABLE_STENCIL)
+
 /// Set stencil mode.
 ///
 /// \param op New mode.
@@ -413,8 +430,12 @@ static void stencil_operation(OperationMode op)
         detail::g_stencil_operation = op;
     }
 }
-  
+
+#endif
+
 #if defined(USE_LD)
+
+#if !defined(VGL_DISABLE_EDGE)
 
 /// Accessor.
 ///
@@ -430,6 +451,8 @@ static unsigned increment_data_size_edge(unsigned op)
 {
     return detail::g_data_size_edge += op;
 }
+
+#endif
 
 /// Accessor.
 ///
