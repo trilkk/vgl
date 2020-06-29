@@ -526,7 +526,7 @@ public:
         float len = length(op);
         if(len > 0.0f)
         {
-            return op / len;
+            return op * (1.0f / len);
         }
         return CrtpType(0.0f);
     }

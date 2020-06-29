@@ -256,6 +256,7 @@ public:
         // If already set, this is a part of a flat face and should not average a normal.
         if(m_normal)
         {
+            m_normal = normalize(*m_normal);
             return;
         }
 
