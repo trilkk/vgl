@@ -17,7 +17,7 @@ static const float ANISOTROPY_LEVEL = 4.0f;
 }
 
 /// Filtering mode.
-enum FilteringMode
+enum class FilteringMode
 {
   /// Nearest-neighbor filtering.
   NEAREST,
@@ -35,7 +35,7 @@ enum FilteringMode
 };
 
 /// Wrap mode.
-enum WrapMode
+enum class WrapMode
 {
   /// Wrap at edge.
   WRAP,
@@ -98,7 +98,7 @@ protected:
     bool setFiltering(void* data, FilteringMode filtering) const
     {
         // 'nearest' -filtering forced.
-        if(NEAREST == filtering)
+        if(FilteringMode::NEAREST == filtering)
         {
             dnload_glTexParameteri(m_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             dnload_glTexParameteri(m_type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -112,7 +112,7 @@ protected:
             dnload_glTexParameteri(m_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
             // Bilinear.
-            if(BILINEAR == filtering)
+            if(FilteringMode::BILINEAR == filtering)
             {
                 dnload_glTexParameteri(m_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 return false;
@@ -122,7 +122,7 @@ protected:
             dnload_glTexParameteri(m_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 #if !defined(VGL_DISABLE_ANISOTROPY) || !VGL_DISABLE_ANISOTROPY
-            if (ANISOTROPIC == filtering)
+            if (FilteringMode::ANISOTROPIC == filtering)
             {
                 dnload_glTexParameterf(m_type, GL_TEXTURE_MAX_ANISOTROPY_EXT, detail::ANISOTROPY_LEVEL);
             }
@@ -144,7 +144,7 @@ protected:
     /// \param wrap Wrap mode.
     void setWrapMode(WrapMode wrap) const
     {
-        GLint mode = (wrap == WRAP) ? GL_REPEAT : GL_CLAMP_TO_EDGE;
+        GLint mode = (wrap == WrapMode::WRAP) ? GL_REPEAT : GL_CLAMP_TO_EDGE;
 
         dnload_glTexParameteri(m_type, GL_TEXTURE_WRAP_S, mode);
         dnload_glTexParameteri(m_type, GL_TEXTURE_WRAP_T, mode);

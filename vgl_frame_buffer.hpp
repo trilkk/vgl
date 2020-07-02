@@ -194,7 +194,7 @@ public:
     /// \param filtering Filtering mode (default: BILINEAR).
     /// \param wrap Wrap mode (default: CLAMP).
     static unique_ptr<FrameBuffer> create(unsigned width, unsigned height, unsigned bpc = 1, unsigned bpd = 2,
-            FilteringMode filtering = BILINEAR, WrapMode wrap = CLAMP)
+            FilteringMode filtering = FilteringMode::BILINEAR, WrapMode wrap = WrapMode::CLAMP)
     {
         return unique_ptr<FrameBuffer>(new FrameBuffer(width, height, bpc, bpd, filtering, wrap));
     }

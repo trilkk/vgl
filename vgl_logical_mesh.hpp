@@ -8,6 +8,19 @@
 namespace vgl
 {
 
+/// \cond
+class LogicalMesh;
+/// \endcond
+
+namespace detail
+{
+
+/// \cond
+void csg_read_data(LogicalMesh&, const int16_t*);
+/// \endcond
+
+}
+
 /// Logical mesh.
 ///
 /// Not an actual renderable mesh. Must be compiled and then uploaded to GPU.
@@ -25,6 +38,14 @@ public:
     ///
     /// \param paint_color Face paint color (default: white).
     explicit constexpr LogicalMesh() = default;
+
+    /// Constructor using CSG elements.
+    ///
+    /// \param op Input data for CSG construction.
+    explicit LogicalMesh(const int16_t* op)
+    {
+        detail::csg_read_data(*this, op);
+    }
 
 private:
     /// Add face (internal).

@@ -25,7 +25,7 @@ class GlslProgram;
 /// Used to assign uniforms in a manner not directly tied to a name.
 ///
 /// Some of the naming here is taken directly from legacy OpenGL.
-enum UniformSemantic
+enum class UniformSemantic
 {
     /// No semantic.
     NONE = 0,
@@ -63,13 +63,13 @@ std::string to_string(UniformSemantic op)
 {
     switch(op)
     {
-    case PROJECTION:
+    case UniformSemantic::PROJECTION:
         return std::string("PROJECTION");
 
-    case CAMERA:
+    case UniformSemantic::CAMERA:
         return std::string("CAMERA");
 
-    case MODELVIEW:
+    case UniformSemantic::MODELVIEW:
         return std::string("MODELVIEW");
 
     default:
@@ -482,7 +482,7 @@ public:
     /// \param name Name of the uniform.
     void addUniform(const char* name)
     {
-        addUniform(NONE, name);
+        addUniform(UniformSemantic::NONE, name);
     }
     /// Get an uniform location.
     ///

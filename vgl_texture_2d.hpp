@@ -89,7 +89,7 @@ public:
     /// \param bpc Bytes per component for fragments (default: 1).
     /// \param filtering Filtering mode.
     static unique_ptr<Texture2D> create(unsigned width, unsigned height, unsigned channels = 4, unsigned bpc = 1,
-            FilteringMode filtering = BILINEAR, WrapMode wrap = CLAMP)
+            FilteringMode filtering = FilteringMode::BILINEAR, WrapMode wrap = WrapMode::CLAMP)
     {
         return unique_ptr<Texture2D>(new Texture2D(GL_TEXTURE_2D, width, height, channels, bpc, nullptr, wrap,
                     filtering));

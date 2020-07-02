@@ -19,7 +19,7 @@ namespace detail
 /// - Value.
 ///
 /// Other commands have specific formats.
-enum RenderCommand
+enum class RenderCommand
 {
     /// Framebuffer switch.
     /// - Framebuffer reference.
@@ -116,39 +116,39 @@ template<typename T> constexpr RenderCommand get_uniform_render_command_type() n
 /// \cond
 template<> constexpr RenderCommand get_uniform_render_command_type<int>() noexcept
 {
-    return UNIFORM_INT;
+    return RenderCommand::UNIFORM_INT;
 }
 template<> constexpr RenderCommand get_uniform_render_command_type<float>() noexcept
 {
-    return UNIFORM_FLOAT;
+    return RenderCommand::UNIFORM_FLOAT;
 }
 template<> constexpr RenderCommand get_uniform_render_command_type<vec2>() noexcept
 {
-    return UNIFORM_VEC2;
+    return RenderCommand::UNIFORM_VEC2;
 }
 template<> constexpr RenderCommand get_uniform_render_command_type<vec3>() noexcept
 {
-    return UNIFORM_VEC3;
+    return RenderCommand::UNIFORM_VEC3;
 }
 template<> constexpr RenderCommand get_uniform_render_command_type<vec4>() noexcept
 {
-    return UNIFORM_VEC4;
+    return RenderCommand::UNIFORM_VEC4;
 }
 template<> constexpr RenderCommand get_uniform_render_command_type<mat2>() noexcept
 {
-    return UNIFORM_MAT2;
+    return RenderCommand::UNIFORM_MAT2;
 }
 template<> constexpr RenderCommand get_uniform_render_command_type<mat3>() noexcept
 {
-    return UNIFORM_MAT3;
+    return RenderCommand::UNIFORM_MAT3;
 }
 template<> constexpr RenderCommand get_uniform_render_command_type<mat4>() noexcept
 {
-    return UNIFORM_MAT4;
+    return RenderCommand::UNIFORM_MAT4;
 }
 template<> constexpr RenderCommand get_uniform_render_command_type<Texture>() noexcept
 {
-    return UNIFORM_TEXTURE;
+    return RenderCommand::UNIFORM_TEXTURE;
 }
 /// \endcond
 
@@ -295,7 +295,7 @@ private:
             string_view name = iter.read<string_view>();
             UniformSemantic semantic = iter.read<UniformSemantic>();
 
-            if(semantic != NONE)
+            if(semantic != UniformSemantic::NONE)
             {
                 return m_program->getUniformLocation(semantic);
             }
