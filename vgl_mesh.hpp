@@ -1,6 +1,7 @@
 #ifndef VGL_MESH_HPP
 #define VGL_MESH_HPP
 
+#include "vgl_bounding_box.hpp"
 #include "vgl_geometry_buffer.hpp"
 #include "vgl_index_block.hpp"
 #include "vgl_unique_ptr.hpp"
@@ -32,11 +33,22 @@ private:
     /// Index collections.
     vector<IndexBlock> m_blocks;
 
+    /// Bounding box for the mesh.
+    BoundingBox m_box;
+
 public:
     /// Default constructor.
     explicit Mesh() = default;
 
 public:
+    /// Accessor.
+    ///
+    /// \return Bounding box.
+    const BoundingBox& getBoundingBox() const
+    {
+        return m_box;
+    }
+
     /// Draw the mesh.
     ///
     /// \param op Program to draw with.
@@ -83,6 +95,9 @@ public:
     void write(GeometryChannel channel, const vec3& data)
     {
         m_data.write(channel, data);
+
+        // Expand bounding box with vertex data.
+        m_box.addPoint(data);
     }
 
     /// Write vertex data with semantic.

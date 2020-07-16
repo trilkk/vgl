@@ -45,12 +45,12 @@ private:
     /// \return Rotation matrix.
     static mat3 rotation_zxy(float rx, float ry, float rz) noexcept
     {
-        float sx = dnload_sinf(rx);
-        float sy = dnload_sinf(ry);
-        float sz = dnload_sinf(rz);
-        float cx = dnload_cosf(rx);
-        float cy = dnload_cosf(ry);
-        float cz = dnload_cosf(rz);
+        float sx = sin(rx);
+        float sy = sin(ry);
+        float sz = sin(rz);
+        float cx = cos(rx);
+        float cy = cos(ry);
+        float cz = cos(rz);
 
         return mat3(sx * sy * sz + cy * cz,
                 sz * cx,

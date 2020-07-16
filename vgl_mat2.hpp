@@ -44,8 +44,8 @@ public:
     /// \param op Rotation.
     static mat2 rotation(float op)
     {
-        float sr = dnload_sinf(op);
-        float cr = dnload_cosf(op);
+        float sr = sin(op);
+        float cr = cos(op);
 
         return mat2(cr, sr,
                 -sr, cr);

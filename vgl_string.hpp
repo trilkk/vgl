@@ -192,7 +192,7 @@ public:
     ///
     /// \param rhs Right-hand-side operand.
     /// \return True if equal, false if not.
-    constexpr bool operator==(const string_data<T>& rhs) const noexcept
+    template<typename R> constexpr bool operator==(const string_data<R>& rhs) const noexcept
     {
         if(m_length != rhs.length())
         {

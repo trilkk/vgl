@@ -99,7 +99,7 @@ private:
 
 public:
     /// Empty constructor.
-    explicit LogicalVertex() = default;
+    constexpr explicit LogicalVertex() noexcept = default;
 
     /// Constructor.
     ///

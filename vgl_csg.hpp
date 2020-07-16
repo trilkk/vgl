@@ -6,6 +6,29 @@
 namespace vgl
 {
 
+namespace detail
+{
+
+/// Normalizes a direction vector and ensures it's not perpendicular to another vector.
+///
+/// Direction vector does not need to be an unit vector, it is normalized.
+///
+/// \param dir Direction vector.
+/// \param ref Reference vector.
+vec3 perpendiculate(const vec3& dir, const vec3& ref)
+{
+    vec3 unit_dir = normalize(dir);
+
+    // Rotate direction vector components once if it's perpendicular to the reference vector.
+    if(dot(unit_dir, normalize(ref)) >= 0.999f)
+    {
+        return vec3(unit_dir.z(), unit_dir.x(), unit_dir.y());
+    }
+    return unit_dir;
+}
+
+}
+
 /// CSG bit.
 static const unsigned CSG_FLAG_NO_LEFT = 0;
 /// CSG flag.
@@ -48,25 +71,20 @@ using CsgFlags = bitset<CSG_FLAG_COUNT>;
 
 /// Create a box shape.
 ///
+/// \param lmesh Target logical mesh.
 /// \param p1 Center of front face.
 /// \param p2 Center of back face.
 /// \param width Width.
 /// \param height Height.
+/// \param flags CSG flags.
 /// \param up Up direction.
 void csg_box(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, float width, float height,
         CsgFlags flags = CsgFlags(0), const vec3& param_up = vec3(0.0f, 1.0f, 0.0f))
 {
     vec3 forward = p2 - p1;
-    vec3 unit_up = normalize(param_up);
-
-    // Rotate up vector components once if it's perpendicular to the forward vector.
-    if(dot(unit_up, normalize(forward)) >= 0.999f)
-    {
-        unit_up = vec3(unit_up.z(), unit_up.x(), unit_up.y());
-    }
-
+    vec3 unit_up = perpendiculate(param_up, forward);
     vec3 up = unit_up * (width * 0.5f);
-    vec3 rt = normalize(cross(forward, param_up)) * (height * 0.5f);
+    vec3 rt = normalize(cross(forward, unit_up)) * (height * 0.5f);
 
     unsigned index_base = lmesh.getLogicalVertexCount();
     bool flat = flags[CSG_FLAG_FLAT];
@@ -106,12 +124,70 @@ void csg_box(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, float width, fl
     }
 }
 
+/// Create a cylinder shape.
+///
+/// \param lmesh Target logical mesh.
+/// \param p1 Starting point.
+/// \param p2 End point.
+/// \param fidelity Fidelity of the cylinder, should be at least 3.
+/// \param radius Radius of the cylinder.
+/// \param flags CSG flags.
+/// \param up Up direction.
+void csg_cylinder(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, unsigned fidelity, float radius,
+        CsgFlags flags = CsgFlags(0), const vec3& param_up = vec3(0.0f, 1.0f, 0.0f))
+{
+    vec3 forward = p2 - p1;
+    vec3 unit_up = perpendiculate(param_up, forward);
+    vec3 up = unit_up * radius;
+    vec3 rt = normalize(cross(forward, unit_up)) * radius;
+
+    unsigned index_base = lmesh.getLogicalVertexCount();
+    bool flat = flags[CSG_FLAG_FLAT];
+
+    // Bottom and top.
+    lmesh.addVertex(p1);
+    lmesh.addVertex(p2);
+
+    for(unsigned ii = 0; (ii < fidelity); ++ii)
+    {
+        float rad = static_cast<float>(ii) / static_cast<float>(fidelity) * static_cast<float>(M_PI * 2.0);
+        vec3 dir = cos(rad) * rt + sin(rad) * up;
+        lmesh.addVertex(p1 + dir);
+        lmesh.addVertex(p2 + dir);
+
+        unsigned c1 = index_base + 2 + (ii * 2);
+        unsigned n1 = c1 + 1;
+        unsigned c2 = n1 + 1;
+        unsigned n2 = c2 + 1;
+        if((ii + 1) >= fidelity)
+        {
+            c2 = index_base + 2;
+            n2 = index_base + 3;
+        }
+
+        if(!flags[CSG_FLAG_NO_BOTTOM])
+        {
+            lmesh.addFace(index_base + 0, c1, c2, flat);
+        }
+        if(!flags[CSG_FLAG_NO_TOP])
+        {
+            lmesh.addFace(index_base + 1, n2, n1, flat);
+        }
+        lmesh.addFace(c1, n1, n2, c2, flat);
+    }
+}
+
+
 /// CSG command enumeration.
 ///
 /// In base cgl namespace so it's easier to use.
 ///
 /// Unless specifically mentioned, the geometric values are multiplied by 10.
 /// Other multipliers are signified by the multiplier in parenthesis.
+///
+/// "Up vector (1/4)" signifies either:
+/// One value, 1, 2 or 3, or the same values negative - unit vector on given axis, negative for negative direction.
+/// Or 0, followed by direction vector verbatim.
 enum class CsgCommand
 {
     /// Stop reading.
@@ -152,11 +228,20 @@ enum class CsgCommand
     /// Box.
     /// - Start position (3).
     /// - End position (3).
-    /// - Up vector (3).
-    /// - Width.
-    /// - Height.
+    /// - Up vector (1/4).
+    /// - Width (x100).
+    /// - Height (x100).
     /// - CSG flags.
     BOX,
+
+    /// Cylinder.
+    /// - Start position (3).
+    /// - End position (3).
+    /// - Up vector (1/4).
+    /// - Fidelity.
+    /// - Radius (x100).
+    /// - CSG flags.
+    CYLINDER,
 };
 
 /// conversion operator.
@@ -196,17 +281,24 @@ public:
         return ret;
     }
 
+    /// Read a signed int.
+    ///
+    /// \return Signed int.
+    int readInt()
+    {
+        int ret = static_cast<int>(*m_ptr);
+        ++m_ptr;
+        return ret;
+    }
+
     /// Read an unsigned int.
     ///
     /// \return Unsigned int.
     unsigned readUnsigned()
     {
-#if defined(USE_LD)
-        VGL_ASSERT(*m_ptr >= 0);
-#endif
-        unsigned ret = static_cast<unsigned>(*m_ptr);
-        ++m_ptr;
-        return ret;
+        int ret = readInt();
+        VGL_ASSERT(ret >= 0);
+        return static_cast<unsigned>(ret);
     }
 
     /// Read CSG flags.
@@ -224,7 +316,7 @@ public:
     /// \return Float coordinate.
     float readFloat()
     {
-        float ret = static_cast<float>(*m_ptr) / 10.0f;
+        float ret = static_cast<float>(*m_ptr) * 0.1f;
         ++m_ptr;
         return ret;
     }
@@ -236,8 +328,8 @@ public:
     /// \return vec2 texture coordinates.
     vec2 readVec2()
     {
-        float px = readFloat() / 10.0f;
-        float py = readFloat() / 10.0f;
+        float px = readFloat() * 0.1f;
+        float py = readFloat() * 0.1f;
         return vec2(px, py);
     }
 
@@ -250,6 +342,41 @@ public:
         float py = readFloat();
         float pz = readFloat();
         return vec3(px, py, pz);
+    }
+
+    /// Read a direction vector and advance.
+    ///
+    /// \return vec3 coordinates.
+    vec3 readDirVec()
+    {
+        int dir = readInt();
+        switch(dir)
+        {
+        case -1:
+            return vec3(-1.0f, 0.0f, 0.0f);
+
+        case 1:
+            return vec3(1.0f, 0.0f, 0.0f);
+
+        case -2:
+            return vec3(0.0f, -1.0f, 0.0f);
+
+        case 2:
+            return vec3(0.0f, 1.0f, 0.0f);
+
+        case -3:
+            return vec3(0.0f, 0.0f, -1.0f);
+
+        case 3:
+            return vec3(0.0f, 0.0f, 1.0f);
+
+        default:
+            VGL_ASSERT(dir == 0);
+            break;
+        }
+
+        // Read verbatim.
+        return readVec3();
     }
 
 public:
@@ -284,8 +411,8 @@ void csg_read_data(LogicalMesh& msh, const int16_t* data)
             {
                 vec3 pos = reader.readVec3();
                 msh.addVertex(pos);
-                break;
             }
+            break;
 
         case CsgCommand::TRIANGLE:
             {
@@ -293,8 +420,8 @@ void csg_read_data(LogicalMesh& msh, const int16_t* data)
                 unsigned c2 = reader.readUnsigned();
                 unsigned c3 = reader.readUnsigned();
                 msh.addFace(c1, c2, c3);
-                break;
             }
+            break;
 
         case CsgCommand::TRIANGLE_TC:
             {
@@ -305,8 +432,8 @@ void csg_read_data(LogicalMesh& msh, const int16_t* data)
                 unsigned c3 = reader.readUnsigned();
                 vec2 tc3 = reader.readVec2();
                 msh.addFace(c1, tc1, c2, tc2, c3, tc3);
-                break;
             }
+            break;
 
         case CsgCommand::QUAD:
             {
@@ -315,8 +442,8 @@ void csg_read_data(LogicalMesh& msh, const int16_t* data)
                 unsigned c3 = reader.readUnsigned();
                 unsigned c4 = reader.readUnsigned();
                 msh.addFace(c1, c2, c3, c4);
-                break;
             }
+            break;
 
         case CsgCommand::QUAD_TC:
             {
@@ -336,13 +463,25 @@ void csg_read_data(LogicalMesh& msh, const int16_t* data)
             {
                 vec3 p1 = reader.readVec3();
                 vec3 p2 = reader.readVec3();
-                vec3 up = reader.readVec3();
-                float width = reader.readFloat();
-                float height = reader.readFloat();
+                vec3 up = reader.readDirVec();
+                float width = reader.readFloat() * 0.1f;
+                float height = reader.readFloat() * 0.1f;
                 CsgFlags flags = reader.readFlags();
                 csg_box(msh, p1, p2, width, height, flags, up);
-                break;
             }
+            break;
+
+        case CsgCommand::CYLINDER:
+            {
+                vec3 p1 = reader.readVec3();
+                vec3 p2 = reader.readVec3();
+                vec3 up = reader.readDirVec();
+                unsigned fidelity = reader.readUnsigned();
+                float radius = reader.readFloat() * 0.1f;
+                CsgFlags flags = reader.readFlags();
+                csg_cylinder(msh, p1, p2, fidelity, radius, flags, up);
+            }
+            break;
 
 #if defined(USE_LD)
         default:

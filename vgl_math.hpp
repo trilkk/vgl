@@ -308,6 +308,24 @@ template <typename T> constexpr T lerp(float x, float y, const T& x1y1, const T&
 }
 #endif
 
+/// Cosine wrapper.
+///
+/// \param op Value in radians.
+/// \return Cosine of value.
+inline float cos(float op)
+{
+    return dnload_cosf(op);
+}
+
+/// Sine wrapper.
+///
+/// \param op Value in radians.
+/// \return Sine of value.
+inline float sin(float op)
+{
+    return dnload_sinf(op);
+}
+
 }
 
 #endif
