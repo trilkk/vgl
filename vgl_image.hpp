@@ -122,7 +122,8 @@ public:
         if(bpc == 4)
         {
             vector<uint8_t> ret(element_count * 4);
-            float* export_data = reinterpret_cast<float*>(ret.data());
+            void* erase_align_data = ret.data();
+            float* export_data = reinterpret_cast<float*>(erase_align_data);
 
             for(unsigned ii = 0; (ii < element_count); ++ii)
             {
@@ -135,7 +136,8 @@ public:
         if(bpc == 2)
         {
             vector<uint8_t> ret(element_count * 2);
-            uint16_t* export_data = reinterpret_cast<uint16_t*>(ret.data());
+            void* erase_align_data = ret.data();
+            uint16_t* export_data = reinterpret_cast<uint16_t*>(erase_align_data);
 
             for(unsigned ii = 0; (ii < element_count); ++ii)
             {

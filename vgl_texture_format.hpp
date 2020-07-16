@@ -268,6 +268,9 @@ private:
     /// \return Texture data type.
     GLenum determine_type(unsigned channels, unsigned bpc, void* data)
     {
+#if defined(DNLOAD_GLESV2)
+        (void)data;
+#endif
         if(bpc == 4)
         {
             return GL_FLOAT;
