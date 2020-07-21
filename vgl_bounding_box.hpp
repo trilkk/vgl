@@ -1,7 +1,7 @@
 #ifndef VGL_BOUNDING_BOX
 #define VGL_BOUNDING_BOX
 
-#include "vgl_vec3.hpp"
+#include "vgl_mat4.hpp"
 
 namespace vgl
 {
@@ -75,6 +75,38 @@ public:
     constexpr bool isInitialized() const
     {
         return static_cast<bool>(m_min);
+    }
+
+    /// Returns a new bounding box, axis-aligned, transformed with given matrix.
+    ///
+    /// \param trns Transformation matrix.
+    constexpr BoundingBox transform(const vgl::mat4& trns) const
+    {
+        VGL_ASSERT(isInitialized());
+
+        array<vec3, 6> transformed_coords;
+
+        vec3 new_min(trns * (*m_min));
+        vec3 new_max(trns * m_max);
+
+        transformed_coords[0] = trns * vec3(m_max.x(), m_min->y(), m_min->z());
+        transformed_coords[1] = trns * vec3(m_min->x(), m_max.y(), m_min->z());
+        transformed_coords[2] = trns * vec3(m_min->x(), m_min->y(), m_max.z());
+        transformed_coords[3] = trns * vec3(m_max.x(), m_max.y(), m_min->z());
+        transformed_coords[4] = trns * vec3(m_max.x(), m_min->y(), m_max.z());
+        transformed_coords[5] = trns * vec3(m_min->x(), m_max.y(), m_max.z());
+
+        for(const vec3& vv : transformed_coords)
+        {
+            new_min[0] = min(new_min.x(), vv.x());
+            new_min[1] = min(new_min.y(), vv.y());
+            new_min[2] = min(new_min.z(), vv.z());
+            new_max[0] = max(new_max.x(), vv.x());
+            new_max[1] = max(new_max.y(), vv.y());
+            new_max[2] = max(new_max.z(), vv.z());
+        }
+
+        return BoundingBox(new_min, new_max);
     }
 
     /// Tells if the bounding box collides with a Z range.
