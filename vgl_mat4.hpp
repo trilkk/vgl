@@ -162,10 +162,7 @@ public:
     /// \return Result vector.
     constexpr vec3 operator*(const vec3& rhs) const noexcept
     {
-        mat3 lhs(m_data[0], m_data[1], m_data[2],
-                m_data[4], m_data[5], m_data[6],
-                m_data[8], m_data[9], m_data[10]);
-        return lhs * rhs;
+        return getRotation() * rhs + getTranslation();
     }
 
 public:

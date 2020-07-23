@@ -10,11 +10,14 @@ class BoundingBox
 {
 private:
     /// Minimum corner.
-    /// Also serves as initialization check.
-    optional<vec3> m_min;
+    vec3 m_min;
 
     /// Maximum corner.
     vec3 m_max;
+
+    /// Center point.
+    /// Also serves as initialization check.
+    optional<vec3> m_center;
 
 public:
     /// Empty constructor.
@@ -25,7 +28,8 @@ public:
     /// \param op One point within the box.
     constexpr BoundingBox(const vec3& op) :
         m_min(op),
-        m_max(op)
+        m_max(op),
+        m_center(op)
     {
     }
 
@@ -41,6 +45,31 @@ public:
     }
 
 public:
+    /// Accessor.
+    ///
+    /// \return Minimum point.
+    constexpr vec3 getMin() const
+    {
+        return m_min;
+    }
+
+    /// Accessor.
+    ///
+    /// \return Maximum point.
+    constexpr vec3 getMax() const
+    {
+        return m_max;
+    }
+
+    /// Accessor.
+    ///
+    /// \return Bounding box center.
+    constexpr vec3 getCenter() const
+    {
+        VGL_ASSERT(isInitialized());
+        return *m_center;
+    }
+
     /// Adds a point to the bounding box area.
     ///
     /// \param op Point to add.
@@ -51,22 +80,19 @@ public:
             m_min = op;
             m_max = op;
         }
+        else
+        {
+            m_min[0] = min(m_min.x(), op.x());
+            m_min[1] = min(m_min.y(), op.y());
+            m_min[2] = min(m_min.z(), op.z());
+            m_max[0] = max(m_max.x(), op.x());
+            m_max[1] = max(m_max.y(), op.y());
+            m_max[2] = max(m_max.z(), op.z());
+        }
 
-        (*m_min)[0] = min(m_min->x(), op[0]);
-        (*m_min)[1] = min(m_min->y(), op[1]);
-        (*m_min)[2] = min(m_min->z(), op[2]);
-        m_max[0] = max(m_max[0], op[0]);
-        m_max[1] = max(m_max[1], op[1]);
-        m_max[2] = max(m_max[2], op[2]);
-    }
-
-    /// Gets the bounding box center point.
-    ///
-    /// \return Bounding box center.
-    constexpr vec3 getCenter() const
-    {
-        VGL_ASSERT(isInitialized());
-        return (*m_min + m_max) * 0.5f;
+        // Update center point every time.
+        // This is unoptimal, but does not matter.
+        m_center = (m_min + m_max) * 0.5f;
     }
 
     /// Is the bounding box initialized?
@@ -74,7 +100,7 @@ public:
     /// \return True if any data has been inserted, false otherwise.
     constexpr bool isInitialized() const
     {
-        return static_cast<bool>(m_min);
+        return static_cast<bool>(m_center);
     }
 
     /// Returns a new bounding box, axis-aligned, transformed with given matrix.
@@ -84,17 +110,17 @@ public:
     {
         VGL_ASSERT(isInitialized());
 
-        array<vec3, 6> transformed_coords;
+        vec3 new_min(trns * m_min);
+        vec3 new_max = new_min;
 
-        vec3 new_min(trns * (*m_min));
-        vec3 new_max(trns * m_max);
-
-        transformed_coords[0] = trns * vec3(m_max.x(), m_min->y(), m_min->z());
-        transformed_coords[1] = trns * vec3(m_min->x(), m_max.y(), m_min->z());
-        transformed_coords[2] = trns * vec3(m_min->x(), m_min->y(), m_max.z());
-        transformed_coords[3] = trns * vec3(m_max.x(), m_max.y(), m_min->z());
-        transformed_coords[4] = trns * vec3(m_max.x(), m_min->y(), m_max.z());
-        transformed_coords[5] = trns * vec3(m_min->x(), m_max.y(), m_max.z());
+        array<vec3, 7> transformed_coords;
+        transformed_coords[0] = trns * vec3(m_max.x(), m_min.y(), m_min.z());
+        transformed_coords[1] = trns * vec3(m_min.x(), m_max.y(), m_min.z());
+        transformed_coords[2] = trns * vec3(m_min.x(), m_min.y(), m_max.z());
+        transformed_coords[3] = trns * vec3(m_max.x(), m_max.y(), m_min.z());
+        transformed_coords[4] = trns * vec3(m_max.x(), m_min.y(), m_max.z());
+        transformed_coords[5] = trns * vec3(m_min.x(), m_max.y(), m_max.z());
+        transformed_coords[6] = trns * m_max;
 
         for(const vec3& vv : transformed_coords)
         {
@@ -113,16 +139,13 @@ public:
     ///
     /// Input values need not be in order.
     ///
-    /// \param z1 Z value 1.
-    /// \param z2 Z value 2.
+    /// \param zmin Smaller Z value.
+    /// \param zmax Larger Z value.
     /// \return True if collides, false otherwise.
-    constexpr bool collidesZ(float z1, float z2)
+    constexpr bool collidesZ(float zmin, float zmax)
     {
-        if(z1 > z2)
-        {
-            return collides_range(m_min->z(), m_max.z(), z2, z1);
-        }
-        return collides_range(m_min->z(), m_max.z(), z1, z2);
+        VGL_ASSERT(zmin <= zmax);
+        return collides_range(m_min.z(), m_max.z(), zmin, zmax);
     }
 
 protected:
@@ -136,6 +159,19 @@ protected:
     {
         return !((max1 <= min2) || (max2 <= min1));
     }
+
+public:
+#if defined(USE_LD)
+    /// Stream output operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Output stream.
+    friend std::ostream& operator<<(std::ostream& lhs, const BoundingBox& rhs)
+    {
+        return lhs << "BoundingBox(" << rhs.getMin() << ", " << rhs.getMax() << ")";
+    }
+#endif
 };
 
 }

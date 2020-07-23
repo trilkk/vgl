@@ -383,6 +383,14 @@ public:
     {
         return assign(op);
     }
+    /// Assignment operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return This object.
+    string& operator=(const string_data<const char>& rhs)
+    {
+        return assign(rhs.data());
+    }
 
     /// Move operator.
     ///

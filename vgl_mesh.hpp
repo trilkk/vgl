@@ -36,6 +36,11 @@ private:
     /// Bounding box for the mesh.
     BoundingBox m_box;
 
+#if defined(USE_LD)
+    /// Name of the mesh, for debugging.
+    string m_name;
+#endif
+
 public:
     /// Default constructor.
     explicit Mesh() = default;
@@ -96,8 +101,11 @@ public:
     {
         m_data.write(channel, data);
 
-        // Expand bounding box with vertex data.
-        m_box.addPoint(data);
+        // Update bounding box with data if writing to position channel.
+        if(channel == GeometryChannel::POSITION)
+        {
+            m_box.addPoint(data);
+        }
     }
 
     /// Write vertex data with semantic.
@@ -132,6 +140,23 @@ public:
         detail::g_geometry_buffers.emplace_back(new GeometryBuffer(m_data));
         m_handle = GeometryHandle(*(detail::g_geometry_buffers.back()), 0, 0);
     }
+
+#if defined(USE_LD)
+    /// Accessor.
+    ///
+    /// \return Name.
+    const string& getName() const
+    {
+        return m_name;
+    }
+    /// Set the name.
+    ///
+    /// \param op New name.
+    void setName(string_view op)
+    {
+        m_name = op;
+    }
+#endif
 };
 
 /// Smart pointer type.
