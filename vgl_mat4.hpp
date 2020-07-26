@@ -162,7 +162,7 @@ public:
     /// \return Result vector.
     constexpr vec3 operator*(const vec3& rhs) const noexcept
     {
-        return getRotation() * rhs + getTranslation();
+        return (getRotation() * rhs) + getTranslation();
     }
 
 public:

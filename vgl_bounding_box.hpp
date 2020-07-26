@@ -35,13 +35,16 @@ public:
 
     /// Constructor.
     ///
-    /// \param p1 First coordinate.
-    /// \param p2 Second coordinate.
+    /// \param p1 Minimum coordinate.
+    /// \param p2 Maximum coordinate.
     constexpr BoundingBox(const vec3& p1, const vec3& p2) :
         m_min(p1),
-        m_max(p2)
+        m_max(p2),
+        m_center((p1 + p2) * 0.5f)
     {
-        addPoint(p2);
+        VGL_ASSERT(m_min.x() <= m_max.x());
+        VGL_ASSERT(m_min.y() <= m_max.y());
+        VGL_ASSERT(m_min.z() <= m_max.z());
     }
 
 public:
@@ -110,7 +113,7 @@ public:
     {
         VGL_ASSERT(isInitialized());
 
-        vec3 new_min(trns * m_min);
+        vec3 new_min = trns * m_min;
         vec3 new_max = new_min;
 
         array<vec3, 7> transformed_coords;
@@ -124,6 +127,7 @@ public:
 
         for(const vec3& vv : transformed_coords)
         {
+
             new_min[0] = min(new_min.x(), vv.x());
             new_min[1] = min(new_min.y(), vv.y());
             new_min[2] = min(new_min.z(), vv.z());
