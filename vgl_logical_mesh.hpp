@@ -168,6 +168,12 @@ private:
             }
         }
 
+#if defined(USE_LD)
+        // Clear face references to mark vertex really as orphan.
+        LogicalVertex& srcVertex = m_vertices[src];
+        srcVertex.clearFaceReferences();
+#endif
+
         return ret;
     }
         

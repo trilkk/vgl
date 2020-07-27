@@ -20,7 +20,8 @@ vec3 perpendiculate(const vec3& dir, const vec3& ref)
     vec3 unit_dir = normalize(dir);
 
     // Rotate direction vector components once if it's perpendicular to the reference vector.
-    if(dot(unit_dir, normalize(ref)) >= 0.999f)
+    float dot_result = dot(unit_dir, normalize(ref));
+    if(abs(dot_result) >= 0.999f)
     {
         return vec3(unit_dir.z(), unit_dir.x(), unit_dir.y());
     }
@@ -83,8 +84,8 @@ void csg_box(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, float width, fl
 {
     vec3 forward = p2 - p1;
     vec3 unit_up = perpendiculate(param_up, forward);
-    vec3 up = unit_up * (width * 0.5f);
-    vec3 rt = normalize(cross(forward, unit_up)) * (height * 0.5f);
+    vec3 rt = normalize(cross(forward, unit_up)) * (width * 0.5f);
+    vec3 up = normalize(cross(rt, forward)) * (height * 0.5f);
 
     unsigned index_base = lmesh.getLogicalVertexCount();
     bool flat = flags[CSG_FLAG_FLAT];
@@ -138,8 +139,8 @@ void csg_cylinder(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, unsigned f
 {
     vec3 forward = p2 - p1;
     vec3 unit_up = perpendiculate(param_up, forward);
-    vec3 up = unit_up * radius;
     vec3 rt = normalize(cross(forward, unit_up)) * radius;
+    vec3 up = normalize(cross(rt, forward)) * radius;
 
     unsigned index_base = lmesh.getLogicalVertexCount();
     bool flat = flags[CSG_FLAG_FLAT];
@@ -182,7 +183,7 @@ void csg_cylinder(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, unsigned f
 ///
 /// In base cgl namespace so it's easier to use.
 ///
-/// Unless specifically mentioned, the geometric values are multiplied by 10.
+/// Unless specifically mentioned, the coordinate values are multiplied by 100.
 /// Other multipliers are signified by the multiplier in parenthesis.
 ///
 /// "Up vector (1/4)" signifies either:
@@ -203,11 +204,11 @@ enum class CsgCommand
 
     /// Triangle face (with texcoord).
     /// - Corner index.
-    /// - Texcoords (2) (x100).
+    /// - Texcoords (2).
     /// - Corner index.
-    /// - Texcoords (2) (x100).
+    /// - Texcoords (2).
     /// - Corner index.
-    /// - Texcoords (2) (x100).
+    /// - Texcoords (2).
     TRIANGLE_TC,
 
     /// Quad face.
@@ -216,21 +217,21 @@ enum class CsgCommand
 
     /// Quad face (with texcoord).
     /// - Corner index.
-    /// - Texcoords (2) (x100).
+    /// - Texcoords (2).
     /// - Corner index.
-    /// - Texcoords (2) (x100).
+    /// - Texcoords (2).
     /// - Corner index.
-    /// - Texcoords (2) (x100).
+    /// - Texcoords (2).
     /// - Corner index.
-    /// - Texcoords (2) (x100).
+    /// - Texcoords (2).
     QUAD_TC,
 
     /// Box.
     /// - Start position (3).
     /// - End position (3).
     /// - Up vector (1/4).
-    /// - Width (x100).
-    /// - Height (x100).
+    /// - Width.
+    /// - Height.
     /// - CSG flags.
     BOX,
 
@@ -239,7 +240,7 @@ enum class CsgCommand
     /// - End position (3).
     /// - Up vector (1/4).
     /// - Fidelity.
-    /// - Radius (x100).
+    /// - Radius.
     /// - CSG flags.
     CYLINDER,
 };
@@ -311,12 +312,12 @@ public:
 
     /// Read single floating point coordinate.
     ///
-    /// Coordinate is implied multiplied by 10.
+    /// Coordinate is implied multiplied by 100.
     ///
     /// \return Float coordinate.
     float readFloat()
     {
-        float ret = static_cast<float>(*m_ptr) * 0.1f;
+        float ret = static_cast<float>(*m_ptr) * 0.01f;
         ++m_ptr;
         return ret;
     }
@@ -328,8 +329,8 @@ public:
     /// \return vec2 texture coordinates.
     vec2 readVec2()
     {
-        float px = readFloat() * 0.1f;
-        float py = readFloat() * 0.1f;
+        float px = readFloat();
+        float py = readFloat();
         return vec2(px, py);
     }
 
@@ -464,8 +465,8 @@ void csg_read_data(LogicalMesh& msh, const int16_t* data)
                 vec3 p1 = reader.readVec3();
                 vec3 p2 = reader.readVec3();
                 vec3 up = reader.readDirVec();
-                float width = reader.readFloat() * 0.1f;
-                float height = reader.readFloat() * 0.1f;
+                float width = reader.readFloat();
+                float height = reader.readFloat();
                 CsgFlags flags = reader.readFlags();
                 csg_box(msh, p1, p2, width, height, flags, up);
             }
@@ -477,7 +478,7 @@ void csg_read_data(LogicalMesh& msh, const int16_t* data)
                 vec3 p2 = reader.readVec3();
                 vec3 up = reader.readDirVec();
                 unsigned fidelity = reader.readUnsigned();
-                float radius = reader.readFloat() * 0.1f;
+                float radius = reader.readFloat();
                 CsgFlags flags = reader.readFlags();
                 csg_cylinder(msh, p1, p2, fidelity, radius, flags, up);
             }
