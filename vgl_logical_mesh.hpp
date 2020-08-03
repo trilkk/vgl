@@ -217,6 +217,14 @@ public:
     /// \return Mesh.
     MeshUptr compile(bool removeIdentical = true)
     {
+#if defined(USE_LD)
+        // Clear all face references to destroy state.
+        for(auto& vv : m_vertices)
+        {
+            vv.clearFaceReferences();
+        }
+#endif
+
         // First, calculate normals for all faces and duplicate vertices as needed.
         for(auto& face : m_faces)
         {

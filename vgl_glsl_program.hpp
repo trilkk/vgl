@@ -43,6 +43,9 @@ enum class UniformSemantic
     /// This is often called 'object matrix'.
     MODELVIEW,
 
+    /// Normal matrix.
+    NORMAL,
+
     /// Matrix stack without modelview.
     PROJECTION_CAMERA,
 

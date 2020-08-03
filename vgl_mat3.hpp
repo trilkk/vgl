@@ -1,7 +1,7 @@
 #ifndef VGL_MAT3_HPP
 #define VGL_MAT3_HPP
 
-#include "vgl_mat.hpp"
+#include "vgl_mat2.hpp"
 #include "vgl_quat.hpp"
 #include "vgl_vec3.hpp"
 
@@ -138,26 +138,54 @@ public:
 
     /// Create an euler rotation matrix.
     ///
-    /// \param yaw Yaw rotation.
-    /// \param pitch Pitch rotation.
-    /// \param roll Roll rotation.
-    static mat3 rotation_euler(float yaw, float pitch, float roll) noexcept
+    /// Rotation applicationm order is z-x-y (i.e. Quake).
+    ///
+    /// \param pitch Pitch rotation (X axis).
+    /// \param yaw Yaw rotation (Y axis).
+    /// \param roll Roll rotation (Z axis).
+    static mat3 rotation_euler(float pitch, float yaw, float roll) noexcept
     {
         return rotation_zxy(pitch, yaw, roll);
     }
-
-public:
-    /// Transpose a matrix.
-    ///
-    /// \param op Input matrix.
-    /// \return Transposed matrix.
-    constexpr friend mat3 transpose(const mat3& op) noexcept
-    {
-        return mat3(op[0], op[3], op[6],
-                op[1], op[4], op[7],
-                op[2], op[5], op[8]);
-    }
 };
+
+/// Transpose a matrix.
+///
+/// \param op Input matrix.
+/// \return Transposed matrix.
+constexpr mat3 transpose(const mat3& op) noexcept
+{
+    return mat3(op[0], op[3], op[6],
+            op[1], op[4], op[7],
+            op[2], op[5], op[8]);
+}
+
+/// Invert a 3x3 matrix.
+///
+/// Using explanation from Wolfram Mathworld:
+/// https://mathworld.wolfram.com/MatrixInverse.html
+///
+/// \param op Input matrix.
+/// \return Inverted matrix.
+constexpr mat3 inverse(const mat3& op) noexcept
+{
+    // Here a, b and c denote top row indices 0, 3 and 6 of the original matrix.
+    // Determinants are for the cofactors of those elements.
+    float det_a = mat2(op[4], op[5], op[7], op[8]).determinant();
+    float neg_det_b = mat2(op[7], op[8], op[1], op[2]).determinant();
+    float det_c = mat2(op[1], op[2], op[4], op[5]).determinant();
+    float inv_det = 1.0f / ((op[0] * det_a) + (op[3] * neg_det_b) + (op[6] * det_c));
+
+    // Note that the order here is transpose of what would be got for just calculating all cofactors.
+    // Some elements calculate the cofactor in the wrong order to get the negative value.
+    return mat3(det_a, neg_det_b, det_c,
+            mat2(op[6], op[8], op[3], op[5]).determinant(),
+            mat2(op[0], op[2], op[6], op[8]).determinant(),
+            mat2(op[3], op[5], op[0], op[2]).determinant(),
+            mat2(op[3], op[4], op[6], op[7]).determinant(),
+            mat2(op[6], op[7], op[0], op[1]).determinant(),
+            mat2(op[0], op[1], op[3], op[4]).determinant()) * inv_det;
+}
 
 }
 

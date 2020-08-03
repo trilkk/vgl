@@ -229,14 +229,25 @@ public:
 
     /// Create rotation matrix.
     ///
-    /// \param yaw Yaw rotation.
-    /// \param pitch Pitch rotation.
-    /// \param roll Roll rotation.
+    /// Rotation applicationm order is z-x-y (i.e. Quake).
+    ///
+    /// \param pitch Pitch rotation (X axis).
+    /// \param yaw Yaw rotation (Y axis).
+    /// \param roll Roll rotation (Z axis).
     /// \param pos Translation vector.
     /// \return Result matrix.
-    static mat4 rotation_euler(float yaw, float pitch, float roll, const vec3& pos = vec3(0.0f, 0.0f, 0.0f)) noexcept
+    static mat4 rotation_euler(float pitch, float yaw, float roll, const vec3& pos = vec3(0.0f, 0.0f, 0.0f)) noexcept
     {
-        return mat4(mat3::rotation_euler(yaw, pitch, roll), pos);
+        return mat4(mat3::rotation_euler(pitch, yaw, roll), pos);
+    }
+    /// Wrapper for creating rotation matrix.
+    ///
+    /// \param rot Rotation in order pitch, yaw and roll.
+    /// \param pos Translation vector.
+    /// \return Result matrix.
+    static mat4 rotation_euler(const vec3& rot, const vec3& pos = vec3(0.0f, 0.0f, 0.0f)) noexcept
+    {
+        return rotation_euler(rot.x(), rot.y(), rot.z(), pos);
     }
 
     /// Create scaling matrix.
@@ -340,6 +351,16 @@ mat4 viewify(const mat4 &op)
     vec3 translation = rotation * (-op.getTranslation());
     mat4 ret(rotation, translation);
     return ret;
+}
+
+/// Convert to normal matrix.
+///
+/// \param op Input matrix.
+/// \return Normal matrix from the given input.
+mat3 normalify(const mat4& op)
+{
+    mat3 inverseRotation = inverse(op.getRotation());
+    return transpose(inverseRotation);
 }
 
 }

@@ -30,6 +30,15 @@ public:
     }
 
 public:
+    /// Calculates the determinant of a 2x2 matrix.
+    ///
+    /// \return Determinant of this.
+    constexpr float determinant() const noexcept
+    {
+        return (m_data[0] * m_data[3]) - (m_data[1] * m_data[2]);
+    }
+
+public:
     /// Create an identity matrix.
     ///
     /// \return Result matrix.

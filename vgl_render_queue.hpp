@@ -215,6 +215,9 @@ private:
         /// Current modelview matrix.
         const mat4* m_modelview;
 
+        /// Current normal matrix.
+        const mat3* m_normal;
+
         /// Current camera modelview matrix.
         const mat4* m_camera_modelview;
 
@@ -241,6 +244,7 @@ private:
             m_camera = nullptr;
             m_projection_camera = nullptr;
             m_modelview = nullptr;
+            m_normal = nullptr;
             m_camera_modelview = nullptr;
             m_projection_camera_modelview = nullptr;
             m_program = nullptr;
@@ -271,6 +275,7 @@ private:
             m_program->uniform(UniformSemantic::CAMERA, *m_camera);
             m_program->uniform(UniformSemantic::PROJECTION_CAMERA, *m_projection_camera);
             m_program->uniform(UniformSemantic::MODELVIEW, *m_modelview);
+            m_program->uniform(UniformSemantic::NORMAL, *m_normal);
             m_program->uniform(UniformSemantic::CAMERA_MODELVIEW, *m_camera_modelview);
             m_program->uniform(UniformSemantic::PROJECTION_CAMERA_MODELVIEW, *m_projection_camera_modelview);
 
@@ -401,6 +406,7 @@ private:
                     applyMesh();
                     m_mesh = iter.read<Mesh*>();
                     m_modelview = &(iter.read<mat4>());
+                    m_normal = &(iter.read<mat3>());
                     m_camera_modelview = &(iter.read<mat4>());
                     m_projection_camera_modelview = &(iter.read<mat4>());
                     break;
@@ -598,6 +604,7 @@ public:
         m_data.push(static_cast<int>(detail::RenderCommand::MESH));
         m_data.push(&msh);
         m_data.push(modelview);
+        m_data.push(normalify(modelview));
 #if defined(USE_LD)
         m_data.push((*m_camera) * modelview);
         m_data.push((*m_projection_camera) * modelview);
@@ -654,7 +661,7 @@ public:
     }
 
     /// Render the contents in the queue.
-    void draw()
+    void draw() const
     {
         RenderState state;
         state.draw(*this);
