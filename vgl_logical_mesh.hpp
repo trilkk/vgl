@@ -350,7 +350,7 @@ public:
             }
         }
 
-        Fence ret = task_wait_main(create_mesh, this);
+        Fence ret = task_wait_main(taskfunc_create_mesh, this);
         return MeshUptr(static_cast<Mesh*>(ret.getReturnValue()));
     }
 
@@ -454,7 +454,7 @@ private:
     /// Export a mesh from this logical mesh.
     ///
     /// \param op Pointer to logical mesh.
-    static void* create_mesh(void* op)
+    static void* taskfunc_create_mesh(void* op)
     {
         return static_cast<LogicalMesh*>(op)->createMesh();
     }
