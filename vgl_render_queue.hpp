@@ -146,7 +146,7 @@ template<> constexpr RenderCommand get_uniform_render_command_type<mat4>() noexc
 {
     return RenderCommand::UNIFORM_MAT4;
 }
-template<> constexpr RenderCommand get_uniform_render_command_type<Texture>() noexcept
+template<> constexpr RenderCommand get_uniform_render_command_type<Texture2D>() noexcept
 {
     return RenderCommand::UNIFORM_TEXTURE;
 }
@@ -185,7 +185,7 @@ const mat4& get_uniform_push_value_type(const mat4& op)
 {
     return op;
 }
-const Texture* get_uniform_push_value_type(const Texture& op)
+const Texture* get_uniform_push_value_type(const Texture2D& op)
 {
     return &op;
 }

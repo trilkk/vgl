@@ -1,6 +1,7 @@
 #ifndef VGL_TEXTURE_2D_HPP
 #define VGL_TEXTURE_2D_HPP
 
+#include "vgl_image_2d.hpp"
 #include "vgl_state.hpp"
 #include "vgl_texture.hpp"
 #include "vgl_texture_format.hpp"
@@ -23,19 +24,58 @@ public:
     /// Constructor.
     ///
     /// \param target Texture target.
+    explicit Texture2D(GLenum target = GL_TEXTURE_2D) :
+        Texture(target)
+    {
+    }
+
+public:
+    /// Accessor.
+    ///
+    /// \return Texture width.
+    constexpr unsigned getWidth() const noexcept
+    {
+        return m_width;
+    }
+
+    /// Accessor.
+    ///
+    /// \return Texture height.
+    constexpr unsigned getHeight() const noexcept
+    {
+        return m_height;
+    }
+
+    /// Update texture with image data.
+    ///
+    /// Creates a 16-bit texture.
+    ///
+    /// \param image Image to update with.
+    /// \param bpc Bytes per component to convert the image to (default: 1).
+    /// \param filtering Filtering mode (default: trilinear).
+    /// \param wrap Wrap mode (defaut: wrap).
+    void update(Image2D &image, unsigned bpc = 1, FilteringMode filtering = FilteringMode::TRILINEAR,
+            WrapMode wrap = WrapMode::WRAP)
+    {
+        vector<uint8_t> export_data = image.getExportData(bpc);
+        update(image.getWidth(), image.getHeight(), image.getChannelCount(), bpc, export_data.data(), filtering, wrap);
+    }
+
+private:
+    /// Update texture with data.
     /// \param width Width of the texture.
     /// \param height Height of the texture.
     /// \param channels Number of channels, 0 for depth texture.
     /// \param bpc Bytes per component in texture data.
     /// \param data Pointter to texture data, must be one byte per color channel per texel.
-    /// \param wrap Wrap mode to use.
     /// \param filtering Filtering mode to use.
-    explicit Texture2D(GLenum target, unsigned width, unsigned height, unsigned channels, unsigned bpc, void* data,
-            WrapMode wrap, FilteringMode filtering) :
-        Texture(target),
-        m_width(width),
-        m_height(height)
+    /// \param wrap Wrap mode to use.
+    void update(unsigned width, unsigned height, unsigned channels, unsigned bpc, void* data, FilteringMode filtering,
+            WrapMode wrap)
     {
+        m_width = width;
+        m_height = height;
+
         const Texture* prev_texture = updateBegin();
         TextureFormat format(channels, bpc, data);
 
@@ -59,27 +99,10 @@ public:
 #endif
 
         updateEnd(prev_texture);
-    }
+ }
 
 public:
-    /// Accessor.
-    ///
-    /// \return Texture width.
-    constexpr unsigned getWidth() const noexcept
-    {
-        return m_width;
-    }
-
-    /// Accessor.
-    ///
-    /// \return Texture height.
-    constexpr unsigned getHeight() const noexcept
-    {
-        return m_height;
-    }
-
-public:
-    /// Update contents with nothing.
+    /// Create a new texture with no data.
     ///
     /// Usable for framebuffer textures. By default, 4 channels since RGB framebuffer is an extension.
     ///
@@ -88,11 +111,29 @@ public:
     /// \param channels Number of channels, use 0 for depth texture.
     /// \param bpc Bytes per component for fragments (default: 1).
     /// \param filtering Filtering mode.
+    /// \param wrap Wrap mode.
     static unique_ptr<Texture2D> create(unsigned width, unsigned height, unsigned channels = 4, unsigned bpc = 1,
             FilteringMode filtering = FilteringMode::BILINEAR, WrapMode wrap = WrapMode::CLAMP)
     {
-        return unique_ptr<Texture2D>(new Texture2D(GL_TEXTURE_2D, width, height, channels, bpc, nullptr, wrap,
-                    filtering));
+        unique_ptr<Texture2D> ret(new Texture2D(GL_TEXTURE_2D));
+        ret->update(width, height, channels, bpc, nullptr, filtering, wrap);
+        return ret;
+    }
+
+    /// Create a new texture with image data.
+    ///
+    /// Usable for any kinds of textures.
+    ///
+    /// \param img Image.
+    /// \param bpc Bytes per component for fragments (default: 1).
+    /// \param filtering Filtering mode.
+    /// \param wrap Wrap mode.
+    static unique_ptr<Texture2D> create(Image2D& img, unsigned bpc = 1, FilteringMode filtering = FilteringMode::TRILINEAR,
+            WrapMode wrap = WrapMode::WRAP)
+    {
+        unique_ptr<Texture2D> ret(new Texture2D(GL_TEXTURE_2D));
+        ret->update(img, bpc, filtering, wrap);
+        return ret;
     }
 };
 

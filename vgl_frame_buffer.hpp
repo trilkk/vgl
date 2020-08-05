@@ -132,7 +132,7 @@ public:
     /// Accessor.
     ///
     /// \return Get attached texture.
-    constexpr const Texture* getTextureColor() const noexcept
+    constexpr const Texture2D* getTextureColor() const noexcept
     {
         return m_color_texture.get();
     }
@@ -140,7 +140,7 @@ public:
     /// Accessor.
     ///
     /// \return Get attached texture.
-    constexpr const Texture* getTextureDepth() const noexcept
+    constexpr const Texture2D* getTextureDepth() const noexcept
     {
         return m_depth_texture.get();
     }
