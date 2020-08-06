@@ -31,29 +31,32 @@ enum class UniformSemantic
     NONE = 0,
 
     /// Projection matrix.
-    PROJECTION,
+    PROJECTION_MATRIX,
 
     /// Camera matrix.
     ///
     /// This is often called 'view matrix'.
-    CAMERA,
+    CAMERA_MATRIX,
 
     /// Modelview matrix.
     ///
     /// This is often called 'object matrix'.
-    MODELVIEW,
+    MODELVIEW_MATRIX,
 
     /// Normal matrix.
-    NORMAL,
+    NORMAL_MATRIX,
 
     /// Matrix stack without modelview.
-    PROJECTION_CAMERA,
+    PROJECTION_CAMERA_MATRIX,
 
     /// Matrix stack without projection.
-    CAMERA_MODELVIEW,
+    CAMERA_MODELVIEW_MATRIX,
     
     /// Complete matrix stack.
-    PROJECTION_CAMERA_MODELVIEW,
+    PROJECTION_CAMERA_MODELVIEW_MATRIX,
+
+    /// Camera position.
+    CAMERA_POSITION,
 };
 
 #if defined(USE_LD)
@@ -66,14 +69,29 @@ std::string to_string(UniformSemantic op)
 {
     switch(op)
     {
-    case UniformSemantic::PROJECTION:
-        return std::string("PROJECTION");
+    case UniformSemantic::PROJECTION_MATRIX:
+        return std::string("PROJECTION_MATRIX");
 
-    case UniformSemantic::CAMERA:
-        return std::string("CAMERA");
+    case UniformSemantic::CAMERA_MATRIX:
+        return std::string("CAMERA_MATRIX");
 
-    case UniformSemantic::MODELVIEW:
-        return std::string("MODELVIEW");
+    case UniformSemantic::MODELVIEW_MATRIX:
+        return std::string("MODELVIEW_MATRIXC");
+
+    case UniformSemantic::NORMAL_MATRIX:
+        return std::string("NORMAL_MATRIX");
+
+    case UniformSemantic::PROJECTION_CAMERA_MATRIX:
+        return std::string("PROJECTION_CAMERA_MATRIX");
+
+    case UniformSemantic::CAMERA_MODELVIEW_MATRIX:
+        return std::string("CAMERA_MODELVIEW_MATRIX");
+    
+    case UniformSemantic::PROJECTION_CAMERA_MODELVIEW_MATRIX:
+        return std::string("PROJECTION_CAMERA_MODELVIEW_MATRIX");
+
+    case UniformSemantic::CAMERA_POSITION:
+        return std::string("CAMERA_POSITION");
 
     default:
         return std::string("NONE");

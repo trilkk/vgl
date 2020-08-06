@@ -204,25 +204,28 @@ private:
     {
     private:
         /// Current projection matrix.
-        const mat4* m_projection;
+        const mat4* m_projection_matrix;
 
         /// Current camera matrix.
-        const mat4* m_camera;
+        const mat4* m_camera_matrix;
 
         /// Current projection camera matrix.
-        const mat4* m_projection_camera;
+        const mat4* m_projection_camera_matrix;
 
         /// Current modelview matrix.
-        const mat4* m_modelview;
+        const mat4* m_modelview_matrix;
 
         /// Current normal matrix.
-        const mat3* m_normal;
+        const mat3* m_normal_matrix;
 
         /// Current camera modelview matrix.
-        const mat4* m_camera_modelview;
+        const mat4* m_camera_modelview_matrix;
 
         /// Current projection camera modelview matrix.
-        const mat4* m_projection_camera_modelview;
+        const mat4* m_projection_camera_modelview_matrix;
+
+        /// Current camera position.
+        const vec3* m_camera_position;
 
         /// Current program.
         GlslProgram* m_program;
@@ -240,13 +243,14 @@ private:
         explicit RenderState()
         {
 #if defined(USE_LD)
-            m_projection = nullptr;
-            m_camera = nullptr;
-            m_projection_camera = nullptr;
-            m_modelview = nullptr;
-            m_normal = nullptr;
-            m_camera_modelview = nullptr;
-            m_projection_camera_modelview = nullptr;
+            m_projection_matrix = nullptr;
+            m_camera_matrix = nullptr;
+            m_projection_camera_matrix = nullptr;
+            m_modelview_matrix = nullptr;
+            m_normal_matrix = nullptr;
+            m_camera_modelview_matrix = nullptr;
+            m_projection_camera_modelview_matrix = nullptr;
+            m_camera_position = nullptr;
             m_program = nullptr;
 #endif
         }
@@ -264,20 +268,23 @@ private:
             }
 
 #if defined(USE_LD)
-            if(!m_projection)
+            if(!m_projection_matrix)
             {
                 BOOST_THROW_EXCEPTION(std::runtime_error("cannot apply mesh before view settings have been read"));
             }
+            VGL_ASSERT(m_camera_matrix);
+            VGL_ASSERT(m_camera_position);
 #endif
 
             // Apply projection uniforms based on semantic only.
-            m_program->uniform(UniformSemantic::PROJECTION, *m_projection);
-            m_program->uniform(UniformSemantic::CAMERA, *m_camera);
-            m_program->uniform(UniformSemantic::PROJECTION_CAMERA, *m_projection_camera);
-            m_program->uniform(UniformSemantic::MODELVIEW, *m_modelview);
-            m_program->uniform(UniformSemantic::NORMAL, *m_normal);
-            m_program->uniform(UniformSemantic::CAMERA_MODELVIEW, *m_camera_modelview);
-            m_program->uniform(UniformSemantic::PROJECTION_CAMERA_MODELVIEW, *m_projection_camera_modelview);
+            m_program->uniform(UniformSemantic::PROJECTION_MATRIX, *m_projection_matrix);
+            m_program->uniform(UniformSemantic::CAMERA_MATRIX, *m_camera_matrix);
+            m_program->uniform(UniformSemantic::PROJECTION_CAMERA_MATRIX, *m_projection_camera_matrix);
+            m_program->uniform(UniformSemantic::MODELVIEW_MATRIX, *m_modelview_matrix);
+            m_program->uniform(UniformSemantic::NORMAL_MATRIX, *m_normal_matrix);
+            m_program->uniform(UniformSemantic::CAMERA_MODELVIEW_MATRIX, *m_camera_modelview_matrix);
+            m_program->uniform(UniformSemantic::PROJECTION_CAMERA_MODELVIEW_MATRIX, *m_projection_camera_modelview_matrix);
+            m_program->uniform(UniformSemantic::CAMERA_POSITION, *m_camera_position);
 
             m_mesh->draw(*m_program);
             m_mesh = nullptr;
@@ -391,9 +398,10 @@ private:
 
                 case detail::RenderCommand::VIEW:
                     applyMesh();
-                    m_projection = &(iter.read<mat4>());
-                    m_camera = &(iter.read<mat4>());
-                    m_projection_camera = &(iter.read<mat4>());
+                    m_projection_matrix = &(iter.read<mat4>());
+                    m_camera_matrix = &(iter.read<mat4>());
+                    m_projection_camera_matrix = &(iter.read<mat4>());
+                    m_camera_position = &(iter.read<vec3>());
                     break;
 
                 case detail::RenderCommand::PROGRAM:
@@ -405,10 +413,10 @@ private:
                 case detail::RenderCommand::MESH:
                     applyMesh();
                     m_mesh = iter.read<Mesh*>();
-                    m_modelview = &(iter.read<mat4>());
-                    m_normal = &(iter.read<mat3>());
-                    m_camera_modelview = &(iter.read<mat4>());
-                    m_projection_camera_modelview = &(iter.read<mat4>());
+                    m_modelview_matrix = &(iter.read<mat4>());
+                    m_normal_matrix = &(iter.read<mat3>());
+                    m_camera_modelview_matrix = &(iter.read<mat4>());
+                    m_projection_camera_modelview_matrix = &(iter.read<mat4>());
                     break;
 
                 case detail::RenderCommand::UNIFORM_INT:
@@ -475,16 +483,23 @@ private:
 
     /// Current camera settings.
 #if defined(USE_LD)
-    optional<mat4> m_camera;
+    optional<mat4> m_camera_matrix;
 #else
-    mat4 m_camera;
+    mat4 m_camera_matrix;
 #endif
 
     /// Current projection + camera settings.
 #if defined(USE_LD)
-    optional<mat4> m_projection_camera;
+    optional<mat4> m_projection_camera_matrix;
 #else
-    mat4 m_projection_camera;
+    mat4 m_projection_camera_matrix;
+#endif
+
+    /// Current camera position.
+#if defined(USE_LD)
+    optional<vec3> m_camera_position;
+#else
+    vec3 m_camera_position;
 #endif
 
 public:
@@ -513,8 +528,9 @@ public:
     {
         m_data.clear();
 #if defined(USE_LD)
-        m_camera = nullopt;
-        m_projection_camera = nullopt;
+        m_camera_matrix = nullopt;
+        m_projection_camera_matrix = nullopt;
+        m_camera_position = nullopt;
 #endif
     }
 
@@ -568,21 +584,24 @@ public:
     void push(const mat4& proj, const mat4& cam)
     {
         mat4 camera = viewify(cam);
-        m_camera = camera;
+        m_camera_matrix = camera;
 #if defined(USE_LD)
-        m_projection_camera = proj * (*m_camera);
+        m_projection_camera_matrix = proj * (*m_camera_matrix);
 #else
-        m_projection_camera = proj * m_camera;
+        m_projection_camera_matrix = proj * m_camera_matrix;
 #endif
+        m_camera_position = cam.getTranslation();
 
         m_data.push(static_cast<int>(detail::RenderCommand::VIEW));
         m_data.push(proj);
 #if defined(USE_LD)
-        m_data.push(*m_camera);
-        m_data.push(*m_projection_camera);
+        m_data.push(*m_camera_matrix);
+        m_data.push(*m_projection_camera_matrix);
+        m_data.push(*m_camera_position);
 #else
-        m_data.push(m_camera);
-        m_data.push(m_projection_camera);
+        m_data.push(m_camera_matrix);
+        m_data.push(m_projection_camera_matrix);
+        m_data.push(m_camera_position);
 #endif
     }
 
@@ -606,11 +625,11 @@ public:
         m_data.push(modelview);
         m_data.push(normalify(modelview));
 #if defined(USE_LD)
-        m_data.push((*m_camera) * modelview);
-        m_data.push((*m_projection_camera) * modelview);
+        m_data.push((*m_camera_matrix) * modelview);
+        m_data.push((*m_projection_camera_matrix) * modelview);
 #else
-        m_data.push(m_camera * modelview);
-        m_data.push(m_projection_camera * modelview);
+        m_data.push(m_camera_matrix * modelview);
+        m_data.push(m_projection_camera_matrix * modelview);
 #endif
     }
 
