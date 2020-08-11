@@ -154,6 +154,32 @@ public:
         return data();
     }
 
+    /// Tells if the string starts with given substring.
+    ///
+    /// \param op Substring to test.
+    /// \return True if starts with given substring, false otherwise.
+    constexpr bool starts_with(const T* op)
+    {
+        for(unsigned ii = 0;;)
+        {
+            if(!(*op))
+            {
+                return true;
+            }
+            else if(ii >= m_length)
+            {
+                return false;
+            }
+
+            if(*op != m_data[ii])
+            {
+                return false;
+            }
+            ++op;
+            ++ii;
+        }
+    }
+
 public:
     /// Access operator.
     ///
