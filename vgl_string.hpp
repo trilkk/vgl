@@ -281,6 +281,15 @@ public:
 
     /// Constructor.
     ///
+    /// \param data String data.
+    /// \param count Number of elements to read, excluding terminating zero.
+    explicit string(const char* data, unsigned count)
+    {
+        assign(data, count);
+    }
+ 
+    /// Constructor.
+    ///
     /// \param op String data input.
     explicit string(const string_data<const char>& op)
     {
@@ -315,19 +324,32 @@ public:
 public:
     /// Assign data.
     ///
+    /// \param data Input data.
+    /// \param len Data length.
+    /// \return This object.
+    string& assign(const char* data, unsigned len)
+    {
+        clear();
+        if(len > 0)
+        {
+            base_type::m_length = len;
+            unsigned copy_length = len + 1;
+            base_type::m_data = array_new(base_type::m_data, copy_length);
+            detail::internal_memcpy(base_type::m_data, data, copy_length);
+        }
+        return *this;
+    }
+    /// Assign data.
+    ///
     /// \param op Input data.
     /// \return This object.
     string& assign(const char* op)
     {
-        clear();
-        if(op && *op)
+        if(!op)
         {
-            base_type::m_length = detail::internal_strlen(op);
-            unsigned copy_length = base_type::m_length + 1;
-            base_type::m_data = array_new(base_type::m_data, copy_length);
-            detail::internal_memcpy(base_type::m_data, op, copy_length);
+            return assign(op, 0);
         }
-        return *this;
+        return assign(op, detail::internal_strlen(op));
     }
     /// Assign data.
     ///
@@ -335,15 +357,7 @@ public:
     /// \return This object.
     string& assign(const string_data<const char>& op)
     {
-        clear();
-        if(!op.empty())
-        {
-            base_type::m_length = op.length();
-            unsigned copy_length = base_type::m_length + 1;
-            base_type::m_data = array_new(base_type::m_data, copy_length);
-            detail::internal_memcpy(base_type::m_data, op.data(), copy_length);
-        }
-        return *this;
+        return assign(op.data(), op.length());
     }
     /// Assign data.
     ///
@@ -351,7 +365,7 @@ public:
     /// \return This object.
     string& assign(const string_data<char>& op)
     {
-        return assign(*reinterpret_cast<const string_data<const char>*>(&op));
+        return assign(reinterpret_cast<const char*>(op.data(), op.length()));
     }
 
     /// Clear the string data.

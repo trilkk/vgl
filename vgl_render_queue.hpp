@@ -1,6 +1,7 @@
 #ifndef VGL_RENDER_QUEUE_HPP
 #define VGL_RENDER_QUEUE_HPP
 
+#include "vgl_font.hpp"
 #include "vgl_mesh.hpp"
 #include "vgl_packed_data_reader.hpp"
 
@@ -87,6 +88,15 @@ enum class RenderCommand
 
     /// Uniform data (texture).
     UNIFORM_TEXTURE,
+
+    /// Text block.
+    /// - Font.
+    /// - 3D position (pen).
+    /// - Pen direction vector.
+    /// - Up direction vector.
+    /// - Pen scale (x, y).
+    /// - String.
+    TEXT,
 };
 
 /// RenderCommand or operation
@@ -291,6 +301,18 @@ private:
             m_texture_unit = 0;
         }
 
+        /// Render text.
+        ///
+        /// \param font Font to use.
+        /// \param pos Position.
+        /// \param dir Pen direction vector.
+        /// \param up Up vector.
+        /// \param scale Direction vector scales.
+        /// \param text Text.
+        void drawText(Font& font, const vec3& pos, const vec3& dir, const vec3& up, const vec2& scale, string_view text)
+        {
+        }
+
         /// Get uniform location from packed data reader.
         ///
         /// \param iter Read iterator.
@@ -417,6 +439,19 @@ private:
                     m_normal_matrix = &(iter.read<mat3>());
                     m_camera_modelview_matrix = &(iter.read<mat4>());
                     m_projection_camera_modelview_matrix = &(iter.read<mat4>());
+                    break;
+
+                case detail::RenderCommand::TEXT:
+                    applyMesh();
+                    {
+                        Font* font = iter.read<Font*>();
+                        vec3 pos = iter.read<vec3>();
+                        vec3 dir = iter.read<vec3>();
+                        vec3 up = iter.read<vec3>();
+                        vec2 scale = iter.read<vec2>();
+                        string_view text = iter.read<string_view>();
+                        drawText(*font, pos, dir, up, scale, text);
+                    }
                     break;
 
                 case detail::RenderCommand::UNIFORM_INT:
@@ -631,6 +666,25 @@ public:
         m_data.push(m_camera_matrix * modelview);
         m_data.push(m_projection_camera_matrix * modelview);
 #endif
+    }
+
+    /// Push text render.
+    ///
+    /// \param font Font to use.
+    /// \param pos Position.
+    /// \param dir Pen direction vector.
+    /// \param up Up vector.
+    /// \param scale Direction vector scales.
+    /// \param text Text.
+    void push(const Font& font, const vec3& pos, const vec3& dir, const vec3& up, const vec2& scale, string_view text)
+    {
+        m_data.push(static_cast<int>(detail::RenderCommand::TEXT));
+        m_data.push(&font);
+        m_data.push(pos);
+        m_data.push(dir);
+        m_data.push(up);
+        m_data.push(scale);
+        m_data.push(text);
     }
 
     /// Push uniform.

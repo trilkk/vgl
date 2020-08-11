@@ -1,6 +1,7 @@
 #ifndef VGL_PACKED_DATA_HPP
 #define VGL_PACKED_DATA_HPP
 
+#include "vgl_string_view.hpp"
 #include "vgl_vector.hpp"
 
 namespace vgl

@@ -74,6 +74,8 @@ public:
     }
 
     /// Read a value and advance.
+    ///
+    /// \return Reference to type stored in the packed data.
     template<typename T> constexpr const T& read() noexcept
     {
 #if defined(USE_LD)
