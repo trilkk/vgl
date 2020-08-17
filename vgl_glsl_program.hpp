@@ -57,6 +57,15 @@ enum class UniformSemantic
 
     /// Camera position.
     CAMERA_POSITION,
+
+    /// Glyph texture.
+    GLYPH_TEXTURE,
+
+    /// Glyph position.
+    GLYPH_POSITION,
+
+    /// Glyph quad parameters (offset, size).
+    GLYPH_QUAD,
 };
 
 #if defined(USE_LD)

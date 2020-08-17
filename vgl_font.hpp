@@ -8,6 +8,8 @@
 namespace vgl
 {
 
+class Mesh;
+
 /// Font.
 class Font
 {
@@ -21,10 +23,13 @@ private:
 
 private:
     /// Font structure.
-    FT_Face m_face;
+    FT_Face m_face = nullptr;
 
     /// Characters loaded.
     CharacterUptr m_characters[MAX_CHARACTERS];
+
+    /// Mesh used for rendering single characters.
+    Mesh* m_mesh;
 
     /// 'M' size for the face (pixels).
     unsigned m_font_size;
@@ -40,8 +45,7 @@ public:
     ///
     /// \param fs Font size.
     /// \param fnames Filename array.
-    Font(unsigned fs, const char **fnames) :
-        m_face(NULL),
+    explicit Font(unsigned fs, const char **fnames) :
         m_font_size(fs)
     {
         freetype_init();
@@ -102,6 +106,22 @@ private:
     }
 
 public:
+    /// Accessor.
+    ///
+    /// \return Character mesh.
+    const Mesh& getMesh() const
+    {
+        VGL_ASSERT(m_mesh);
+        return *m_mesh;
+    }
+    /// Set the mesh.
+    ///
+    /// \param op Mesh to use.
+    void setMesh(Mesh& op)
+    {
+        m_mesh = &op;
+    }
+
     /// Create one character (for later use).
     ///
     /// \param unicode Unicode character id.
@@ -235,6 +255,17 @@ private:
     }
 
 public:
+    /// Create a font.
+    ///
+    /// \param fs Font size.
+    /// \param fnames Filename array.
+    /// \param mesh Mesh used by the font.
+    static unique_ptr<Font> create(unsigned fs, const char **fnames)
+    {
+        unique_ptr<Font> ret(new Font(fs, fnames));
+        return ret;
+    }
+
 #if defined(USE_LD)
     /// Deinitialize FreeType.
     static void freetype_quit()
@@ -252,12 +283,15 @@ public:
             BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
         }
 
-        g_freetype_library = NULL;
+        g_freetype_library = nullptr;
     }
 #endif
 };
 
-FT_Library Font::g_freetype_library = NULL;
+FT_Library Font::g_freetype_library = nullptr;
+
+/// Font unique pointer type.
+using FontUptr = unique_ptr<Font>;
 
 }
 

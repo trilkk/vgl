@@ -121,7 +121,7 @@ public:
     /// Accessor.
     ///
     /// \return Texture.
-    const Texture& getTexture() const
+    const Texture2D& getTexture() const
     {
         return m_texture;
     }
