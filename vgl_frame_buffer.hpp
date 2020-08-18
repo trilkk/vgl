@@ -49,12 +49,12 @@ public:
     ///
     /// \param width Framebuffer width.
     /// \param height Framebuffer height.
-    /// \param bpc Bytes per color texture channel.
-    /// \param bpd Bytes per depth texture channel.
+    /// \param colorFormat Optional color format.
+    /// \param depthFormat Optional depth format.
     /// \param filtering Filtering mode.
     /// \param wrap Wrap mode.
-    explicit FrameBuffer(unsigned width, unsigned height, unsigned bpc, unsigned bpd, FilteringMode filtering,
-            WrapMode wrap) :
+    explicit FrameBuffer(unsigned width, unsigned height, const optional<TextureFormat>& colorFormat,
+            const optional<TextureFormat>& depthFormat, FilteringMode filtering, WrapMode wrap) :
         m_width(width),
         m_height(height)
     {
@@ -70,16 +70,16 @@ public:
         dnload_glGenFramebuffers(1, &m_id);
         dnload_glBindFramebuffer(GL_FRAMEBUFFER, m_id);
 
-        if(bpc > 0)
+        if(colorFormat)
         {
-            m_color_texture = Texture2D::create(width, height, 4, bpc, filtering, wrap);
+            m_color_texture = Texture2D::create(width, height, *colorFormat, filtering, wrap);
             dnload_glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
                     m_color_texture->getId(), 0);
         }
 
-        if(bpd > 0)
+        if(depthFormat)
         {
-            m_depth_texture = Texture2D::create(width, height, 0, bpd, filtering, wrap);
+            m_depth_texture = Texture2D::create(width, height, *depthFormat, filtering, wrap);
             dnload_glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
                     m_depth_texture->getId(), 0);
         }
@@ -189,6 +189,20 @@ public:
     ///
     /// \param width Framebuffer width.
     /// \param height Framebuffer height.
+    /// \param colorFormat Optional color format.
+    /// \param depthFormat Optional depth format.
+    /// \param filtering Filtering mode (default: BILINEAR).
+    /// \param wrap Wrap mode (default: CLAMP).
+    static unique_ptr<FrameBuffer> create(unsigned width, unsigned height, const optional<TextureFormat>& colorFormat,
+            const optional<TextureFormat>& depthFormat, FilteringMode filtering = FilteringMode::BILINEAR,
+            WrapMode wrap = WrapMode::CLAMP)
+    {
+        return unique_ptr<FrameBuffer>(new FrameBuffer(width, height, colorFormat, depthFormat, filtering, wrap));
+    }
+    /// Create a new framebuffer.
+    ///
+    /// \param width Framebuffer width.
+    /// \param height Framebuffer height.
     /// \param bpc Bytes per color channel (default: 1).
     /// \param bpd Bytes per depth channel (default: 2).
     /// \param filtering Filtering mode (default: BILINEAR).
@@ -196,7 +210,17 @@ public:
     static unique_ptr<FrameBuffer> create(unsigned width, unsigned height, unsigned bpc = 1, unsigned bpd = 2,
             FilteringMode filtering = FilteringMode::BILINEAR, WrapMode wrap = WrapMode::CLAMP)
     {
-        return unique_ptr<FrameBuffer>(new FrameBuffer(width, height, bpc, bpd, filtering, wrap));
+        optional<TextureFormat> colorFormat;
+        if(bpc)
+        {
+            colorFormat = TextureFormat(4, bpc, nullptr);
+        }
+        optional<TextureFormat> depthFormat;
+        if(bpd)
+        {
+            depthFormat = TextureFormat(0, bpd, nullptr);
+        }
+        return create(width, height, colorFormat, depthFormat, filtering, wrap);
     }
 
     /// Accesses the default frame buffer.

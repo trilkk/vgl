@@ -58,7 +58,8 @@ public:
             WrapMode wrap = WrapMode::WRAP)
     {
         vector<uint8_t> export_data = image.getExportData(bpc);
-        update(image.getWidth(), image.getHeight(), image.getChannelCount(), bpc, export_data.data(), filtering, wrap);
+        TextureFormat format(image.getChannelCount(), bpc, export_data.data());
+        update(image.getWidth(), image.getHeight(), format, export_data.data(), filtering, wrap);
     }
 
 private:
@@ -70,14 +71,13 @@ private:
     /// \param data Pointter to texture data, must be one byte per color channel per texel.
     /// \param filtering Filtering mode to use.
     /// \param wrap Wrap mode to use.
-    void update(unsigned width, unsigned height, unsigned channels, unsigned bpc, void* data, FilteringMode filtering,
+    void update(unsigned width, unsigned height, const TextureFormat& format, void* data, FilteringMode filtering,
             WrapMode wrap)
     {
         m_width = width;
         m_height = height;
 
         const Texture* prev_texture = updateBegin();
-        TextureFormat format(channels, bpc, data);
 
         dnload_glTexImage2D(getType(), 0, format.getInternalFormat(),
                 static_cast<GLsizei>(width), static_cast<GLsizei>(height),
@@ -102,6 +102,23 @@ private:
  }
 
 public:
+    /// Create a new texture with no data and given format.
+    ///
+    /// Usable for framebuffer textures with exotic formats.
+    ///
+    /// \param width Texture width.
+    /// \param height Texture height.
+    /// \param channels Number of channels, use 0 for depth texture.
+    /// \param bpc Bytes per component for fragments (default: 1).
+    /// \param filtering Filtering mode.
+    /// \param wrap Wrap mode.
+    static unique_ptr<Texture2D> create(unsigned width, unsigned height, const TextureFormat& format,
+            FilteringMode filtering = FilteringMode::BILINEAR, WrapMode wrap = WrapMode::CLAMP)
+    {
+        unique_ptr<Texture2D> ret(new Texture2D(GL_TEXTURE_2D));
+        ret->update(width, height, format, nullptr, filtering, wrap);
+        return ret;
+    }
     /// Create a new texture with no data.
     ///
     /// Usable for framebuffer textures. By default, 4 channels since RGB framebuffer is an extension.
@@ -115,9 +132,8 @@ public:
     static unique_ptr<Texture2D> create(unsigned width, unsigned height, unsigned channels = 4, unsigned bpc = 1,
             FilteringMode filtering = FilteringMode::BILINEAR, WrapMode wrap = WrapMode::CLAMP)
     {
-        unique_ptr<Texture2D> ret(new Texture2D(GL_TEXTURE_2D));
-        ret->update(width, height, channels, bpc, nullptr, filtering, wrap);
-        return ret;
+        TextureFormat format(channels, bpc, nullptr);
+        return create(width, height, format, filtering, wrap);
     }
 
     /// Create a new texture with image data.

@@ -41,7 +41,7 @@ public:
     explicit TextureFormat(unsigned channels, unsigned bpc, void* data) :
         m_format(determine_format(channels)),
         m_internal_format(determine_internal_format(channels, bpc, data)),
-        m_type(determine_type(channels, bpc, data))
+        m_type(determine_type(channels, bpc))
 #if defined(USE_LD)
         , m_type_size(bpc * channels)
 #endif
@@ -53,6 +53,21 @@ public:
             }
 #endif
         }
+
+    /// Explicit constructor.
+    ///
+    /// \param format Format.
+    /// \param internal_format.
+    /// \param type.
+    explicit TextureFormat(GLenum format, GLint internal_format, GLenum type) :
+        m_format(format),
+        m_internal_format(internal_format),
+        m_type(type)
+#if defined(USE_LD)
+        , m_type_size(0)
+#endif
+    {
+    }
 
 private:
     /// Get GL texture format for channel number.
@@ -266,22 +281,21 @@ private:
     /// \param bpc Bytes per component.
     /// \param data Pointer to texture data.
     /// \return Texture data type.
-    GLenum determine_type(unsigned channels, unsigned bpc, void* data)
+    GLenum determine_type(unsigned channels, unsigned bpc)
     {
-#if defined(DNLOAD_GLESV2)
-        (void)data;
-#endif
         if(bpc == 4)
         {
+#if defined(DNLOAD_GLESV2)
+            if(channels == 0)
+            {
+                return GL_UNSIGNED_INT;
+            }
+#endif
             return GL_FLOAT;
         }
         if(bpc == 2)
         {
-#if defined(DNLOAD_GLESV2)
             return GL_UNSIGNED_SHORT;
-#else
-            return data ? GL_UNSIGNED_SHORT : GL_FLOAT;
-#endif
         }
         if(bpc == 1)
         {
@@ -329,6 +343,13 @@ public:
     unsigned getTypeSize() const
     {
         return m_type_size;
+    }
+    /// Setter.
+    ///
+    /// \param op Type size.
+    void setTypeSize(unsigned op)
+    {
+        m_type_size = op;
     }
 #endif
 
