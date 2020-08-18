@@ -17,6 +17,11 @@ private:
     /// FreeType library reference.
     static FT_Library g_freetype_library;
 
+#if defined(USE_LD)
+    /// Number of fonts initialized.
+    static unsigned g_freetype_count;
+#endif
+
 private:
     /// Let's stay ASCII7 for now.
     static const unsigned MAX_CHARACTERS = 128;
@@ -48,7 +53,7 @@ public:
     explicit Font(unsigned fs, const char **fnames) :
         m_font_size(fs)
     {
-        freetype_init();
+        freetype_increment();
 
         for(const char **iter = fnames; true; ++iter)
         {
@@ -91,6 +96,9 @@ public:
         {
             FT_Done_Face(m_face);
         }
+
+        // Decrement FreeType usage count.
+        freetype_decrement();
 #endif
     }
 
@@ -233,9 +241,15 @@ public:
 #endif
 
 private:
-    /// Initialize FreeType.
-    static void freetype_init()
+    /// Increment FreeType usage count.
+    ///
+    /// If this is the first call, initialize FreeType.
+    static void freetype_increment()
     {
+#if defined(USE_LD)
+        VGL_ASSERT(static_cast<bool>(g_freetype_count) == static_cast<bool>(g_freetype_library));
+        ++g_freetype_count;
+#endif
         if(g_freetype_library)
         {
             return;
@@ -267,10 +281,17 @@ public:
     }
 
 #if defined(USE_LD)
-    /// Deinitialize FreeType.
-    static void freetype_quit()
+    /// Decrement FreeType usage count.
+    ///
+    /// Deinitialize FreeType if the usage count reaches zero.
+    static void freetype_decrement()
     {
-        if(!g_freetype_library)
+        VGL_ASSERT(static_cast<bool>(g_freetype_count) == static_cast<bool>(g_freetype_library));
+        if(!g_freetype_count)
+        {
+            return;
+        }
+        if(--g_freetype_count)
         {
             return;
         }
@@ -282,13 +303,15 @@ public:
             sstr << "could not close FreeType: " << err;
             BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
         }
-
         g_freetype_library = nullptr;
     }
 #endif
 };
 
 FT_Library Font::g_freetype_library = nullptr;
+#if defined(USE_LD)
+unsigned Font::g_freetype_count = 0;
+#endif
 
 /// Font unique pointer type.
 using FontUptr = unique_ptr<Font>;
