@@ -128,9 +128,14 @@ private:
         dnload_glShaderSource(id, static_cast<GLsizei>(count), sources, NULL);
         dnload_glCompileShader(id);
 #if defined(USE_LD)
+        static const char* shader_delim = "----\n";
         if(!detail::get_shader_compile_status(id))
         {
-            std::cout << detail::get_shader_info_log(id);
+            for(unsigned ii = 0; (ii < count); ++ii)
+            {
+                std::cout << shader_delim << sources[ii];
+            }
+            std::cout << ((count > 0) ? shader_delim : "") << detail::get_shader_info_log(id) << shader_delim;
             glDeleteShader(id);
             return 0;
         }
