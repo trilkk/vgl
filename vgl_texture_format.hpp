@@ -41,7 +41,7 @@ public:
     explicit TextureFormat(unsigned channels, unsigned bpc, void* data) :
         m_format(determine_format(channels)),
         m_internal_format(determine_internal_format(channels, bpc, data)),
-        m_type(determine_type(channels, bpc))
+        m_type(determine_type(channels, bpc, data))
 #if defined(USE_LD)
         , m_type_size(bpc * channels)
 #endif
@@ -121,7 +121,25 @@ private:
     {
         if(channels == 0)
         {
+#if defined(DNLOAD_GLESV2)
             return GL_DEPTH_COMPONENT;
+#else
+            if(bpc == 2)
+            {
+                return GL_DEPTH_COMPONENT16;
+            }
+            else if(bpc == 3)
+            {
+                return GL_DEPTH_COMPONENT24;
+            }
+#if defined(USE_LD)
+            if(bpc != 4)
+            {
+                BOOST_THROW_EXCEPTION(std::runtime_error("invalid bytes per channel for depth component: " + std::to_string(bpc)));
+            }
+#endif
+            return GL_DEPTH_COMPONENT32F;
+#endif
         }
         if(channels == 1)
         {
@@ -237,7 +255,7 @@ private:
         }
 #endif
 #if defined(USE_LD)
-        if(bpc >= 3)
+        if(bpc != 1)
         {
             BOOST_THROW_EXCEPTION(std::runtime_error("invalid bytes per channel count for RGB format: " +
                         std::to_string(bpc)));
@@ -281,8 +299,11 @@ private:
     /// \param bpc Bytes per component.
     /// \param data Pointer to texture data.
     /// \return Texture data type.
-    GLenum determine_type(unsigned channels, unsigned bpc)
+    GLenum determine_type(unsigned channels, unsigned bpc, void* data)
     {
+#if defined(DNLOAD_GLESV2)
+        (void)data;
+#endif
         if(bpc == 4)
         {
 #if defined(DNLOAD_GLESV2)
@@ -295,7 +316,11 @@ private:
         }
         if(bpc == 2)
         {
+#if defined(DNLOAD_GLESV2)
             return GL_UNSIGNED_SHORT;
+#else
+            return data ? GL_UNSIGNED_SHORT : GL_FLOAT;
+#endif
         }
         if(bpc == 1)
         {
