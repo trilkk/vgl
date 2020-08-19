@@ -83,15 +83,6 @@ public:
             dnload_glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
                     m_depth_texture->getId(), 0);
         }
-        else
-        {
-            GLuint id;
-            dnload_glGenRenderbuffers(1, &id);
-            dnload_glBindRenderbuffer(GL_RENDERBUFFER, id);
-            // 0x8CAC == GL_DEPTH_COMPONENT32F
-            dnload_glRenderbufferStorage(GL_RENDERBUFFER, 0x8CAC, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
-            dnload_glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, id);
-        }
 
 #if defined(USE_LD)
         GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
