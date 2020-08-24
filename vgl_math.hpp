@@ -314,14 +314,7 @@ template <typename T> constexpr T lerp(float x, float y, const T& x1y1, const T&
 /// \return Cosine of value.
 inline float cos(float op) noexcept
 {
-#if 0
-    float cosres;
-    float sinres;
-    dnload_sincosf(op, &sinres, &cosres);
-    return cosres;
-#else
     return dnload_cosf(op);
-#endif
 }
 
 /// Sine wrapper.
@@ -330,14 +323,7 @@ inline float cos(float op) noexcept
 /// \return Sine of value.
 inline float sin(float op) noexcept
 {
-#if 1
-    float cosres;
-    float sinres;
-    dnload_sincosf(op, &sinres, &cosres);
-    return sinres;
-#else
-    return dnload_sinf32(op);
-#endif
+    return dnload_sinf(op);
 }
 
 }

@@ -45,14 +45,6 @@ private:
     /// \return Rotation matrix.
     static mat3 rotation_zxy(float rx, float ry, float rz) noexcept
     {
-        static bool printed = false;
-        if(!printed)
-        {
-            puts_hex(static_cast<int>(ry * 1000.0));
-            puts_hex(static_cast<int>(sin(ry) * 1000.0));
-            puts_hex(static_cast<int>(__builtin_sinf(ry) * 1000.0));
-            printed = true;
-        }
         float sx = sin(rx);
         float sy = sin(ry);
         float sz = sin(rz);
