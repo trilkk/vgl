@@ -79,19 +79,6 @@ public:
         return m_data[idx];
     }
 
-    /// Assignment operator.
-    ///
-    /// \param rhs Right-hand-side operand.
-    /// \return This vector.
-    constexpr quat& operator=(const quat& rhs) noexcept
-    {
-        m_data[0u] = rhs[0u];
-        m_data[1u] = rhs[1u];
-        m_data[2u] = rhs[2u];
-        m_data[3u] = rhs[3u];
-        return *this;
-    }
-
     /// Unary minus operator.
     ///
     /// \return Result quaternion.

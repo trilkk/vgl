@@ -178,7 +178,6 @@ void csg_cylinder(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, unsigned f
     }
 }
 
-
 /// CSG command enumeration.
 ///
 /// In base cgl namespace so it's easier to use.
@@ -494,6 +493,81 @@ void csg_read_data(LogicalMesh& msh, const int16_t* data)
     }
 }
 
+/// Add raw model data.
+///
+/// Bone input is arranged as 3 weights and 3 references.
+/// The 3 weights should add up to 255.
+///
+/// \param vertices Vertex input.
+/// \param bones Bone input.
+/// \param faces Face input.
+/// \param vertices_amount Vertex data element count.
+/// \param bones_amount Bone data element count.
+/// \param faces_amount Face data element count.
+/// \param scale Scale to multiply with.
+void csg_read_raw(LogicalMesh& msh, const int16_t *vertices, const uint8_t *bones, const uint16_t* faces,
+        unsigned vertices_amount, unsigned bones_amount, unsigned faces_amount, float scale)
+    {
+#if defined(USE_LD)
+        if(bones && ((vertices_amount * 2) != bones_amount))
+        {
+            std::ostringstream sstr;
+            sstr << "vertex amount (" << vertices_amount << ") and bones amount (" << bones_amount <<
+                ") do not match";
+            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+        }
+#else
+        (void)bones_amount;
+#endif
+        // Store logical vertex count before adding raw data.
+        unsigned index_base = msh.getLogicalVertexCount();
+
+        for(unsigned ii = 0, jj = 0; (ii < vertices_amount); ii += 3, jj += 6)
+        {
+            vec3 ver(static_cast<float>(vertices[ii + 0]) * scale,
+                    static_cast<float>(vertices[ii + 1]) * scale,
+                    static_cast<float>(vertices[ii + 2]) * scale);
+
+            if(bones)
+            {
+                uvec4 wt(bones[jj + 0],
+                        bones[jj + 1],
+                        bones[jj + 2],
+                        0);
+                uvec4 rf(bones[jj + 3],
+                        bones[jj + 4],
+                        bones[jj + 5],
+                        0);
+
+                msh.addVertex(ver, wt, rf);
+            }
+            else
+            {
+                msh.addVertex(ver);
+            }
+        }
+
+        for(unsigned ii = 0; ii < faces_amount; ii += 3)
+        {
+            msh.addFace(faces[ii + 0] + index_base,
+                    faces[ii + 1] + index_base,
+                    faces[ii + 2] + index_base);
+        }
+    }
+    /// Add raw model data.
+    ///
+    /// Bone data is not added.
+    ///
+    /// \param vertices Vertex input.
+    /// \param faces Face input.
+    /// \param vertices_amount Vertex data element count.
+    /// \param faces_amount Face data element count.
+    /// \param scale Scale to multiply with.
+    void csg_read_raw(LogicalMesh& msh, const int16_t *vertices, const uint16_t* faces,
+            unsigned vertices_amount, unsigned faces_amount, float scale)
+    {
+        csg_read_raw(msh, vertices, nullptr, faces, vertices_amount, 0, faces_amount, scale);
+    }
 }
 
 }

@@ -17,6 +17,8 @@ namespace detail
 
 /// \cond
 void csg_read_data(LogicalMesh&, const int16_t*);
+void csg_read_raw(LogicalMesh&, const int16_t*, const uint8_t*, const uint16_t*, unsigned, unsigned, unsigned, float);
+void csg_read_raw(LogicalMesh&, const int16_t*, const uint16_t*, unsigned, unsigned, float);
 /// \endcond
 
 }
@@ -45,6 +47,35 @@ public:
     explicit LogicalMesh(const int16_t* op)
     {
         detail::csg_read_data(*this, op);
+    }
+
+    /// Constructor using raw data.
+    ///
+    /// \param vertices Vertex input.
+    /// \param bones Bone input.
+    /// \param faces Face input.
+    /// \param vertices_amount Vertex data element count.
+    /// \param bones_amount Bone data element count.
+    /// \param faces_amount Face data element count.
+    /// \param scale Scale to multiply with.
+    explicit LogicalMesh(const int16_t *vertices, const uint8_t *bones, const uint16_t* faces,
+            unsigned vertices_amount, unsigned bones_amount, unsigned faces_amount, float scale)
+    {
+        detail::csg_read_raw(*this, vertices, bones, faces, vertices_amount, bones_amount, faces_amount, scale);
+    }
+    /// Constructor using raw data.
+    ///
+    /// No bone data.
+    ///
+    /// \param vertices Vertex input.
+    /// \param faces Face input.
+    /// \param vertices_amount Vertex data element count.
+    /// \param faces_amount Face data element count.
+    /// \param scale Scale to multiply with.
+    explicit LogicalMesh(const int16_t *vertices, const uint16_t* faces,
+            unsigned vertices_amount, unsigned faces_amount, float scale)
+    {
+        detail::csg_read_raw(*this, vertices, nullptr, faces, vertices_amount, 0, faces_amount, scale);
     }
 
 private:
