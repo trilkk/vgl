@@ -44,6 +44,9 @@ public:
         /// Element type for this channel.
         const GLenum m_type;
 
+        /// Element normalized or not.
+        const GLboolean m_normalized;
+
         /// Offset of the channel.
         const unsigned m_offset;
 
@@ -56,6 +59,7 @@ public:
             m_semantic(channel),
             m_element_count(detail::geometry_channel_element_count(channel)),
             m_type(detail::geometry_channel_element_type(channel)),
+            m_normalized(detail::geometry_channel_element_normalized(channel)),
             m_offset(offset)
         {
         }
@@ -81,7 +85,7 @@ public:
                 unsigned idx = static_cast<unsigned>(ret);
                 const void* offset = reinterpret_cast<const void*>(m_offset);
                 attrib_array_enable(idx);
-                dnload_glVertexAttribPointer(idx, m_element_count, m_type, GL_FALSE, stride, offset);
+                dnload_glVertexAttribPointer(idx, m_element_count, m_type, m_normalized, stride, offset);
             }
             return ret;
         }
@@ -95,6 +99,7 @@ public:
             return (m_semantic == op.m_semantic) &&
                 (m_element_count == op.m_element_count) &&
                 (m_type == op.m_type) &&
+                (m_normalized == op.m_normalized) &&
                 (m_offset == op.m_offset);
         }
 

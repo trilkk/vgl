@@ -75,8 +75,9 @@ public:
 
     /// Read a value and advance.
     ///
+    /// \param op Number of elements to advance (default: 1).
     /// \return Reference to type stored in the packed data.
-    template<typename T> constexpr const T& read() noexcept
+    template<typename T> constexpr const T& read(unsigned op = 1) noexcept
     {
 #if defined(USE_LD)
         if(remaining() < sizeof(T))
@@ -85,7 +86,7 @@ public:
                         std::to_string(remaining()) + " bytes remaining"));
         }
 #endif
-        return *reinterpret_cast<const T*>(advance(static_cast<unsigned>(sizeof(T))));
+        return *reinterpret_cast<const T*>(advance(static_cast<unsigned>(sizeof(T) * op)));
     }
 };
 

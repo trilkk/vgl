@@ -20,17 +20,16 @@ private:
 
 public:
     /// Empty constructor.
-    AnimationFrame()
-    {
-    }
+    explicit AnimationFrame() noexcept = default;
 
     /// Constructor.
     ///
     /// \param data Frame data.
     /// \param bone_amount Amount of bone elements.
-    AnimationFrame(const int16_t *data, unsigned bone_amount, float scale = 1.0f)
+    /// \param scale Model scale.
+    explicit AnimationFrame(const int16_t *data, unsigned bone_amount, float scale)
     {
-        initFromData(data, bone_amount, scale);
+        readRaw(data, bone_amount, scale);
     }
 
 private:
@@ -38,7 +37,8 @@ private:
     ///
     /// \param data Frame data.
     /// \param bone_amount Amount of bone elements.
-    void initFromData(const int16_t *data, unsigned frame_amount, float scale)
+    /// \param scale Model scale.
+    void readRaw(const int16_t *data, unsigned frame_amount, float scale)
     {
         m_time = fixed_8_8_to_float(data[0]);
 

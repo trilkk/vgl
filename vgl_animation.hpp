@@ -11,14 +11,14 @@ class Animation
 {
 private:
     /// Frame data.
-    vector<AnimationFrameUptr> m_frames;
+    vector<AnimationFrame> m_frames;
 
     /// Is this animation hierarchical?
-    bool m_hierarchical;
+    bool m_hierarchical = false;
 
 public:
     /// Empty constructor.
-    constexpr explicit Animation(bool hierarchical = false) :
+    constexpr explicit Animation(bool hierarchical = false) noexcept:
         m_hierarchical(hierarchical)
     {
     }
@@ -30,43 +30,20 @@ public:
     /// \param animation_amount Amount of animation elements.
     /// \param scale Model scale.
     /// \param hierarchical Is the animation hierarchical?
-    Animation(const int16_t *data, unsigned bone_amount, unsigned animation_amount, float scale = 1.0f,
+    explicit Animation(const int16_t *data, unsigned bone_amount, unsigned animation_amount, float scale,
             bool hierarchical = false) :
         m_hierarchical(hierarchical)
     {
-        initFromData(data, bone_amount, animation_amount, scale);
+        readRaw(data, bone_amount, animation_amount, scale);
     }
 
-public:
-    /// Accessor.
-    ///
-    /// \param idx Index.
-    AnimationFrame& getFrame(unsigned idx)
-    {
-        return *(m_frames[idx]);
-    }
-    /// Const accessor.
-    ///
-    /// \param idx Index.
-    const AnimationFrame& getFrame(unsigned idx) const
-    {
-        return *(m_frames[idx]);
-    }
-
-    /// Accessor.
-    ///
-    /// \return Frame count.
-    unsigned getFrameCount() const
-    {
-        return m_frames.size();
-    }
-
+private:
     /// Constructor.
     ///
     /// \param data Animation data.
     /// \param bone_amount Amount of bone elements.
     /// \param animation_amount Amount of animation elements.
-    void initFromData(const int16_t *data, unsigned bone_amount, unsigned animation_amount, float scale)
+    void readRaw(const int16_t *data, unsigned bone_amount, unsigned animation_amount, float scale)
     {
         unsigned frame_amount = bone_amount / 3 * 7;
 
@@ -81,8 +58,32 @@ public:
 
         for(unsigned ii = 0; (ii < animation_amount); ii += frame_amount + 1)
         {
-            m_frames.emplace_back(new AnimationFrame(data + ii, frame_amount, scale));
+            m_frames.emplace_back(data + ii, frame_amount, scale);
         }
+    }
+
+public:
+    /// Accessor.
+    ///
+    /// \param idx Index.
+    AnimationFrame& getFrame(unsigned idx)
+    {
+        return m_frames[idx];
+    }
+    /// Const accessor.
+    ///
+    /// \param idx Index.
+    const AnimationFrame& getFrame(unsigned idx) const
+    {
+        return m_frames[idx];
+    }
+
+    /// Accessor.
+    ///
+    /// \return Frame count.
+    unsigned getFrameCount() const
+    {
+        return m_frames.size();
     }
 
     /// Tell if this animation is hierarchical.
@@ -101,6 +102,20 @@ public:
     }
 
 public:
+    /// Creates a new animation.
+    ///
+    /// \param data Animation data.
+    /// \param bone_amount Amount of bone elements.
+    /// \param animation_amount Amount of animation elements.
+    /// \param scale Scale to multiply with.
+    /// \param hierarchical Is the animation hierarchical?
+    static unique_ptr<Animation> create(const int16_t *data, unsigned bone_amount, unsigned animation_amount, float scale,
+            bool hierarchical = false)
+    {
+        return unique_ptr<Animation>(new Animation(data, bone_amount, animation_amount, scale, hierarchical));
+    }
+
+public:
 #if defined(USE_LD)
     /// Output to stream.
     ///
@@ -109,14 +124,17 @@ public:
     friend std::ostream& operator<<(std::ostream &lhs, const Animation& rhs)
     {
         lhs << "Animation: " << rhs.m_frames.size() << " frames\n";
-        for(const AnimationFrameUptr &vv : rhs.m_frames)
+        for(const auto& vv : rhs.m_frames)
         {
-            lhs << *vv << std::endl;
+            lhs << vv << std::endl;
         }
         return lhs;
     }
 #endif
 };
+
+/// Animation unique pointer type.
+using AnimationUptr = unique_ptr<Animation>;
 
 }
 

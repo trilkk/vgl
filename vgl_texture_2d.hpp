@@ -29,39 +29,6 @@ public:
     {
     }
 
-public:
-    /// Accessor.
-    ///
-    /// \return Texture width.
-    constexpr unsigned getWidth() const noexcept
-    {
-        return m_width;
-    }
-
-    /// Accessor.
-    ///
-    /// \return Texture height.
-    constexpr unsigned getHeight() const noexcept
-    {
-        return m_height;
-    }
-
-    /// Update texture with image data.
-    ///
-    /// Creates a 16-bit texture.
-    ///
-    /// \param image Image to update with.
-    /// \param bpc Bytes per component to convert the image to (default: 1).
-    /// \param filtering Filtering mode (default: trilinear).
-    /// \param wrap Wrap mode (defaut: wrap).
-    void update(Image2D &image, unsigned bpc = 1, FilteringMode filtering = FilteringMode::TRILINEAR,
-            WrapMode wrap = WrapMode::WRAP)
-    {
-        vector<uint8_t> export_data = image.getExportData(bpc);
-        TextureFormat format(image.getChannelCount(), bpc, export_data.data());
-        update(image.getWidth(), image.getHeight(), format, export_data.data(), filtering, wrap);
-    }
-
 private:
     /// Update texture with data.
     /// \param width Width of the texture.
@@ -99,7 +66,40 @@ private:
 #endif
 
         updateEnd(prev_texture);
- }
+    }
+
+public:
+    /// Accessor.
+    ///
+    /// \return Texture width.
+    constexpr unsigned getWidth() const noexcept
+    {
+        return m_width;
+    }
+
+    /// Accessor.
+    ///
+    /// \return Texture height.
+    constexpr unsigned getHeight() const noexcept
+    {
+        return m_height;
+    }
+
+    /// Update texture with image data.
+    ///
+    /// Creates a 16-bit texture.
+    ///
+    /// \param image Image to update with.
+    /// \param bpc Bytes per component to convert the image to (default: 1).
+    /// \param filtering Filtering mode (default: trilinear).
+    /// \param wrap Wrap mode (defaut: wrap).
+    void update(Image2D &image, unsigned bpc = 1, FilteringMode filtering = FilteringMode::TRILINEAR,
+            WrapMode wrap = WrapMode::WRAP)
+    {
+        vector<uint8_t> export_data = image.getExportData(bpc);
+        TextureFormat format(image.getChannelCount(), bpc, export_data.data());
+        update(image.getWidth(), image.getHeight(), format, export_data.data(), filtering, wrap);
+    }
 
 public:
     /// Create a new texture with no data and given format.

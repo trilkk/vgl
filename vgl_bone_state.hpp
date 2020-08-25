@@ -20,15 +20,13 @@ private:
 
 public:
     /// Empty constructor.
-    BoneState()
-    {
-    }
+    explicit BoneState() noexcept = default;
 
     /// Constructor.
     ///
     /// \param pos Position.
     /// \param rot Rotation.
-    BoneState(const vec3& pos, const quat& rot) :
+    explicit BoneState(const vec3& pos, const quat& rot) :
         m_pos(pos),
         m_rot(rot)
     {

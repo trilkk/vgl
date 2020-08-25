@@ -66,6 +66,9 @@ enum class UniformSemantic
 
     /// Glyph quad parameters (offset, size).
     GLYPH_QUAD,
+
+    /// Skeleton.
+    SKELETON,
 };
 
 #if defined(USE_LD)
@@ -640,82 +643,146 @@ public:
     /// Apply uniform.
     ///
     /// \param location Uniform location.
+    /// \param ptr Uniform value array.
+    /// \param count Uniform array size.
+    static void applyUniform(GLint location, const int* ptr, unsigned count)
+    {
+        dnload_glUniform1iv(location, count, ptr);
+    }
+    /// Apply uniform.
+    ///
+    /// \param location Uniform location.
     /// \param value Uniform value.
     static void applyUniform(GLint location, int value)
     {
-        dnload_glUniform1i(location, value);
+        applyUniform(location, &value, 1);
     }
 
+    /// Apply uniform.
+    ///
+    /// \param location Uniform location.
+    /// \param ptr Uniform value array.
+    /// \param count Uniform array size.
+    static void applyUniform(GLint location, const float* ptr, unsigned count)
+    {
+        dnload_glUniform1fv(location, count, ptr);
+    }
     /// Apply uniform.
     ///
     /// \param location Uniform location.
     /// \param value Uniform value.
     static void applyUniform(GLint location, float value)
     {
-        dnload_glUniform1f(location, value);
+        applyUniform(location, &value, 1);
     }
 
+    /// Apply uniform.
+    ///
+    /// \param location Uniform location.
+    /// \param ptr Uniform value array.
+    /// \param count Uniform array size.
+    static void applyUniform(GLint location, const vec2* ptr, unsigned count)
+    {
+        dnload_glUniform2fv(location, count, ptr->data());
+    }
     /// Apply uniform.
     ///
     /// \param location Uniform location.
     /// \param value Uniform value.
     static void applyUniform(GLint location, const vec2& value)
     {
-        dnload_glUniform2fv(location, 1, value.data());
+        applyUniform(location, &value, 1);
     }
 
     /// Apply uniform.
     ///
     /// \param location Uniform location.
-    /// \param value Uniform value.
-    static void applyUniform(GLint location, const vec3& value)
-    {
-        dnload_glUniform3fv(location, 1, value.data());
-    }
-    /// Apply uniform.
-    ///
-    /// \param location Uniform location.
-    /// \param ptr Pointer to uniform data.
-    /// \param count Number of entries.
+    /// \param ptr Uniform value array.
+    /// \param count Uniform array size.
     static void applyUniform(GLint location, const vec3* ptr, unsigned count)
     {
         dnload_glUniform3fv(location, count, ptr->data());
     }
+    /// Apply uniform.
+    ///
+    /// \param location Uniform location.
+    /// \param value Uniform value.
+    /// \param count Number of entries.
+    static void applyUniform(GLint location, const vec3& value)
+    {
+        applyUniform(location, &value, 1);
+    }
 
+    /// Apply uniform.
+    ///
+    /// \param name Uniform name.
+    /// \param ptr Uniform value array.
+    /// \param count Uniform array size.
+    static void applyUniform(GLint location, const vec4* ptr, unsigned count)
+    {
+        dnload_glUniform4fv(location, count, ptr->data());
+    }
     /// Apply uniform.
     ///
     /// \param name Uniform name.
     /// \param value Uniform value.
     static void applyUniform(GLint location, const vec4& value)
     {
-        dnload_glUniform4fv(location, 1, value.data());
+        applyUniform(location, &value, 1);
     }
 
+    /// Apply uniform.
+    ///
+    /// \param location Uniform location.
+    /// \param ptr Uniform value array.
+    /// \param count Uniform array size.
+    static void applyUniform(GLint location, const mat2* ptr, unsigned count)
+    {
+        dnload_glUniformMatrix2fv(location, count, GL_FALSE, ptr->data());
+    }
     /// Apply uniform.
     ///
     /// \param location Uniform location.
     /// \param value Uniform value.
     static void applyUniform(GLint location, const mat2& value)
     {
-        dnload_glUniformMatrix2fv(location, 1, GL_FALSE, value.data());
+        applyUniform(location, &value, 1);
     }
 
+    /// Apply uniform.
+    ///
+    /// \param location Uniform location.
+    /// \param ptr Uniform value array.
+    /// \param count Uniform array size.
+    static void applyUniform(GLint location, const mat3* ptr, unsigned count)
+    {
+        dnload_glUniformMatrix3fv(location, count, GL_FALSE, ptr->data());
+    }
     /// Apply uniform.
     ///
     /// \param location Uniform location.
     /// \param value Uniform value.
     static void applyUniform(GLint location, const mat3& value)
     {
-        dnload_glUniformMatrix3fv(location, 1, GL_FALSE, value.data());
+        applyUniform(location, &value, 1);
     }
 
+    /// Apply uniform.
+    ///
+    /// \param location Uniform location.
+    /// \param ptr Uniform value array.
+    /// \param count Uniform array size.
+    static void applyUniform(GLint location, const mat4* ptr, unsigned count)
+    {
+        dnload_glUniformMatrix4fv(location, count, GL_FALSE, ptr->data());
+    }
     /// Apply uniform.
     ///
     /// \param location Uniform location.
     /// \param value Uniform value.
     static void applyUniform(GLint location, const mat4& value)
     {
-        dnload_glUniformMatrix4fv(location, 1, GL_FALSE, value.data());
+        applyUniform(location, &value, 1);
     }
 
     /// Apply uniform.

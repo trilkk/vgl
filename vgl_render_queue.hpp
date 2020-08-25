@@ -321,7 +321,8 @@ private:
         template<typename T> void applyUniform(PackedDataReader& iter)
         {
             GLint location = getUniformLocation(iter);
-            GlslProgram::applyUniform(location, iter.read<T>());
+            unsigned count = static_cast<unsigned>(iter.read<int>());
+            GlslProgram::applyUniform(location, &(iter.read<T>(count)), count);
         }
 
     public:
@@ -459,6 +460,15 @@ private:
 #endif
                     {
                         GLint location = getUniformLocation(iter);
+                        unsigned count = static_cast<unsigned>(iter.read<int>());
+#if defined(USE_LD)
+                        if(count != 1)
+                        {
+                            BOOST_THROW_EXCEPTION(std::runtime_error("texture uniforms must have count = 1"));
+                        }
+#else
+                        (void)count;
+#endif
                         Texture* tex = iter.read<Texture*>();
                         GlslProgram::applyUniform(location, *tex, m_texture_unit);
                         ++m_texture_unit;
@@ -512,13 +522,18 @@ private:
     ///
     /// \param name Name of the uniform.
     /// \param semantic Uniform semantic.
-    /// \param value Value of the uniform.
-    template<typename T> void pushUniform(string_view name, UniformSemantic semantic, const T& value)
+    /// \param ptr Pointer to uniform value array.
+    /// \param count Number of uniforms to push.
+    template<typename T> void pushUniform(string_view name, UniformSemantic semantic, const T* ptr, unsigned count)
     {
         m_data.push(static_cast<int>(detail::get_uniform_render_command_type<T>()));
         m_data.push(name);
         m_data.push(static_cast<int>(semantic));
-        m_data.push(detail::get_uniform_push_value_type(value));
+        m_data.push(static_cast<int>(count));
+        for(unsigned ii = 0; (ii < count); ++ii)
+        {
+            m_data.push(detail::get_uniform_push_value_type(ptr[ii]));
+        }
     }
 
 public:
@@ -640,7 +655,7 @@ public:
     /// \param value Value of the uniform.
     template<typename T> void push(string_view name, const T& value)
     {
-        pushUniform(name, UniformSemantic::NONE, value);
+        pushUniform(name, UniformSemantic::NONE, &value, 1);
     }
     /// Push uniform.
     ///
@@ -648,7 +663,25 @@ public:
     /// \param value Value of the uniform.
     template<typename T> void push(UniformSemantic semantic, const T& value)
     {
-        pushUniform(string_view(), semantic, value);
+        pushUniform(string_view(), semantic, &value, 1);
+    }
+    /// Push uniform array.
+    ///
+    /// \param name Name of the uniform.
+    /// \param ptr Pointer to matrix array.
+    /// \param count Number of matrices.
+    template<typename T> void push(string_view name, const T* ptr, unsigned count)
+    {
+        pushUniform(name, UniformSemantic::NONE, ptr, count);
+    }
+    /// Push uniform array.
+    ///
+    /// \param semantic Uniform semantic.
+    /// \param ptr Pointer to matrix array.
+    /// \param count Number of matrices.
+    template<typename T> void push(UniformSemantic semantic, const T* ptr, unsigned count)
+    {
+        pushUniform(string_view(), semantic, ptr, count);
     }
 
     /// Push blend mode switch.

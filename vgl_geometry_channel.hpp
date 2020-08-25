@@ -24,11 +24,11 @@ enum GeometryChannel
     /// Channel ID for color.
     COLOR = 3,
 
-    /// Channel ID for bone ref.
-    BONE_REF = 4,
-
     /// Channel ID for bone weight.
-    BONE_WEIGHT = 5,
+    BONE_WEIGHT = 4,
+
+    /// Channel ID for bone ref.
+    BONE_REF = 5,
 
     /// Channel count.
     COUNT = 6,
@@ -56,11 +56,11 @@ std::string to_string(GeometryChannel op)
     case COLOR:
         return std::string("COLOR");
 
-    case BONE_REF:
-        return std::string("BONE_REF");
-
     case BONE_WEIGHT:
         return std::string("BONE_WEIGHT");
+
+    case BONE_REF:
+        return std::string("BONE_REF");
 
     default:
         break;
@@ -91,8 +91,8 @@ constexpr GLint geometry_channel_element_count(GeometryChannel op)
         return 2;
 
     case COLOR:
-    case BONE_REF:
     case BONE_WEIGHT:
+    case BONE_REF:
 #if !defined(USE_LD)
     default:
 #endif
@@ -120,8 +120,8 @@ constexpr GLenum geometry_channel_element_type(GeometryChannel op)
         return GL_FLOAT;
 
     case COLOR:
-    case BONE_REF:
     case BONE_WEIGHT:
+    case BONE_REF:
 #if !defined(USE_LD)
     default:
 #endif
@@ -134,6 +134,36 @@ constexpr GLenum geometry_channel_element_type(GeometryChannel op)
 #endif
     }
 }
+
+/// Returns element normalized status for a geometry channel.
+///
+/// \param op Channel ID.
+/// \return Element normalized status.
+constexpr GLboolean geometry_channel_element_normalized(GeometryChannel op)
+{
+    switch(op)
+    {
+    case POSITION:
+    case NORMAL:
+    case TEXCOORD:
+    case BONE_REF:
+        return GL_FALSE;
+
+    case COLOR:
+    case BONE_WEIGHT:
+#if !defined(USE_LD)
+    default:
+#endif
+        return GL_TRUE;
+
+#if defined(USE_LD)
+    default:
+        BOOST_THROW_EXCEPTION(std::runtime_error("no element normalized status defined for channel " +
+                    std::to_string(static_cast<int>(op))));
+#endif
+    }
+}
+
 
 }
 

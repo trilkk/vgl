@@ -421,11 +421,11 @@ public:
         if(m_bone_ref)
         {
 #if defined(USE_LD)
-            ret.set(GeometryChannel::BONE_REF);
             ret.set(GeometryChannel::BONE_WEIGHT);
+            ret.set(GeometryChannel::BONE_REF);
 #endif
-            op.write(GeometryChannel::BONE_REF, m_bone_ref->getReferences());
             op.write(GeometryChannel::BONE_WEIGHT, m_bone_ref->getWeights());
+            op.write(GeometryChannel::BONE_REF, m_bone_ref->getReferences());
         }
 
         op.endVertex();

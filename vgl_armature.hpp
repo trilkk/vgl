@@ -15,7 +15,7 @@ private:
 
 public:
     /// Empty constructor.
-    explicit Armature() = default;
+    explicit Armature() noexcept = default;
 
     /// Constructor into bone data.
     ///
@@ -23,71 +23,22 @@ public:
     /// \param bones_amount Element count of bone data.
     /// \param hdata Hierarchy data.
     /// \param hierarchy_amount Element count of hierarchy data.
+    /// \param scale Scale to multiply with.
     explicit Armature(const int16_t *bdata, const uint8_t *hdata, unsigned bones_amount, unsigned hierarchy_amount,
-            float scale = 1.0f)
+            float scale)
     {
-        initFromData(bdata, hdata, bones_amount, hierarchy_amount, scale);
+        readRaw(bdata, hdata, bones_amount, hierarchy_amount, scale);
     }
 
-public:
-    /// Add a new bone.
-    ///
-    /// \param idx Index.
-    /// \param pos Position.
-    void addBone(unsigned idx, const vec3 &pos)
-    {
-        m_bones.emplace_back(idx, pos);
-    }
-
-    /// Accessor.
-    ///
-    /// \param idx Bone index.
-    /// \return Bone reference.
-    Bone& getBone(unsigned idx)
-    {
-        return m_bones[idx];
-    }
-    /// Const accessor
-    ///
-    /// \param idx Bone index.
-    /// \return Bone reference.
-    const Bone& getBone(unsigned idx) const
-    {
-        return m_bones[idx];
-    }
-
-    /// Accessor.
-    ///
-    /// \return Bone count.
-    unsigned getBoneCount() const
-    {
-        return m_bones.size();
-    }
-
-    /// Hierarchically transform all bones.
-    ///
-    /// \param matrices Matrix data.
-    void hierarchicalTransform(mat3 *matrices) const
-    {
-        for(Bone &vv : m_bones)
-        {
-            if(vv.getParent())
-            {
-                continue;
-            }
-
-            vv.recursiveTransform(matrices);
-        }
-    }
-
+private:
     /// Initialize armature data from data blobs.
     ///
     /// \param bdata Bone data.
     /// \param bones_amount Element count of bone data.
     /// \param hdata Hierarchy data.
     /// \param hierarchy_amount Element count of hierarchy data.
-    void initFromData(const int16_t *bdata, const uint8_t *hdata, unsigned bones_amount,
-            unsigned hierarchy_amount, float scale)
+    /// \param scale Scale to multiply with.
+    void readRaw(const int16_t *bdata, const uint8_t *hdata, unsigned bones_amount, unsigned hierarchy_amount, float scale)
     {
 #if defined(USE_LD)
         if(!m_bones.empty())
@@ -132,6 +83,71 @@ public:
     }
 
 public:
+    /// Add a new bone.
+    ///
+    /// \param idx Index.
+    /// \param pos Position.
+    void addBone(unsigned idx, const vec3 &pos)
+    {
+        m_bones.emplace_back(idx, pos);
+    }
+
+    /// Accessor.
+    ///
+    /// \param idx Bone index.
+    /// \return Bone reference.
+    Bone& getBone(unsigned idx)
+    {
+        return m_bones[idx];
+    }
+    /// Const accessor
+    ///
+    /// \param idx Bone index.
+    /// \return Bone reference.
+    const Bone& getBone(unsigned idx) const
+    {
+        return m_bones[idx];
+    }
+
+    /// Accessor.
+    ///
+    /// \return Bone count.
+    unsigned getBoneCount() const noexcept
+    {
+        return m_bones.size();
+    }
+
+    /// Hierarchically transform all bones.
+    ///
+    /// \param matrices Matrix data.
+    void hierarchicalTransform(mat3 *matrices) const
+    {
+        for(auto& vv : m_bones)
+        {
+            if(vv.getParent())
+            {
+                continue;
+            }
+
+            vv.recursiveTransform(matrices);
+        }
+    }
+
+public:
+    /// Creates a new armature.
+    ///
+    /// \param bdata Bone data.
+    /// \param bones_amount Element count of bone data.
+    /// \param hdata Hierarchy data.
+    /// \param hierarchy_amount Element count of hierarchy data.
+    /// \param scale Scale to multiply with.
+    static unique_ptr<Armature> create(const int16_t *bdata, const uint8_t *hdata, unsigned bones_amount,
+            unsigned hierarchy_amount, float scale)
+    {
+        return unique_ptr<Armature>(new Armature(bdata, hdata, bones_amount, hierarchy_amount, scale));
+    }
+
+public:
 #if defined(USE_LD)
     /// Output to stream.
     ///
@@ -143,6 +159,9 @@ public:
     }
 #endif
 };
+
+/// Armature unique pointer type.
+using ArmatureUptr = unique_ptr<Armature>;
 
 }
 

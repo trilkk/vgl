@@ -161,7 +161,7 @@ public:
     /// Unary minus operator.
     ///
     /// \return Result vector.
-    constexpr CrtpType operator-() noexcept
+    constexpr CrtpType operator-() const noexcept
     {
         CrtpType ret;
         for(unsigned ii = 0; (ii < N); ++ii)
