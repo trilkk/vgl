@@ -3,7 +3,6 @@
 
 #include "vgl_bone_state.hpp"
 #include "vgl_vector.hpp"
-#include "vgl_unique_ptr.hpp"
 
 namespace vgl
 {
@@ -42,8 +41,6 @@ private:
     {
         m_time = fixed_8_8_to_float(data[0]);
 
-        //std::cout << m_time << std::endl;
-
 #if defined(USE_LD)
         if((frame_amount % 7) != 0)
         {
@@ -55,17 +52,14 @@ private:
 
         for(unsigned ii = 1; ((frame_amount + 1) > ii); ii += 7)
         {
-            vec3 pos(static_cast<float>(data[ii + 0]),
-                    static_cast<float>(data[ii + 1]),
-                    static_cast<float>(data[ii + 2]));
+            vec3 pos(static_cast<float>(data[ii + 0]) * scale,
+                    static_cast<float>(data[ii + 1]) * scale,
+                    static_cast<float>(data[ii + 2]) * scale);
             quat rot(fixed_4_12_to_float(data[ii + 3]),
                     fixed_4_12_to_float(data[ii + 4]),
                     fixed_4_12_to_float(data[ii + 5]),
                     fixed_4_12_to_float(data[ii + 6]));
-
-            //std::cout << pos << " ; " << rot << std::endl;
-
-            m_bones.emplace_back(pos * scale, rot);
+            m_bones.emplace_back(pos, rot);
         }
     }
 
@@ -136,8 +130,6 @@ public:
         }
 #endif
 
-        //std::cout << "resizing bones or not? " << m_bones.size() << " vs " << bone_count << std::endl;
-
         m_time = current_time;
         m_bones.resize(bone_count);
 
@@ -150,8 +142,6 @@ public:
             float mix_time = (current_time - ltime) / (rtime - ltime);
             vec3 mix_pos = mix(ll.getPosition(), rr.getPosition(), mix_time);
             quat mix_rot = mix(ll.getRotation(), rr.getRotation(), mix_time);
-
-            //std::cout << "mix time: " << mix_time << ": " << mix_pos << " ; " << mix_rot << std::endl;
 
             m_bones[ii] = BoneState(mix_pos, mix_rot);
         }
@@ -169,9 +159,6 @@ public:
     }
 #endif
 };
-
-/// Smart pointer type.
-typedef unique_ptr<AnimationFrame> AnimationFrameUptr;
 
 }
 

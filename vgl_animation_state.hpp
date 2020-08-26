@@ -2,7 +2,7 @@
 #define VGL_ANIMATION_STATE_HPP
 
 #include "vgl_animation.hpp"
-#include "vgl_armature.hpp"
+#include "vgl_mat4.hpp"
 
 namespace vgl
 {
@@ -26,12 +26,20 @@ public:
 
     /// Initializing constructor.
     ///
-    /// \param arm Armature base.
     /// \param anima Animation to interpolate.
     /// \param time Current time.
-    explicit AnimationState(const Armature &arm, const Animation &anim, float current_time)
+    explicit AnimationState(const Animation &anim)
     {
-        interpolateFrom(arm, anim, current_time);
+        identityFrame(anim);
+    }
+
+    /// Initializing constructor.
+    ///
+    /// \param anima Animation to interpolate.
+    /// \param time Current time.
+    explicit AnimationState(const Animation &anim, float current_time)
+    {
+        interpolateFrom(anim, current_time);
     }
 
 public:
@@ -51,14 +59,32 @@ public:
         return m_matrices.size();
     }
 
+    /// Create identiry frame.
+    ///
+    /// \param op Number of identity matrices.
+    void identityFrame(unsigned op)
+    {
+        m_matrices.resize(op);
+        for(unsigned ii = 0; (ii < op); ++ii)
+        {
+            m_matrices[ii] = mat4::identity();
+        }
+    }
+    /// Create identiry frame.
+    ///
+    /// \param op Animation to extract number of identity matrices from.
+    void identityFrame(const Animation& op)
+    {
+        identityFrame(op.getBoneCount());
+    }
+
     /// Interpolate animation data from two frames.
     ///
     /// Animations loop after the end time.
     ///
-    /// \param arm Armature base.
     /// \param anima Animation to interpolate.
     /// \param time Current time.
-    void interpolateFrom(const Armature &arm, const Animation &anim, float current_time)
+    void interpolateFrom(const Animation &anim, float current_time)
     {
         unsigned frame_count = anim.getFrameCount();
 #if defined(USE_LD)
@@ -70,22 +96,19 @@ public:
 
         if(1 == frame_count)
         {
-            //std::cout << "duplicating only animation frame " << anim.getFrame(0) << std::endl;
             m_mix_frame.duplicate(anim.getFrame(0));
         }
         else
         {
             float end_time = anim.getFrame(frame_count - 1).getTime();
             float bounded_time = congr(current_time, end_time);
-            unsigned ii = 0;
+            unsigned ii = 1;
 
             for(;;)
             {
-                const AnimationFrame &ll = anim.getFrame(ii + 0);
-                const AnimationFrame &rr = anim.getFrame(ii + 1);
+                const AnimationFrame &ll = anim.getFrame(ii - 1);
+                const AnimationFrame &rr = anim.getFrame(ii);
                 float rtime = rr.getTime();
-
-                //std::cout << ll << std::endl << rr << std::endl;
 
 #if defined(USE_LD)
                 if(ll.getTime() >= rtime)
@@ -97,8 +120,6 @@ public:
                 }
 #endif
 
-                //std::cout << "time: " << bounded_time << " between " << (ii + 0) << " and " << (ii + 1) << std::endl;
-
                 if(rtime >= bounded_time)
                 {
                     m_mix_frame.interpolateFrom(ll, rr, bounded_time);
@@ -107,7 +128,7 @@ public:
 
                 ++ii;
 #if defined(USE_LD)
-                if(ii + 1 >= frame_count)
+                if(ii >= frame_count)
                 {
                     std::ostringstream sstr;
                     sstr << "could not find frames to interpolate for time " << bounded_time;
@@ -118,16 +139,6 @@ public:
         }
 
         unsigned bone_count = m_mix_frame.getBoneCount();
-#if defined(USE_LD)
-        if(arm.getBoneCount() != bone_count)
-        {
-            std::ostringstream sstr;
-            sstr << "can't animate armature with " << arm.getBoneCount() << " bones with animation that has " <<
-                bone_count << " bones";
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
-        }
-#endif
-
         m_rotations.resize(bone_count);
         m_matrices.resize(bone_count);
 
@@ -135,57 +146,21 @@ public:
         {
             BoneState &st = m_mix_frame.getBoneState(ii);
             quat rot = st.getRotation();
-
-#if 0
-            if(ii == 1)
-            {
-                //[ 0.92388 ; 0.382683 ; 0 ; 0 ]
-                rot = quat(0.92388f, -0.382683f, 0.0f, 0.0f);
-            }
-            else if(ii == 2)
-            {
-                //[ 0.906308 ; -0.422618 ; -0 ; -0 ]
-                rot = quat(0.906308f, 0.422618f, -0.0f, -0.0f);
-            }
-#endif
-
-#if 0
-            std::cout << "bone rotation:  " << bn.getRotation() << std::endl;
-            std::cout << "mixed rotation: " << st.getRotation() << std::endl;
-            std::cout << "rotation: " << rot << std::endl;
-
-            m_rotations[ii] = mat3::identity();
-
-            std::cout << "Bone " << ii << " (" << st << "):\n" << m_rotations[ii] << std::endl;
-#else
             m_rotations[ii] = mat3::rotation(rot);
-#endif
-        }
-
-        // Hierarchical transforms are not necessarily on.
-        if(anim.isHierarchical())
-        {
-            arm.hierarchicalTransform(m_rotations.data());
         }
 
         for(unsigned ii = 0; (bone_count > ii); ++ii)
         {
-            const Bone &bn = arm.getBone(ii);
             const BoneState &st = m_mix_frame.getBoneState(ii);
-            mat4 trn = mat4::translation(-bn.getPosition());
-            mat4 trp_rot(m_rotations[ii], st.getPosition()); // Positive translate and rotation.
-
+            mat4 trns_positive(m_rotations[ii], st.getPosition());
 #if 0
-            std::cout << "bone position:  " << bn.getPosition() << std::endl;
-            std::cout << "mixed position: " << st.getPosition() << std::endl;
-            std::cout << "diff: " << (st.getPosition() - bn.getPosition()) << std::endl;
-
-            //m_matrices[ii] = mat4::identity();
-            m_matrices[ii] = trp * rot * trn;
-
-            std::cout << "Bone " << ii << " (" << st << "):\n" << m_matrices[ii] << std::endl;
+            // Create negative translation using the bone's original position.
+            // This approach is unnecessary if the bone transform has been baked into the export.
+            const Bone &bn = arm.getBone(ii);
+            mat4 trns_negative = mat4::translation(-bn.getPosition());
+            m_matrices[ii] = trns_positive * trns_negative;
 #else
-            m_matrices[ii] = trp_rot * trn;
+            m_matrices[ii] = trns_positive;
 #endif
         }
     }

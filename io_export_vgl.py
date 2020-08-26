@@ -34,7 +34,7 @@ def vgl_log(op):
     print("io_export_vgl.py: " + op)
 
 ########################################
-# C++ header generation ################
+# Templates ############################
 ########################################
 
 class Template:
@@ -43,25 +43,21 @@ class Template:
     def __init__(self, content):
         """Constructor."""
         self.__content = content
-        self.__substitutions = {}
 
-    def format(self):
+    def format(self, substitutions=None):
         """Return formatted output."""
         ret = self.__content
-        for kk in self.__substitutions:
-            vv = self.__substitutions[kk].replace("\\", "\\\\")
-            (ret, num) = re.subn(r'\[\[\s*%s\s*\]\]' % (kk), vv, ret)
-            if not num and is_verbose():
-                vlg_log("WARNING: substitution '%s' has no matches" % (kk))
+        if substitutions:
+            for kk in substitutions:
+                vv = substitutions[kk].replace("\\", "\\\\")
+                (ret, num) = re.subn(r'\[\[\s*%s\s*\]\]' % (kk), vv, ret)
+                if not num:
+                    print("WARNING: substitution '%s' has no matches" % (kk))
         unmatched = list(set(re.findall(r'\[\[([^\]]+)\]\]', ret)))
         (ret, num) = re.subn(r'\[\[[^\]]+\]\]', "", ret)
         if num and is_verbose():
-            vgl_log("Template substitutions not matched: %s (%i)" % (str(unmatched), num))
+            print("Template substitutions not matched: %s (%i)" % (str(unmatched), num))
         return ret
-
-    def subst(self, template, replacement):
-        """Add a substitution."""
-        self.__substitutions[template] = replacement
 
     def __str__(self):
         """String representation."""
@@ -175,21 +171,18 @@ def findRootBone(bone):
         return bone
     return findRootBone(bone.parent)
 
-def toExportQuaternion(bone_orig, bone_curr):
-    """Undo Blender's bone transform mangling."""
-    #m1 = copy.deepcopy(bone_orig.matrix_local)
-    #m2 = copy.deepcopy(bone_curr.matrix)
-    #m1.invert()
-    #qq = (m1 * m2).to_quaternion()
-    #return qq
+def toExportBoneQuaternion(bone_orig, bone_curr):
+    """Create exportable bone oritentation by undoing Blender's bone transform mangling."""
     world = bone_orig.matrix_local.inverted()
-    #parent = findRootBone(bone_orig)
-    #world = parent.matrix.inverted().to_4x4
     qq = (bone_curr.matrix @ world).to_quaternion()
     return qq
-    #return (world * bone.matrix.to_quaternion().to_matrix()).to_quaternion()
-    #qq = bone.rotation_quaternion
-    #return (qq[0], -qq[1], -qq[3], qq[2])
+
+def toExportBonePosition(mat, bone_quaternion, bone_orig, bone_curr):
+    """Create exportable bone position by creating a difference transform from neutral state."""
+    pos_orig = mat @ bone_orig.head_local
+    pos_curr = mat @ bone_curr.head
+    # If original position is neutralized later, can simply return current position as-is.
+    return (bone_quaternion.to_matrix() @ (-pos_orig)) + pos_curr
 
 def meshFindMaxVertexValue(msh, mesh_scale):
     """Finds greatest vertex value in mesh."""
@@ -263,34 +256,27 @@ def meshWeightDataToString(msh, vmap):
 
 def meshToString(msh, vmap, name, mesh_scale, export_scale):
     """Returns C++ code string from a mesh."""
-    tmpl = copy.deepcopy(g_template_mesh)
-    tmpl.subst("MODEL_NAME", name)
-    tmpl.subst("VERTEX_DATA", meshVertexDataToString(msh, mesh_scale, export_scale))
-    tmpl.subst("INDEX_TYPE", "unsigned")
-    tmpl.subst("INDEX_DATA", meshIndexDataToString(msh))
-    # May use smaller index type.
-    if len(msh.vertices) < 65536:
-        tmpl.subst("INDEX_TYPE", "uint16_t")
-    ret = tmpl.format()
+    subst = {
+            "MODEL_NAME" : name,
+            "VERTEX_DATA" : meshVertexDataToString(msh, mesh_scale, export_scale),
+            "INDEX_TYPE" : "uint16_t",
+            "INDEX_DATA" : meshIndexDataToString(msh)
+            }
+    # May need larger index type.
+    if len(msh.vertices) >= 65536:
+        subst["INDEX_TYPE"] = "uint32_t"
+    ret = g_template_mesh.format(subst)
     # May need to add group data.
     wdata = meshWeightDataToString(msh, vmap)
     if wdata:
-        tmpl = copy.deepcopy(g_template_weights)
-        tmpl.subst("MODEL_NAME", name)
-        tmpl.subst("WEIGHT_DATA", wdata)
-        ret += "\n\n" + tmpl.format()
+        return ret + "\n\n" + g_template_weights.format({"MODEL_NAME" : name, "WEIGHT_DATA" : wdata})
     return ret
-
-#def poseToString():
-#  for ii in range(0, len(obj.pose_library.pose_markers)):
-#    frame = Frame(obj.pose_library.pose_markers[ii], ii, basename)
 
 def armatureBoneDataToString(arm, mat, armature_scale, export_scale):
     """Converts armature bone data to string."""
     ret = []
     for ii in arm.bones:
-        hd = mat @ copy.deepcopy(ii.head_local)
-        #hd = copy.deepcopy(ii.head_local)
+        hd = mat @ ii.head_local
         hd[0] = toExportS16(hd[0] * armature_scale[0] * export_scale)
         hd[1] = toExportS16(hd[1] * armature_scale[1] * export_scale)
         hd[2] = toExportS16(hd[2] * armature_scale[2] * export_scale)
@@ -320,10 +306,12 @@ def armatureBoneHierarchyToString(arm):
 def armatureToString(arm, name, mat, armature_scale, export_scale):
     """Returns C++ code string from an armature."""
     tmpl = copy.deepcopy(g_template_armature)
-    tmpl.subst("MODEL_NAME", name)
-    tmpl.subst("BONE_DATA", armatureBoneDataToString(arm, mat, armature_scale, export_scale))
-    tmpl.subst("ARMATURE_DATA", armatureBoneHierarchyToString(arm))
-    return tmpl.format()
+    subst = {
+            "MODEL_NAME" : name,
+            "BONE_DATA" : armatureBoneDataToString(arm, mat, armature_scale, export_scale),
+            "ARMATURE_DATA" : armatureBoneHierarchyToString(arm),
+            }
+    return g_template_armature.format(subst)
 
 def getArmatureOrdering(arm):
     """Get mapping from armature names to indices."""
@@ -364,26 +352,28 @@ def animToString(context, anim, amap, arm, name, key_name, mat, armature_scale, 
         for jj in amap:
             bone_orig = arm.data.bones[jj]
             bone_curr = arm.pose.bones[jj]
-            hd = mat @ copy.deepcopy(bone_curr.head)
-            #hd = copy.deepcopy(bone_curr.head)
-            px = toExportS16(hd[0] * armature_scale[0] * export_scale)
-            py = toExportS16(hd[1] * armature_scale[1] * export_scale)
-            pz = toExportS16(hd[2] * armature_scale[2] * export_scale)
-            # Heaven knows why we have to rearrange the order
-            qq = toExportQuaternion(bone_orig, bone_curr)
+            # Heaven knows why we have to rearrange the quaternion order.
+            qq = toExportBoneQuaternion(bone_orig, bone_curr)
             qw = toExport4F12(qq[0])
             qx = toExport4F12(qq[1])
             qy = toExport4F12(qq[2])
             qz = toExport4F12(qq[3])
+            # The difference to original position is baked into the animation position.
+            hd = toExportBonePosition(mat, qq, bone_orig, bone_curr)
+            px = toExportS16(hd[0] * armature_scale[0] * export_scale)
+            py = toExportS16(hd[1] * armature_scale[1] * export_scale)
+            pz = toExportS16(hd[2] * armature_scale[2] * export_scale)
             ret += ["%s%i, %i, %i, %i, %i, %i, %i," % (g_indent, px, py, pz, qw, qx, qy, qz)]
-    tmpl = copy.deepcopy(g_template_anim)
-    tmpl.subst("ANIM_DATA", "\n".join(ret))
-    tmpl.subst("MODEL_NAME", name)
-    tmpl.subst("ANIM_NAME", key_name)
-    return tmpl.format()
+    subst = {
+            "ANIM_DATA" : "\n".join(ret),
+            "MODEL_NAME" : name,
+            "ANIM_NAME" : key_name,
+            }
+    return g_template_anim.format(subst)
 
 def exportAllMeshesToHeader(filename, context):
     export_strings = []
+    # Find mesh.
     msh = None
     for ii in context.selectable_objects:
         if isExportName(ii.name) and ("MESH" == ii.type):
@@ -399,21 +389,22 @@ def exportAllMeshesToHeader(filename, context):
     for ii in context.selectable_objects:
         if isExportName(ii.name) and ("ARMATURE" == ii.type):
             arm = ii
-    # Not having scale 1 is suspicious
-    if (msh.scale != arm.scale) or (msh.scale != Vector((1.0, 1.0, 1.0))) or (arm.scale != Vector((1.0, 1.0, 1.0))):
-        vgl_log("WARNING: suspicious mesh/armature scales: %s ; %s" % (str(msh.scale), str(arm.scale)))
+    # Export armature.
     if arm:
+        # Not having scale 1 is suspicious.
+        if (msh.scale != arm.scale) or (msh.scale != Vector((1.0, 1.0, 1.0))) or (arm.scale != Vector((1.0, 1.0, 1.0))):
+            vgl_log("WARNING: suspicious mesh/armature scales: %s ; %s" % (str(msh.scale), str(arm.scale)))
         vgl_log("selected armature for export: '%s'" % (arm.name))
         exp_name = toExportName(arm.name)
         amap = getArmatureOrdering(arm.data)
-        vgl_log("Bone mapping: %s" % (str(amap)))
+        vgl_log("bone mapping: %s" % (str(amap)))
         export_strings += [armatureToString(arm.data, exp_name, arm.matrix_basis, arm.scale, export_scale)]
         # Animations in armatures.
         if hasattr(arm, "pose_library") and arm.pose_library:
             anims = collectPoses(arm.pose_library)
             for (kk, vv) in anims.items():
                 export_strings += [animToString(context, vv, amap, arm, exp_name, kk, arm.matrix_basis, arm.scale, export_scale)]
-    # Mesh.
+    # Export mesh.
     vmap = None
     if arm:
         vmap = getVertexGroupOrdering(msh, amap)
@@ -421,10 +412,11 @@ def exportAllMeshesToHeader(filename, context):
     export_name = toExportName(msh.name)
     export_strings += [meshToString(msh.data, vmap, export_name, msh.scale, export_scale)]
     with open(filename, "w") as fd:
-        tmpl = copy.deepcopy(g_template_header)
-        tmpl.subst("MODEL_DATA", "\n\n".join(export_strings))
-        tmpl.subst("HEADER_NAME", "MODEL_" + export_name.upper() + "_HEADER")
-        fd.write(tmpl.format())
+        subst = {
+                "MODEL_DATA" : "\n\n".join(export_strings),
+                "HEADER_NAME" : "MODEL_" + export_name.upper() + "_HEADER",
+                }
+        fd.write(g_template_header.format(subst))
 
 ########################################
 # Blender integration ##################

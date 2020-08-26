@@ -1,7 +1,8 @@
 #ifndef VGL_BONE_STATE_HPP
 #define VGL_BONE_STATE_HPP
 
-#include "vgl_mat4.hpp"
+#include "vgl_mat3.hpp"
+#include "vgl_quat.hpp"
 
 namespace vgl
 {
@@ -33,13 +34,6 @@ public:
     }
 
 public:
-    /// Accessor.
-    ///
-    /// \return Position.
-    vec3& getPosition()
-    {
-        return m_pos;
-    }
     /// Const accessor.
     ///
     /// \return Position.
@@ -48,13 +42,6 @@ public:
         return m_pos;
     }
 
-    /// Accessor.
-    ///
-    /// \return Rotation.
-    quat& getRotation()
-    {
-        return m_rot;
-    }
     /// Const accessor.
     ///
     /// \return Rotation.

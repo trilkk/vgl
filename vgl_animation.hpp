@@ -2,6 +2,7 @@
 #define VGL_ANIMATION_HPP
 
 #include "vgl_animation_frame.hpp"
+#include "vgl_unique_ptr.hpp"
 
 namespace vgl
 {
@@ -76,6 +77,14 @@ public:
     const AnimationFrame& getFrame(unsigned idx) const
     {
         return m_frames[idx];
+    }
+
+    /// Accessor.
+    ///
+    /// \return Bone count.
+    unsigned getBoneCount() const
+    {
+        return m_frames.empty() ? 0 : m_frames[0].getBoneCount();
     }
 
     /// Accessor.
