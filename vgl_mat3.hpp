@@ -106,7 +106,10 @@ public:
     ///
     /// \param op Input quaternion.
     /// \return Rotation matrix.
-    constexpr static mat3 rotation(const quat& op) noexcept
+#if !defined(WIN32)
+    constexpr
+#endif
+    static mat3 rotation(const quat& op) noexcept
     {
         float mag = op.magnitude();
         float w = op[0] / mag;

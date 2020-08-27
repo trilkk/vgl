@@ -37,7 +37,10 @@ public:
     /// Analogous to 4-component vector length.
     ///
     /// \return Magnitude.
-    constexpr float magnitude() const
+#if !defined(WIN32)
+  constexpr
+#endif
+    float magnitude() const
     {
         return dnload_sqrtf(m_data[0u] * m_data[0u] +
                 m_data[1u] * m_data[1u] +
