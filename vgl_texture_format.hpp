@@ -210,12 +210,16 @@ private:
         switch(bpc)
         {
         case 4:
+#if defined(DNLOAD_GLESV2)
+            return GL_LUMINANCE;
+#else
             return GL_R32F;
+#endif
 
         case 2:
 #if defined(DNLOAD_GLESV2)
             (void)data;
-            return GL_LUMINANCE_ALPHA;
+            return GL_LUMINANCE;
 #else
             return data ? GL_R16 : GL_R16F;
 #endif
@@ -247,12 +251,16 @@ private:
         switch(bpc)
         {
         case 4:
+#if defined(DNLOAD_GLESV2)
+            return GL_LUMINANCE_ALPHA;
+#else
             return GL_RG32F;
+#endif
 
         case 2:
 #if defined(DNLOAD_GLESV2)
             (void)data;
-            return GL_RG16F
+            return GL_LUMINANCE_ALPHA;
 #else
             return data ? GL_RG16 : GL_RG16F;
 #endif
@@ -284,12 +292,16 @@ private:
         switch(bpc)
         {
         case 4:
+#if defined(DNLOAD_GLESV2)
+            return GL_RGB;
+#else
             return GL_RGB32F;
+#endif
 
         case 2:
 #if defined(DNLOAD_GLESV2)
             (void)data;
-            return GL_RGB16F
+            return GL_RGB;
 #else
             return data ? GL_RGB16 : GL_RGB16F;
 #endif
@@ -329,12 +341,16 @@ private:
         switch(bpc)
         {
         case 4:
+#if defined(DNLOAD_GLESV2)
+            return GL_RGBA;
+#else
             return GL_RGBA32F;
+#endif
 
         case 2:
 #if defined(DNLOAD_GLESV2)
             (void)data;
-            return GL_RGBA16F
+            return GL_RGBA;
 #else
             return data ? GL_RGBA16 : GL_RGBA16F;
 #endif
@@ -438,7 +454,11 @@ private:
 #endif
 
         case 3:
+#if defined(DNLOAD_GLESV2)
+            return GL_DEPTH_COMPONENT;
+#else
             return GL_DEPTH_COMPONENT24;
+#endif
 
         case 4:
 #if !defined(USE_LD)
