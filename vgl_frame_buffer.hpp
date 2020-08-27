@@ -53,8 +53,8 @@ public:
     /// \param depthFormat Optional depth format.
     /// \param filtering Filtering mode.
     /// \param wrap Wrap mode.
-    explicit FrameBuffer(unsigned width, unsigned height, const optional<TextureFormat>& colorFormat,
-            const optional<TextureFormat>& depthFormat, FilteringMode filtering, WrapMode wrap) :
+    explicit FrameBuffer(unsigned width, unsigned height, const optional<TextureFormatColor>& colorFormat,
+            const optional<TextureFormatDepth>& depthFormat, FilteringMode filtering, WrapMode wrap) :
         m_width(width),
         m_height(height)
     {
@@ -193,8 +193,8 @@ public:
     /// \param depthFormat Optional depth format.
     /// \param filtering Filtering mode (default: BILINEAR).
     /// \param wrap Wrap mode (default: CLAMP).
-    static unique_ptr<FrameBuffer> create(unsigned width, unsigned height, const optional<TextureFormat>& colorFormat,
-            const optional<TextureFormat>& depthFormat, FilteringMode filtering = FilteringMode::BILINEAR,
+    static unique_ptr<FrameBuffer> create(unsigned width, unsigned height, const optional<TextureFormatColor>& colorFormat,
+            const optional<TextureFormatDepth>& depthFormat, FilteringMode filtering = FilteringMode::BILINEAR,
             WrapMode wrap = WrapMode::CLAMP)
     {
         return unique_ptr<FrameBuffer>(new FrameBuffer(width, height, colorFormat, depthFormat, filtering, wrap));
@@ -210,15 +210,15 @@ public:
     static unique_ptr<FrameBuffer> create(unsigned width, unsigned height, unsigned bpc = 1, unsigned bpd = 2,
             FilteringMode filtering = FilteringMode::BILINEAR, WrapMode wrap = WrapMode::CLAMP)
     {
-        optional<TextureFormat> colorFormat;
+        optional<TextureFormatColor> colorFormat;
         if(bpc)
         {
-            colorFormat = TextureFormat(4, bpc, nullptr);
+            colorFormat = TextureFormatColor(4, bpc, nullptr);
         }
-        optional<TextureFormat> depthFormat;
+        optional<TextureFormatDepth> depthFormat;
         if(bpd)
         {
-            depthFormat = TextureFormat(0, bpd, nullptr);
+            depthFormat = TextureFormatDepth(bpd);
         }
         return create(width, height, colorFormat, depthFormat, filtering, wrap);
     }

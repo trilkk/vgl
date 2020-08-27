@@ -97,7 +97,7 @@ public:
             WrapMode wrap = WrapMode::WRAP)
     {
         vector<uint8_t> export_data = image.getExportData(bpc);
-        TextureFormat format(image.getChannelCount(), bpc, export_data.data());
+        TextureFormatColor format(image.getChannelCount(), bpc, export_data.data());
         update(image.getWidth(), image.getHeight(), format, export_data.data(), filtering, wrap);
     }
 
@@ -132,7 +132,7 @@ public:
     static unique_ptr<Texture2D> create(unsigned width, unsigned height, unsigned channels = 4, unsigned bpc = 1,
             FilteringMode filtering = FilteringMode::BILINEAR, WrapMode wrap = WrapMode::CLAMP)
     {
-        TextureFormat format(channels, bpc, nullptr);
+        TextureFormatColor format(channels, bpc, nullptr);
         return create(width, height, format, filtering, wrap);
     }
 
