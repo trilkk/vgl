@@ -33,6 +33,9 @@ enum class UniformSemantic
     /// Projection matrix.
     PROJECTION_MATRIX,
 
+    /// Projection depth range (vec2).
+    PROJECTION_RANGE,
+
     /// Camera matrix.
     ///
     /// This is often called 'view matrix'.
@@ -55,7 +58,7 @@ enum class UniformSemantic
     /// Complete matrix stack.
     PROJECTION_CAMERA_MODELVIEW_MATRIX,
 
-    /// Camera position.
+    /// Camera position (vec3).
     CAMERA_POSITION,
 
     /// Glyph texture.

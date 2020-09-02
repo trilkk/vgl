@@ -207,6 +207,9 @@ private:
         /// Current projection matrix.
         const mat4* m_projection_matrix;
 
+        /// Current camera depth range.
+        const vec2* m_projection_range;
+
         /// Current camera matrix.
         const mat4* m_camera_matrix;
 
@@ -245,6 +248,7 @@ private:
         {
 #if defined(USE_LD)
             m_projection_matrix = nullptr;
+            m_projection_range = nullptr;
             m_camera_matrix = nullptr;
             m_projection_camera_matrix = nullptr;
             m_modelview_matrix = nullptr;
@@ -273,12 +277,14 @@ private:
             {
                 BOOST_THROW_EXCEPTION(std::runtime_error("cannot apply mesh before view settings have been read"));
             }
+            VGL_ASSERT(m_projection_range);
             VGL_ASSERT(m_camera_matrix);
             VGL_ASSERT(m_camera_position);
 #endif
 
             // Apply projection uniforms based on semantic only.
             m_program->uniform(UniformSemantic::PROJECTION_MATRIX, *m_projection_matrix);
+            m_program->uniform(UniformSemantic::PROJECTION_RANGE, *m_projection_range);
             m_program->uniform(UniformSemantic::CAMERA_MATRIX, *m_camera_matrix);
             m_program->uniform(UniformSemantic::PROJECTION_CAMERA_MATRIX, *m_projection_camera_matrix);
             m_program->uniform(UniformSemantic::MODELVIEW_MATRIX, *m_modelview_matrix);
@@ -401,6 +407,7 @@ private:
                 case detail::RenderCommand::VIEW:
                     applyMesh();
                     m_projection_matrix = &(iter.read<mat4>());
+                    m_projection_range = &(iter.read<vec2>());
                     m_camera_matrix = &(iter.read<mat4>());
                     m_projection_camera_matrix = &(iter.read<mat4>());
                     m_camera_position = &(iter.read<vec3>());
@@ -596,8 +603,9 @@ public:
     /// Push view settings switch.
     ///
     /// \param proj Projection matrix.
+    /// \param range Projection depth range.
     /// \param cam Camera matrix.
-    void push(const mat4& proj, const mat4& cam)
+    void push(const mat4& proj, const vec2 range, const mat4& cam)
     {
         mat4 camera = viewify(cam);
         m_camera_matrix = camera;
@@ -610,6 +618,7 @@ public:
 
         m_data.push(static_cast<int>(detail::RenderCommand::VIEW));
         m_data.push(proj);
+        m_data.push(range);
 #if defined(USE_LD)
         m_data.push(*m_camera_matrix);
         m_data.push(*m_projection_camera_matrix);
