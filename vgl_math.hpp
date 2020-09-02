@@ -312,7 +312,7 @@ template <typename T> constexpr T lerp(float x, float y, const T& x1y1, const T&
 ///
 /// \param op Value in radians.
 /// \return Cosine of value.
-inline float cos(float op) noexcept
+float cos(float op) noexcept
 {
     return dnload_cosf(op);
 }
@@ -321,9 +321,21 @@ inline float cos(float op) noexcept
 ///
 /// \param op Value in radians.
 /// \return Sine of value.
-inline float sin(float op) noexcept
+float sin(float op) noexcept
 {
     return dnload_sinf(op);
+}
+
+/// Square root wrapper.
+///
+/// \param op Value.
+/// \return Square root of value.
+#if !defined(WIN32)
+constexpr
+#endif
+float sqrt(float op) noexcept
+{
+    return dnload_sqrtf(op);
 }
 
 }

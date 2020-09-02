@@ -512,9 +512,9 @@ public:
     ///
     /// \param op Vector input.
     /// \return Length.
-    friend float length(const CrtpType& op)
+    friend constexpr float length(const CrtpType& op)
     {
-        return dnload_sqrtf(dot(op, op));
+        return sqrt(dot(op, op));
     }
 
     /// Normalize a vector.

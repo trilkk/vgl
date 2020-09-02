@@ -345,7 +345,7 @@ constexpr mat4 transpose(const mat4& op) noexcept
 ///
 /// \param op Input matrix.
 /// \return View matrix from the given input.
-mat4 viewify(const mat4 &op)
+constexpr mat4 viewify(const mat4 &op)
 {
     mat3 rotation = transpose(op.getRotation());
     vec3 translation = rotation * (-op.getTranslation());
@@ -357,7 +357,7 @@ mat4 viewify(const mat4 &op)
 ///
 /// \param op Input matrix.
 /// \return Normal matrix from the given input.
-mat3 normalify(const mat4& op)
+constexpr mat3 normalify(const mat4& op)
 {
     mat3 inverseRotation = inverse(op.getRotation());
     return transpose(inverseRotation);

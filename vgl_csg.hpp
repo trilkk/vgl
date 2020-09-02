@@ -178,6 +178,120 @@ void csg_cylinder(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, unsigned f
     }
 }
 
+/// Create a pipe shape.
+///
+/// Very sharp angles and spirals generate degenerate geometry.
+///
+/// \param lmesh Target logical mesh.
+/// \param points Point array.
+/// \param count Number of points, should be at least 3.
+/// \param fidelity Fidelity of the cylinder, should be at least 3.
+/// \param radius Radius of the cylinder.
+/// \param flags CSG flags.
+void csg_pipe(LogicalMesh& lmesh, const vec3* points, unsigned count, unsigned fidelity, float radius,
+        CsgFlags flags = CsgFlags(0))
+{
+    unsigned index_base = lmesh.getLogicalVertexCount();
+    bool flat = flags[CSG_FLAG_FLAT];
+
+    // Beginning and end.
+    lmesh.addVertex(points[0]);
+    lmesh.addVertex(points[count - 1]);
+
+    for(unsigned ii = 1; (ii < (count - 1)); ++ii)
+    {
+        const vec3& p1 = points[ii - 1];
+        const vec3& p2 = points[ii];
+        const vec3& p3 = points[ii + 1];
+        vec3 diff1 = normalize(p2 - p1);
+        vec3 diff2 = normalize(p3 - p2);
+        vec3 unit_up = normalize(cross(diff1, diff2));
+        vec3 unit_rt1 = normalize(cross(diff1, unit_up));
+        vec3 unit_rt2 = normalize(cross(diff2, unit_up));
+        vec3 up = unit_up * radius;
+
+        // If at the beginning, make the starting vertices.
+        if(ii == 1)
+        {
+            vec3 rt = unit_rt1 * radius;
+
+            for(unsigned jj = 0; (jj < fidelity); ++jj)
+            {
+                float rad = static_cast<float>(jj) / static_cast<float>(fidelity) * static_cast<float>(M_PI * 2.0);
+                vec3 dir = cos(rad) * rt + sin(rad) * up;
+                lmesh.addVertex(p1 + dir);
+
+                unsigned c1 = index_base + 2 + jj;
+                unsigned c2 = c1 + 1;
+                if((jj + 1) >= fidelity)
+                {
+                    c2 = index_base + 2;
+                }
+
+                if(!flags[CSG_FLAG_NO_FRONT])
+                {
+                    lmesh.addFace(index_base + 0, c1, c2, flat);
+                }
+            }
+        }
+
+        // Make mid-vertices and connect earlier segment.
+        {
+            // radmul is 1 for straight pipe and sqrt(2) for straight angle.
+            float radmul = sqrt(1.0f - (dot(diff1, diff2) - 1.0f));
+            vec3 rt = normalize(unit_rt1 + unit_rt2) * radius * radmul;
+
+            for(unsigned jj = 0; (jj < fidelity); ++jj)
+            {
+                float rad = static_cast<float>(jj) / static_cast<float>(fidelity) * static_cast<float>(M_PI * 2.0);
+                vec3 dir = cos(rad) * rt + sin(rad) * up;
+                lmesh.addVertex(p2 + dir);
+
+                unsigned n1 = index_base + 2 + (ii * fidelity) + jj;
+                unsigned e1 = n1 - fidelity;
+                unsigned n2 = n1 + 1;
+                unsigned e2 = e1 + 1;
+                if((jj + 1) >= fidelity)
+                {
+                    n2 = index_base + 2 + (ii * fidelity);
+                    e2 = n2 - fidelity;
+                }
+
+                lmesh.addFace(e1, n1, n2, e2, flat);
+            }
+        }
+
+        // If at the end, make the ending vertices and connect to previous segment.
+        if(ii == (count - 2))
+        {
+            vec3 rt = unit_rt2 * radius;
+
+            for(unsigned jj = 0; (jj < fidelity); ++jj)
+            {
+                float rad = static_cast<float>(jj) / static_cast<float>(fidelity) * static_cast<float>(M_PI * 2.0);
+                vec3 dir = cos(rad) * rt + sin(rad) * up;
+                lmesh.addVertex(p3 + dir);
+
+                unsigned n1 = index_base + 2 + ((count - 1) * fidelity) + jj;
+                unsigned e1 = n1 - fidelity;
+                unsigned n2 = n1 + 1;
+                unsigned e2 = e1 + 1;
+                if((jj + 1) >= fidelity)
+                {
+                    n2 = index_base + 2 + ((count - 1) * fidelity);
+                    e2 = n2 - fidelity;
+                }
+
+                if(!flags[CSG_FLAG_NO_BACK])
+                {
+                    lmesh.addFace(index_base + 1, n2, n1, flat);
+                }
+                lmesh.addFace(e1, n1, n2, e2, flat);
+            }
+        }
+    }
+}
+
 /// CSG command enumeration.
 ///
 /// In base cgl namespace so it's easier to use.
@@ -242,6 +356,14 @@ enum class CsgCommand
     /// - Radius.
     /// - CSG flags.
     CYLINDER,
+
+    /// Pipe.
+    /// - Number of points.
+    /// - Points (3 each).
+    /// - Fidelity.
+    /// - Radius.
+    /// - CSG flags.
+    PIPE,
 };
 
 /// conversion operator.
@@ -480,6 +602,20 @@ void csg_read_data(LogicalMesh& msh, const int16_t* data)
                 float radius = reader.readFloat();
                 CsgFlags flags = reader.readFlags();
                 csg_cylinder(msh, p1, p2, fidelity, radius, flags, up);
+            }
+            break;
+
+        case CsgCommand::PIPE:
+            {
+                vector<vec3> points;
+                for(unsigned ii = 0, ee = reader.readUnsigned(); (ii < ee); ++ii)
+                {
+                    points.push_back(reader.readVec3());
+                }
+                unsigned fidelity = reader.readUnsigned();
+                float radius = reader.readFloat();
+                CsgFlags flags = reader.readFlags();
+                csg_pipe(msh, points.data(), points.size(), fidelity, radius, flags);
             }
             break;
 
