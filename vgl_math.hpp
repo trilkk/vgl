@@ -338,6 +338,16 @@ float sqrt(float op) noexcept
     return dnload_sqrtf(op);
 }
 
+/// Power wrapper.
+///
+/// \param value Value.
+/// \param power Power to raise the value to.
+/// \return Power of value.
+float pow(float value, float power)
+{
+    return dnload_powf(value, power);
+}
+
 }
 
 #endif
