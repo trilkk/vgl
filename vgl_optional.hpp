@@ -66,10 +66,17 @@ protected:
     {
     }
 
-public:
-    /// Trivial destruction function.
+protected:
+    /// Trivial destruct.
     constexpr void destruct()
     {
+    }
+
+    /// Trivial destruct and flag unused.
+    constexpr void reset()
+    {
+        destruct();
+        m_initialized = false;
     }
 };
 
@@ -98,13 +105,23 @@ protected:
         destruct();
     }
 
-public:
-    /// Nontrivial destruction function.
+protected:
+    /// Nontrivial destructi.
     constexpr void destruct()
     {
         if(m_initialized)
         {
             (*(&(m_data.m_type_data))).~T();
+        }
+    }
+
+    /// Nontrivial destruct and flag uninitialized.
+    constexpr void reset()
+    {
+        if(m_initialized)
+        {
+            (*(&(m_data.m_type_data))).~T();
+            m_initialized = false;
         }
     }
 };
@@ -167,7 +184,7 @@ public:
         if(op)
         {
             new(getPtr()) T(move(*op));
-            op.destruct();
+            op.reset();
             base_type::m_initialized = true;
         }
     }
@@ -214,6 +231,12 @@ public:
     constexpr bool has_value() const
     {
         return base_type::m_initialized;
+    }
+
+    /// Destroys the contents of the optional.
+    void reset()
+    {
+        base_type::reset();
     }
 
     /// Get the contained object.
@@ -331,8 +354,7 @@ public:
     /// \param op Assigned object.
     constexpr optional<T>& operator=(const optional<T>& op)
     {
-        base_type::destruct();
-        base_type::m_initialized = false;
+        reset();
         if(op)
         {
             new(getPtr()) T(*op);
@@ -347,14 +369,12 @@ public:
     /// \param op Assigned object.
     constexpr optional<T>& operator=(optional<T>&& op)
     {
-        base_type::destruct();
-        base_type::m_initialized = false;
+        reset();
         if(op)
         {
             new(getPtr()) T(move(*op));
+            op.reset();
             base_type::m_initialized = true;
-            op.destruct();
-            op.base_type::m_initialized = false;
         }
         return *this;
     }
@@ -364,8 +384,7 @@ public:
     /// \return The optional after clearing it.
     constexpr optional<T>& operator=(const nullopt_t&)
     {
-        base_type::destruct();
-        base_type::m_initialized = false;
+        reset();
         return *this;
     }
 };
