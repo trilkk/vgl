@@ -3,7 +3,6 @@
 #include <utility>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/wave/cpp_context.hpp>
 #include <boost/wave/cpplexer/cpp_lex_iterator.hpp>
 
@@ -18,53 +17,6 @@ using wave_context = boost::wave::context<std::string::const_iterator, wave_cppl
 
 namespace
 {
-
-/// Find a file, try several different default locations.
-///
-/// \param fname Base name to open.
-/// \return File to open or an empty string.
-fs::path find_file(std::string_view fname)
-{
-    fs::path attempt = fname.data();
-    if(fs::exists(attempt))
-    {
-        return attempt;
-    }
-
-    attempt = fs::path("..") / fs::path(fname.data());
-    if(fs::exists(attempt))
-    {
-        return attempt;
-    }
-
-    const fs::path SRC_PATH("src");
-    attempt = SRC_PATH / fs::path(fname.data());
-    if(fs::exists(attempt))
-    {
-        return attempt;
-    }
-
-    attempt = fs::path("..") / SRC_PATH / fs::path(fname.data());
-    if(fs::exists(attempt))
-    {
-        return attempt;
-    }
-
-    const fs::path REL_PATH("rel");
-    attempt = REL_PATH / fs::path(fname.data());
-    if(fs::exists(attempt))
-    {
-        return attempt;
-    }
-
-    attempt = fs::path("..") / REL_PATH / fs::path(fname.data());
-    if(fs::exists(attempt))
-    {
-        return attempt;
-    }
-
-    return fs::path();
-}
 
 /// Read a file.
 ///
@@ -404,6 +356,49 @@ std::string convert_glesv2_gl(std::string_view op)
 
 namespace vgl
 {
+
+fs::path find_file(std::string_view fname)
+{
+    fs::path attempt = fname.data();
+    if(fs::exists(attempt))
+    {
+        return attempt;
+    }
+
+    attempt = fs::path("..") / fs::path(fname.data());
+    if(fs::exists(attempt))
+    {
+        return attempt;
+    }
+
+    const fs::path SRC_PATH("src");
+    attempt = SRC_PATH / fs::path(fname.data());
+    if(fs::exists(attempt))
+    {
+        return attempt;
+    }
+
+    attempt = fs::path("..") / SRC_PATH / fs::path(fname.data());
+    if(fs::exists(attempt))
+    {
+        return attempt;
+    }
+
+    const fs::path REL_PATH("rel");
+    attempt = REL_PATH / fs::path(fname.data());
+    if(fs::exists(attempt))
+    {
+        return attempt;
+    }
+
+    attempt = fs::path("..") / REL_PATH / fs::path(fname.data());
+    if(fs::exists(attempt))
+    {
+        return attempt;
+    }
+
+    return fs::path();
+}
 
 std::string read_file_locate(std::string_view fname)
 {

@@ -28,13 +28,14 @@ private:
     optional<uvec4> m_color;
 
     /// Face normal.
-    vec3 m_normal;
+    vec3 m_normal
+#if defined(USE_LD)
+        = vec3(0.0f, 0.0f, 0.0f)
+#endif
+        ;
 
     /// Is the face flat (as opposed to gouraud).
     bool m_flat = false;
-
-    /// Block within the mesh.
-    unsigned m_block = 0;
 
 private:
     /// Deleted copy constructor.
@@ -192,8 +193,7 @@ public:
         m_texcoords(op.m_texcoords),
         m_color(op.m_color),
         m_normal(op.m_normal),
-        m_flat(op.m_flat),
-        m_block(op.m_block)
+        m_flat(op.m_flat)
     {
     }
 
@@ -447,11 +447,8 @@ public:
         m_color = op.m_color;
         m_normal = op.m_normal;
         m_flat = op.m_flat;
-        m_block = op.m_block;
         return *this;
     }
-
-
 
 public:
 #if defined(USE_LD)

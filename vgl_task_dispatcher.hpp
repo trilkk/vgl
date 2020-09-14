@@ -242,6 +242,7 @@ public:
     ///
     /// \param func Function to dispatch.
     /// \param params Function parameters.
+    /// \return Fence.
     Fence wait(TaskFunc func, void* params)
     {
         // Prevent deadlock - main thread cannot wait.
@@ -257,6 +258,7 @@ public:
     ///
     /// \param func Function to dispatch.
     /// \param params Function parameters.
+    /// \return Fence.
     Fence waitMain(TaskFunc func, void* params)
     {
         // Prevent deadlock - main thread cannot wait.
