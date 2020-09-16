@@ -43,8 +43,6 @@ public:
 
     /// Default move constructor.
     constexpr PackedDataReader(PackedDataReader&&) noexcept = default;
-    /// Default move operator.
-    constexpr PackedDataReader& operator=(PackedDataReader&&) noexcept = default;
 
 private:
     /// Deleted copy constructor.
@@ -87,6 +85,18 @@ public:
         }
 #endif
         return *reinterpret_cast<const T*>(advance(static_cast<unsigned>(sizeof(T) * op)));
+    }
+
+public:
+    /// Move operator.
+    ///
+    /// \param op Source object.
+    constexpr PackedDataReader& operator=(PackedDataReader&& op) noexcept
+    {
+        m_data = op.m_data;
+        m_idx = op.m_idx;
+        m_size = op.m_size;
+        return *this;
     }
 };
 
