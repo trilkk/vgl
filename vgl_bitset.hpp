@@ -115,9 +115,8 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(idx >= N)
         {
-            std::ostringstream sstr;
-            sstr << "accessing bit index " << idx << " from " << N << "-bit set";
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            BOOST_THROW_EXCEPTION(std::runtime_error("accessing bit index " + std::to_string(idx) +
+                        " from " + std::to_string(N) + "-bit set"));
         }
 #else
         (void)idx;
@@ -131,9 +130,8 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(idx < 0)
         {
-            std::ostringstream sstr;
-            sstr << "accessing negative bit index " << idx << " from " << N << "-bit set";
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            BOOST_THROW_EXCEPTION(std::runtime_error("accessing negative bit index " +
+                        std::to_string(idx) + " from " + std::to_string(N) + "-bit set"));
         }
 #endif
         accessCheck(static_cast<unsigned>(idx));

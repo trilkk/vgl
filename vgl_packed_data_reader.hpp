@@ -41,16 +41,16 @@ public:
     {
     }
 
-    /// Default copy constructor.
-    PackedDataReader(const PackedDataReader&) noexcept = default;
     /// Default move constructor.
-    PackedDataReader(PackedDataReader&&) noexcept = default;
-
-public:
-    /// Default copy operator.
-    constexpr PackedDataReader& operator=(const PackedDataReader&) noexcept = default;
+    constexpr PackedDataReader(PackedDataReader&&) noexcept = default;
     /// Default move operator.
     constexpr PackedDataReader& operator=(PackedDataReader&&) noexcept = default;
+
+private:
+    /// Deleted copy constructor.
+    PackedDataReader(const PackedDataReader&) noexcept = delete;
+    /// Deleted copy operator.
+    PackedDataReader& operator=(const PackedDataReader&) noexcept = delete;
 
 private:
     /// Advance pointer.

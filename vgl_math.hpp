@@ -6,6 +6,12 @@
 
 #include <cmath>
 
+#if defined(__GNUC__) && !defined(__clang__)
+#define VGL_MATH_CONSTEXPR constexpr
+#else
+#define VGL_MATH_CONSTEXPR
+#endif
+
 namespace vgl
 {
 
@@ -330,10 +336,7 @@ float sin(float op) noexcept
 ///
 /// \param op Value.
 /// \return Square root of value.
-#if !defined(WIN32)
-constexpr
-#endif
-float sqrt(float op) noexcept
+VGL_MATH_CONSTEXPR float sqrt(float op) noexcept
 {
     return dnload_sqrtf(op);
 }

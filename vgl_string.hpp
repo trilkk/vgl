@@ -62,9 +62,8 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(idx >= m_length)
         {
-            std::ostringstream sstr;
-            sstr << "accessing index " << idx << " from string of length " << m_length;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            BOOST_THROW_EXCEPTION(std::runtime_error("accessing index " + std::to_string(idx) +
+                        " from string of length " + std::to_string(m_length)));
         }
 #else
         (void)idx;
@@ -78,9 +77,8 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(idx < 0)
         {
-            std::ostringstream sstr;
-            sstr << "accessing negative index " << idx << " from string of length " << m_length;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            BOOST_THROW_EXCEPTION(std::runtime_error("accessing negative index " + std::to_string(idx) +
+                        " from string of length " + std::to_string(m_length)));
         }
 #endif
         accessCheck(static_cast<unsigned>(idx));

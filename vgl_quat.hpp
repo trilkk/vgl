@@ -37,7 +37,7 @@ public:
     /// Analogous to 4-component vector length.
     ///
     /// \return Magnitude.
-    constexpr float magnitude() const
+    VGL_MATH_CONSTEXPR float magnitude() const
     {
         return sqrt(m_data[0u] * m_data[0u] +
                 m_data[1u] * m_data[1u] +

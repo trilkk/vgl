@@ -86,9 +86,8 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(idx >= m_size)
         {
-            std::ostringstream sstr;
-            sstr << "accessing index " << idx << " from vector of size " << m_size;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            BOOST_THROW_EXCEPTION(std::runtime_error("accessing index " + std::to_string(idx) +
+                        " from vector of size " + std::to_string(m_size)));
         }
 #else
         (void)idx;
@@ -102,9 +101,8 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(idx < 0)
         {
-            std::ostringstream sstr;
-            sstr << "accessing negative index " << idx << " from vector of size " << m_size;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            BOOST_THROW_EXCEPTION(std::runtime_error("accessing negative index " + std::to_string(idx) +
+                        " from vector of size " + std::to_string(m_size)));
         }
 #endif
         accessCheck(static_cast<unsigned>(idx));

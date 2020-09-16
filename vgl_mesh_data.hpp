@@ -143,7 +143,9 @@ private:
 
 public:
     /// Default constructor.
-    constexpr explicit MeshData() noexcept = default;
+    constexpr explicit MeshData() noexcept
+    {
+    }
 
     /// Copy constructor.
     ///

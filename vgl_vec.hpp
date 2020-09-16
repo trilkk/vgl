@@ -512,7 +512,7 @@ public:
     ///
     /// \param op Vector input.
     /// \return Length.
-    friend constexpr float length(const CrtpType& op)
+    friend VGL_MATH_CONSTEXPR float length(const CrtpType& op)
     {
         return sqrt(dot(op, op));
     }
