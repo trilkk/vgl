@@ -222,7 +222,7 @@ public:
     ///
     /// \param rot Input quaternion.
     /// \param pos Translation vector.
-    constexpr static mat4 rotation(const quat &rot, const vec3 &pos = vec3(0.0f, 0.0f, 0.0f)) noexcept
+    VGL_MATH_CONSTEXPR static mat4 rotation(const quat &rot, const vec3 &pos = vec3(0.0f, 0.0f, 0.0f)) noexcept
     {
         return mat4(mat3::rotation(rot), pos);
     }
