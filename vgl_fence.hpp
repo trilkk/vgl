@@ -117,7 +117,7 @@ public:
     /// Move constructor.
     ///
     /// \param op Source.
-    Fence(Fence&& op) :
+    constexpr Fence(Fence&& op) noexcept :
         m_fence_data(op.m_fence_data)
     {
         op.m_fence_data = nullptr;
@@ -169,7 +169,7 @@ public:
     /// Move operator.
     ///
     /// \param op Source.
-    Fence& operator=(Fence&& op)
+    constexpr Fence& operator=(Fence&& op) noexcept
     {
         m_fence_data = op.m_fence_data;
         op.m_fence_data = nullptr;

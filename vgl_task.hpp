@@ -45,7 +45,7 @@ public:
     ///
     /// \param func Function for execution.
     /// \param params Parameters to the function.
-    explicit Task(TaskFunc func, void* params) :
+    constexpr explicit Task(TaskFunc func, void* params) noexcept :
         m_func(func),
         m_params(params)
     {
@@ -56,7 +56,7 @@ public:
     /// \param fence Fence data.
     /// \param func Function for execution.
     /// \param params Parameters to the function.
-    explicit Task(detail::FenceData* fence, TaskFunc func, void* params) :
+    constexpr explicit Task(detail::FenceData* fence, TaskFunc func, void* params) noexcept :
         m_fence_data(fence),
         m_func(func),
         m_params(params)
@@ -66,7 +66,7 @@ public:
     /// Move constructor.
     ///
     /// \param op Source task.
-    Task(Task&& op) :
+    constexpr Task(Task&& op) noexcept :
         m_fence_data(op.m_fence_data),
         m_func(op.m_func),
         m_params(op.m_params)
@@ -109,7 +109,7 @@ public:
     /// Move operator.
     ///
     /// \param op Source task.
-    Task& operator=(Task&& op)
+    constexpr Task& operator=(Task&& op) noexcept
     {
         m_fence_data = op.m_fence_data;
         m_func = op.m_func;

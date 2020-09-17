@@ -40,7 +40,7 @@ public:
     /// Transfers ownership.
     ///
     /// \param op Source.
-    unique_ptr(unique_ptr<T>&& op) :
+    constexpr unique_ptr(unique_ptr<T>&& op) noexcept :
         m_ref(op.release())
     {
     }
@@ -70,7 +70,7 @@ public:
     /// Accessor.
     ///
     /// \return Referenced pointer.
-    constexpr T* get() const
+    constexpr T* get() const noexcept
     {
         return m_ref;
     }
@@ -78,7 +78,7 @@ public:
     /// Release ownership, return released pointer.
     ///
     /// Should not be called by user.
-    constexpr T* release()
+    constexpr T* release() noexcept
     {
         T* ret = m_ref;
         m_ref = NULL;
@@ -98,7 +98,7 @@ public:
     /// Pointer operator.
     ///
     /// \return Pointer.
-    constexpr T* operator->() const
+    constexpr T* operator->() const noexcept
     {
         return m_ref;
     }
@@ -106,14 +106,14 @@ public:
     /// Dereference operator.
     ///
     /// \return Dereferenced contents.
-    constexpr T& operator*()
+    constexpr T& operator*() noexcept
     {
         return *m_ref;
     }
     /// Dereference operator.
     ///
     /// \return Dereferenced contents.
-    constexpr const T& operator*() const
+    constexpr const T& operator*() const noexcept
     {
         return *m_ref;
     }

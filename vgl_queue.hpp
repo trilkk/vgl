@@ -33,6 +33,8 @@ public:
     /// Default constructor.
     constexpr explicit queue() = default;
 
+    /// Move constructor.
+
     /// Destructor.
     ~queue()
     {
@@ -45,6 +47,8 @@ public:
                 jj = 0;
             }
         }
+
+        array_delete(m_data);
     }
 
 private:
@@ -87,7 +91,7 @@ private:
 
         for(unsigned ii = 0, jj = m_first; ii < m_size; ++ii)
         {
-            detail::internal_memcpy(m_data + ii, old_data + jj, sizeof(T));
+            m_data[ii] = move(old_data[jj]);
 
             if(++jj >= m_capacity)
             {
@@ -152,6 +156,7 @@ public:
     /// Remove element from front of queue.
     void pop()
     {
+        VGL_ASSERT(m_size > 0);
         m_data[m_first].~T();
         m_first = boundsCheck(m_first + 1);
         --m_size;

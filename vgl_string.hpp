@@ -41,13 +41,13 @@ protected:
 
 protected:
     /// Default constructor.
-    explicit constexpr string_data() noexcept = default;
+    constexpr explicit string_data() noexcept = default;
 
     /// Constructor.
     ///
     /// \param data Data input.
     /// \param length Length.
-    explicit constexpr string_data(T* data, unsigned length) noexcept :
+    constexpr explicit string_data(T* data, unsigned length) noexcept :
         m_data(data),
         m_length(length)
     {
@@ -267,7 +267,7 @@ private:
 
 public:
     /// Constructor.
-    explicit constexpr string() = default;
+    constexpr explicit string() noexcept = default;
 
     /// Constructor.
     ///
@@ -306,7 +306,7 @@ public:
     /// Move constructor.
     ///
     /// \param op C string input.
-    string(string&& op) :
+    constexpr string(string&& op) noexcept :
         base_type(op.m_data, op.m_length)
     {
         op.m_data = nullptr;
@@ -434,7 +434,7 @@ public:
     ///
     /// \param op Source object.
     /// \return This object.
-    string& operator=(string&& op)
+    constexpr string& operator=(string&& op) noexcept
     {
         base_type::m_data = op.m_data;
         base_type::m_length = op.m_length;

@@ -99,7 +99,7 @@ public:
     /// Move constructor.
     ///
     /// \param op Source shader.
-    GlslShader(GlslShader&& op) noexcept :
+    constexpr GlslShader(GlslShader&& op) noexcept :
 #if defined(USE_LD)
         m_files(move(op.m_files)),
 #endif
@@ -240,7 +240,7 @@ public:
     ///
     /// \param op Source shader.
     /// \return This object.
-    GlslShader& operator=(GlslShader&& op)
+    constexpr GlslShader& operator=(GlslShader&& op) noexcept
     {
 #if defined(USE_LD)
         m_files = move(op.m_files);

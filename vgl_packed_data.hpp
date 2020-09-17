@@ -35,7 +35,7 @@ public:
     /// Move constructor.
     ///
     /// \param op Source packed data.
-    explicit PackedData(PackedData&& op) :
+    constexpr explicit PackedData(PackedData&& op) noexcept :
         m_data(move(op.m_data))
     {
     }
@@ -73,7 +73,7 @@ public:
     ///
     /// \param rhs Right-hand-side operand.
     /// \return This object.
-    PackedData& operator=(PackedData&& rhs)
+    constexpr PackedData& operator=(PackedData&& rhs) noexcept
     {
         m_data = move(rhs.m_data);
         return *this;

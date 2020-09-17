@@ -396,7 +396,7 @@ public:
     ///
     /// \param rhs Right-hand-side operand.
     /// \return This object.
-    vector<T>& operator=(vector<T>&& rhs)
+    constexpr vector<T>& operator=(vector<T>&& rhs) noexcept
     {
         destructInternal();
         array_delete(m_data);

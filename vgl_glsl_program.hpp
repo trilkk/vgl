@@ -353,7 +353,7 @@ public:
     /// Move constructor.
     ///
     /// \param op Source program.
-    GlslProgram(GlslProgram&& op) :
+    constexpr GlslProgram(GlslProgram&& op) noexcept :
         m_vert(move(op.m_vert)),
         m_frag(move(op.m_frag)),
         m_id(op.m_id)
@@ -804,7 +804,7 @@ public:
     ///
     /// \param op Source shader.
     /// \return This object.
-    GlslProgram& operator=(GlslProgram&& op) noexcept
+    constexpr GlslProgram& operator=(GlslProgram&& op) noexcept
     {
         m_vert = move(op.m_vert);
         m_frag = move(op.m_frag);

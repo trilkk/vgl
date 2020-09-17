@@ -77,7 +77,7 @@ protected:
     /// Data vector must be of same size as existing data.
     ///
     /// \param op New data.
-    void replaceData(vector<float>&& op)
+    constexpr void replaceData(vector<float>&& op) noexcept
     {
 #if defined(USE_LD)
         if(m_data.size() != op.size())

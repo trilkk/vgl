@@ -50,7 +50,7 @@ public:
     /// \param c2 Second corner point.
     /// \param c3 Third corner point.
     /// \param flat Is the face flat?
-    explicit constexpr LogicalFace(unsigned c1, unsigned c2, unsigned c3, bool flat = false) noexcept :
+    constexpr explicit LogicalFace(unsigned c1, unsigned c2, unsigned c3, bool flat = false) noexcept :
         m_num_corners(3),
         m_indices{c1, c2, c3, 0u},
         m_flat(flat)
@@ -64,7 +64,7 @@ public:
     /// \param c3 Third corner point.
     /// \param col Face color.
     /// \param flat Is the face flat?
-    explicit constexpr LogicalFace(unsigned c1, unsigned c2, unsigned c3, const uvec4& col,
+    constexpr explicit LogicalFace(unsigned c1, unsigned c2, unsigned c3, const uvec4& col,
             bool flat = false) noexcept :
         m_num_corners(3),
         m_indices{c1, c2, c3, 0u},
@@ -82,7 +82,7 @@ public:
     /// \param c3 Third corner point.
     /// \param tc3 Third texcoord.
     /// \param flat Is the face flat?
-    explicit constexpr LogicalFace(unsigned c1, const vec2& tc1, unsigned c2, const vec2& tc2, unsigned c3,
+    constexpr explicit LogicalFace(unsigned c1, const vec2& tc1, unsigned c2, const vec2& tc2, unsigned c3,
             const vec2& tc3, bool flat = false) noexcept :
         m_num_corners(3),
         m_indices{c1, c2, c3, 0u},
@@ -101,7 +101,7 @@ public:
     /// \param tc3 Third texcoord.
     /// \param col Face color.
     /// \param flat Is the face flat?
-    explicit constexpr LogicalFace(unsigned c1, const vec2& tc1, unsigned c2, const vec2& tc2, unsigned c3,
+    constexpr explicit LogicalFace(unsigned c1, const vec2& tc1, unsigned c2, const vec2& tc2, unsigned c3,
             const vec2& tc3, const uvec4& col, bool flat = false) noexcept :
         m_num_corners(3),
         m_indices{c1, c2, c3, 0u},
@@ -118,7 +118,7 @@ public:
     /// \param c3 Third corner point.
     /// \param c4 Fourth corner point.
     /// \param flat Is the face flat?
-    explicit constexpr LogicalFace(unsigned c1, unsigned c2, unsigned c3, unsigned c4, bool flat = false) noexcept :
+    constexpr explicit LogicalFace(unsigned c1, unsigned c2, unsigned c3, unsigned c4, bool flat = false) noexcept :
         m_num_corners(4),
         m_indices{c1, c2, c3, c4},
         m_flat(flat)
@@ -133,7 +133,7 @@ public:
     /// \param c4 Fourth corner point.
     /// \param col Face color.
     /// \param flat Is the face flat?
-    explicit constexpr LogicalFace(unsigned c1, unsigned c2, unsigned c3, unsigned c4, const uvec4& col,
+    constexpr explicit LogicalFace(unsigned c1, unsigned c2, unsigned c3, unsigned c4, const uvec4& col,
             bool flat = false) noexcept :
         m_num_corners(4),
         m_indices{c1, c2, c3, c4},
@@ -153,7 +153,7 @@ public:
     /// \param c4 Fourth corner point
     /// \param tc4 Fourth corner point
     /// \param flat Is the face flat?
-    explicit constexpr LogicalFace(unsigned c1, const vec2& tc1, unsigned c2, const vec2& tc2, unsigned c3,
+    constexpr explicit LogicalFace(unsigned c1, const vec2& tc1, unsigned c2, const vec2& tc2, unsigned c3,
             const vec2& tc3, unsigned c4, const vec2& tc4, bool flat = false) noexcept :
         m_num_corners(4),
         m_indices{c1, c2, c3, c4},
@@ -174,7 +174,7 @@ public:
     /// \param tc4 Fourth corner point
     /// \param col Face color.
     /// \param flat Is the face flat?
-    explicit constexpr LogicalFace(unsigned c1, const vec2& tc1, unsigned c2, const vec2& tc2, unsigned c3,
+    constexpr explicit LogicalFace(unsigned c1, const vec2& tc1, unsigned c2, const vec2& tc2, unsigned c3,
             const vec2& tc3, unsigned c4, const vec2& tc4, const uvec4& col, bool flat = false) noexcept :
         m_num_corners(4),
         m_indices{c1, c2, c3, c4},
@@ -186,8 +186,8 @@ public:
 
     /// Move constructor.
     ///
-    /// \param op Source face.
-    constexpr LogicalFace(LogicalFace&& op) :
+    /// \param op Source object.
+    constexpr LogicalFace(LogicalFace&& op) noexcept :
         m_num_corners(op.m_num_corners),
         m_indices(op.m_indices),
         m_texcoords(op.m_texcoords),

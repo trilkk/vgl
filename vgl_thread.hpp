@@ -34,7 +34,7 @@ public:
     /// Move constructor.
     ///
     /// \param op Source.
-    Thread(Thread&& op) :
+    constexpr Thread(Thread&& op) noexcept :
         m_thread(op.m_thread),
         m_id(op.m_id)
     {
@@ -67,7 +67,7 @@ public:
     ///
     /// \param op Source.
     /// \return This object.
-    Thread& operator=(Thread&& op)
+    constexpr Thread& operator=(Thread&& op) noexcept
     {
         m_thread = op.m_thread;
         m_id = op.m_id;

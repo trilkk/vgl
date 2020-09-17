@@ -34,7 +34,7 @@ public:
     /// Move constructor.
     ///
     /// \param op Source.
-    ScopedLock(ScopedLock&& op) :
+    constexpr ScopedLock(ScopedLock&& op) noexcept :
         m_mutex(op.m_mutex)
     {
         op.m_mutex = nullptr;
@@ -77,7 +77,7 @@ public:
     ///
     /// \param op Source.
     /// \return This object.
-    ScopedLock& operator=(ScopedLock&& op)
+    constexpr ScopedLock& operator=(ScopedLock&& op) noexcept
     {
         m_mutex = op.m_mutex;
         op.m_mutex = nullptr;

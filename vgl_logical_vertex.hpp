@@ -169,13 +169,13 @@ public:
 
     /// Move constructor.
     ///
-    /// \param op Source vertex.
-    constexpr LogicalVertex(LogicalVertex&& op) :
-        m_position(move(op.m_position)),
-        m_normal(move(op.m_normal)),
-        m_texcoord(move(op.m_texcoord)),
-        m_color(move(op.m_color)),
-        m_bone_ref(move(op.m_bone_ref)),
+    /// \param op Source object.
+    constexpr LogicalVertex(LogicalVertex&& op) noexcept:
+        m_position(op.m_position),
+        m_normal(op.m_normal),
+        m_texcoord(op.m_texcoord),
+        m_color(op.m_color),
+        m_bone_ref(op.m_bone_ref),
         m_face_references(move(op.m_face_references))
     {
     }
@@ -439,7 +439,7 @@ public:
     /// Move operator.
     ///
     /// \param op Source vertex.
-    LogicalVertex& operator=(LogicalVertex&& op)
+    constexpr LogicalVertex& operator=(LogicalVertex&& op) noexcept
     {
         m_position = op.m_position;
         m_normal = op.m_normal;

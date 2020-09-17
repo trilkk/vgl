@@ -39,7 +39,7 @@ public:
     /// Constructor.
     ///
     /// \param paint_color Face paint color (default: white).
-    explicit constexpr LogicalMesh() = default;
+    constexpr explicit LogicalMesh() = default;
 
     /// Constructor using CSG elements.
     ///

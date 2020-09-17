@@ -58,7 +58,7 @@ public:
     ///
     /// \param op Input data.
     /// \return This object.
-    string_view& operator=(const string_view& op) noexcept
+    constexpr string_view& operator=(const string_view& op) noexcept
     {
         base_type::m_data = op.m_data;
         base_type::m_length = op.m_length;
@@ -69,7 +69,7 @@ public:
     ///
     /// \param op Source object.
     /// \return This object.
-    string_view& operator=(string_view&& op) noexcept
+    constexpr string_view& operator=(string_view&& op) noexcept
     {
         base_type::m_data = op.m_data;
         base_type::m_length = op.m_length;

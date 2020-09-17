@@ -57,7 +57,7 @@ public:
     /// Move constructor.
     ///
     /// \param op Source.
-    Cond(Cond&& op) :
+    constexpr Cond(Cond&& op) noexcept :
         m_cond(op.m_cond)
     {
         op.m_cond = nullptr;
@@ -121,7 +121,7 @@ public:
     ///
     /// \param op Source.
     /// \return This object.
-    Cond& operator=(Cond&& op)
+    constexpr Cond& operator=(Cond&& op) noexcept
     {
         m_cond = op.m_cond;
         op.m_cond = nullptr;

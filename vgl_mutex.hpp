@@ -70,7 +70,7 @@ public:
     /// Move constructor.
     ///
     /// \param op Source.
-    Mutex(Mutex&& op) :
+    constexpr Mutex(Mutex&& op) noexcept :
         m_mutex(op.m_mutex)
     {
         op.m_mutex = nullptr;
@@ -111,7 +111,7 @@ public:
     ///
     /// \param op Source.
     /// \return This object.
-    Mutex& operator=(Mutex&& op)
+    constexpr Mutex& operator=(Mutex&& op) noexcept
     {
         m_mutex = op.m_mutex;
         op.m_mutex = nullptr;
