@@ -24,9 +24,6 @@ private:
     /// Internal mesh data.
     MeshData m_data;
 
-    /// Geomery buffer that was deployed to the GPU.
-    const GeometryBuffer* m_geometry_buffer;
-
     /// Geometry handle, filled when updating the mesh to the GPU.
     optional<GeometryHandle> m_handle;
 
@@ -79,7 +76,7 @@ public:
     /// Write index data.
     ///
     /// \param op Index.
-    void write(int16_t op)
+    void write(uint16_t op)
     {
         m_data.write(op);
     }

@@ -280,7 +280,7 @@ string get_program_info_log(GLuint op)
 
     GLsizei acquired;
     string ret;
-    ret.resize(len);
+    ret.resize(static_cast<unsigned>(len));
     glGetProgramInfoLog(op, len, &acquired, const_cast<GLchar*>(ret.data()));
     return ret;
 }
