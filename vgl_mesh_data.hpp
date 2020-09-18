@@ -5,6 +5,7 @@
 #include "vgl_buffer.hpp"
 #include "vgl_geometry_handle.hpp"
 #include "vgl_glsl_program.hpp"
+#include "vgl_ivec4.hpp"
 #include "vgl_packed_data.hpp"
 #include "vgl_state.hpp"
 #include "vgl_vec2.hpp"
@@ -242,6 +243,16 @@ public:
     void write(uint16_t op)
     {
         m_index_data.push_back(op);
+    }
+
+    /// Write vertex data with semantic.
+    ///
+    /// \param channel Associated channel.
+    /// \param data Geometry data.
+    void write(GeometryChannel channel, const ivec4& data)
+    {
+        setChannel(channel, getVertexOffset());
+        m_vertex_data.push(data);
     }
 
     /// Write vertex data with semantic.

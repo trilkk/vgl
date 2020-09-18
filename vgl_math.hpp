@@ -122,6 +122,15 @@ constexpr float fixed_14_2_to_float(int16_t op) noexcept
 ///
 /// \param op Input integer value.
 /// \return Normalized floating point value.
+constexpr float to_fnorm(int16_t op) noexcept
+{
+    return static_cast<float>(static_cast<int>(op) + 32768) * (2.0f / 65535.0f) - 1.0f;
+}
+
+/// Convert to normalized float space.
+///
+/// \param op Input integer value.
+/// \return Normalized floating point value.
 constexpr float to_fnorm(uint8_t op) noexcept
 {
     return static_cast<float>(op) * (1.0f / 255.0f);
@@ -193,6 +202,20 @@ constexpr float smooth_step(float edge0, float edge1, float value) noexcept
 constexpr float mix(float lhs, float rhs, float ratio) noexcept
 {
     return lhs + (rhs - lhs) * ratio;
+}
+
+/// Mix two signed integers.
+///
+/// \param lhs Left-hand-side operand.
+/// \param rhs Right-hand-side operand.
+/// \param ratio Mixing ratio.
+/// \return Mixing value.
+int16_t constexpr mix(int16_t lhs, int16_t rhs, float ratio) noexcept
+{
+    float c1 = static_cast<float>(lhs);
+    float c2 = static_cast<float>(rhs);
+    float ret = clamp(mix(c1, c2, ratio), -32768.0f, 32767.0f);
+    return static_cast<int16_t>(iround(ret));
 }
 
 /// Mix two unsigned integers.

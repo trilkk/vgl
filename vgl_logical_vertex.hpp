@@ -399,7 +399,7 @@ public:
 #if defined(USE_LD)
             ret.set(GeometryChannel::NORMAL);
 #endif
-            op.write(GeometryChannel::NORMAL, *m_normal);
+            op.write(GeometryChannel::NORMAL, ivec4(*m_normal));
         }
 
         if(m_texcoord)

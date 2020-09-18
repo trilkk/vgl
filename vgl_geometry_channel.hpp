@@ -115,9 +115,11 @@ constexpr GLenum geometry_channel_element_type(GeometryChannel op)
     switch(op)
     {
     case POSITION:
-    case NORMAL:
     case TEXCOORD:
         return GL_FLOAT;
+
+    case NORMAL:
+        return GL_SHORT;
 
     case COLOR:
     case BONE_WEIGHT:
@@ -144,11 +146,11 @@ constexpr GLboolean geometry_channel_element_normalized(GeometryChannel op)
     switch(op)
     {
     case POSITION:
-    case NORMAL:
     case TEXCOORD:
     case BONE_REF:
         return GL_FALSE;
 
+    case NORMAL:
     case COLOR:
     case BONE_WEIGHT:
 #if !defined(USE_LD)
@@ -163,7 +165,6 @@ constexpr GLboolean geometry_channel_element_normalized(GeometryChannel op)
 #endif
     }
 }
-
 
 }
 

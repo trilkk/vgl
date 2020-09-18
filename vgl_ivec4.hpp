@@ -1,5 +1,5 @@
-#ifndef VGL_UVEC4_HPP
-#define VGL_UVEC4_HPP
+#ifndef VGL_IVEC4_HPP
+#define VGL_IVEC4_HPP
 
 #include "vgl_vec3.hpp"
 #include "vgl_vec4.hpp"
@@ -10,63 +10,63 @@ namespace vgl
 namespace detail
 {
 
-/// Convert float between 0 and 1 into an uvec4 element.
+/// Convert float between -1 and 1 into an ivec4 element.
 ///
 /// \param op Value.
 /// \return Element value.
-constexpr uint8_t normalized_float_to_uvec4_element(float op) noexcept
+constexpr int16_t normalized_float_to_ivec4_element(float op) noexcept
 {
-    return static_cast<uint8_t>(iround(op * 255.0f));
+    return static_cast<int16_t>(iround((op + 1.0f) * (65535.0f / 2.0f)) - 32768);
 }
 
 }
 
 /// 4-component unsigned integer vector class.
 ///
-/// Practically, represents color.
-class uvec4
+/// Practically, represents normal (and padding).
+class ivec4
 {
 private:
     /// Data.
-    array<uint8_t, 4> m_data;
+    array<int16_t, 4> m_data;
 
 public:
     /// Default constructor.
-    constexpr explicit uvec4() noexcept :
+    constexpr explicit ivec4() noexcept :
         m_data()
     {
     }
 
     /// Constructor.
     ///
-    /// \param cr Red component.
-    /// \param cg Green component.
-    /// \param cb Blue component.
-    /// \param ca Alpha component.
-    constexpr explicit uvec4(uint8_t cr, uint8_t cg, uint8_t cb, uint8_t ca) noexcept :
-        m_data{cr, cg, cb, ca}
+    /// \param px X component.
+    /// \param py Y component.
+    /// \param pz Z component.
+    /// \param pw W component.
+    constexpr explicit ivec4(int16_t px, int16_t py, int16_t pz, int16_t pw) noexcept :
+        m_data{px, py, pz, pw}
     {
     }
 
     /// Constructor.
     ///
     /// \param op Input vector.
-    constexpr explicit uvec4(const vec3& op) noexcept :
-        m_data{detail::normalized_float_to_uvec4_element(op[0u]),
-            detail::normalized_float_to_uvec4_element(op[1u]),
-            detail::normalized_float_to_uvec4_element(op[2u]),
-            static_cast<uint8_t>(0)}
+    constexpr explicit ivec4(const vec3& op) noexcept :
+        m_data{detail::normalized_float_to_ivec4_element(op[0u]),
+            detail::normalized_float_to_ivec4_element(op[1u]),
+            detail::normalized_float_to_ivec4_element(op[2u]),
+            static_cast<int16_t>(0)}
     {
     }
 
     /// Constructor.
     ///
     /// \param op Input vector.
-    constexpr explicit uvec4(const vec4& op) noexcept :
-        m_data{detail::normalized_float_to_uvec4_element(op[0u]),
-            detail::normalized_float_to_uvec4_element(op[1u]),
-            detail::normalized_float_to_uvec4_element(op[2u]),
-            detail::normalized_float_to_uvec4_element(op[3u])}
+    constexpr explicit ivec4(const vec4& op) noexcept :
+        m_data{detail::normalized_float_to_ivec4_element(op[0u]),
+            detail::normalized_float_to_ivec4_element(op[1u]),
+            detail::normalized_float_to_ivec4_element(op[2u]),
+            detail::normalized_float_to_ivec4_element(op[3u])}
     {
     }
 
@@ -74,46 +74,46 @@ public:
     /// Accessor.
     ///
     /// \return Data.
-    constexpr uint8_t* data() noexcept
+    constexpr int16_t* data() noexcept
     {
         return m_data.data();
     }
     /// Accessor.
     ///
     /// \return Data.
-    constexpr const uint8_t* data() const noexcept
+    constexpr const int16_t* data() const noexcept
     {
         return m_data.data();
     }
 
     /// Accessor.
     ///
-    /// \return R component.
-    constexpr uint8_t r() const noexcept
+    /// \return X component.
+    constexpr int16_t x() const noexcept
     {
         return m_data[0u];
     }
 
     /// Accessor.
     ///
-    /// \return G component.
-    constexpr uint8_t g() const noexcept
+    /// \return Y component.
+    constexpr int16_t y() const noexcept
     {
         return m_data[1u];
     }
 
     /// Accessor.
     ///
-    /// \return B component.
-    constexpr uint8_t b() const noexcept
+    /// \return Z component.
+    constexpr int16_t z() const noexcept
     {
         return m_data[2u];
     }
 
     /// Accessor.
     ///
-    /// \return A component.
-    constexpr uint8_t a() const noexcept
+    /// \return W component.
+    constexpr int16_t w() const noexcept
     {
         return m_data[3u];
     }
@@ -133,28 +133,28 @@ public:
     /// Access operator.
     ///
     /// \return Value.
-    constexpr uint8_t& operator[](unsigned idx)
+    constexpr int16_t& operator[](unsigned idx)
     {
         return m_data[idx];
     }
     /// Access operator.
     ///
     /// \return Value.
-    constexpr const uint8_t& operator[](unsigned idx) const
+    constexpr const int16_t& operator[](unsigned idx) const
     {
         return m_data[idx];
     }
     /// Access operator.
     ///
     /// \return Value.
-    constexpr uint8_t& operator[](int idx)
+    constexpr int16_t& operator[](int idx)
     {
         return m_data[idx];
     }
     /// Access operator.
     ///
     /// \return Value.
-    constexpr const uint8_t& operator[](int idx) const
+    constexpr const int16_t& operator[](int idx) const
     {
         return m_data[idx];
     }
@@ -162,7 +162,7 @@ public:
     /// Equals operator.
     ///
     /// \param rhs Right-hand-side operand.
-    constexpr bool operator==(const uvec4& rhs) const noexcept
+    constexpr bool operator==(const ivec4& rhs) const noexcept
     {
         return (m_data[0u] ==  rhs[0u]) &&
             (m_data[1u] == rhs[1u]) &&
@@ -172,7 +172,7 @@ public:
     /// Not equals operator.
     ///
     /// \param rhs Right-hand-side operand.
-    constexpr bool operator!=(const uvec4& rhs) const noexcept
+    constexpr bool operator!=(const ivec4& rhs) const noexcept
     {
         return !(*this == rhs);
     }
@@ -183,12 +183,12 @@ public:
     /// \param lhs Left-hand-side operand.
     /// \param rhs Right-hand-side operand.
     /// \return Output stream.
-    friend std::ostream& operator<<(std::ostream& lhs, const uvec4& rhs)
+    friend std::ostream& operator<<(std::ostream& lhs, const ivec4& rhs)
     {
-        lhs << "[ " << static_cast<unsigned>(rhs[0u]);
+        lhs << "[ " << static_cast<int>(rhs[0u]);
         for(unsigned ii = 1; (ii < 4); ++ii)
         {
-            lhs << " ; " << static_cast<unsigned>(rhs[ii]);
+            lhs << " ; " << static_cast<int>(rhs[ii]);
         }
         return lhs << " ]";
     }
@@ -201,25 +201,12 @@ public:
     /// \param rhs Right-hand-side operand.
     /// \param ratio Mixing ratio.
     /// \return Result color.
-    friend uvec4 mix(const uvec4& lhs, const uvec4& rhs, float ratio) noexcept
+    friend ivec4 mix(const ivec4& lhs, const ivec4& rhs, float ratio) noexcept
     {
-        return uvec4(mix(lhs[0], rhs[0], ratio),
+        return ivec4(mix(lhs[0], rhs[0], ratio),
                 mix(lhs[1], rhs[1], ratio),
                 mix(lhs[2], rhs[2], ratio),
                 mix(lhs[3], rhs[3], ratio));
-    }
-
-    /// Modulate two vectors.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return Result color.
-    friend uvec4 modulate(const uvec4& lhs, const uvec4& rhs) noexcept
-    {
-        return uvec4(modulate(lhs[0], rhs[0]),
-                modulate(lhs[1], rhs[1]),
-                modulate(lhs[2], rhs[2]),
-                modulate(lhs[3], rhs[3]));
     }
 };
 
