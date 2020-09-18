@@ -1,5 +1,5 @@
-#ifndef VGL_IVEC4_HPP
-#define VGL_IVEC4_HPP
+#ifndef VGL_IVEC3_HPP
+#define VGL_IVEC3_HPP
 
 #include "vgl_vec3.hpp"
 #include "vgl_vec4.hpp"
@@ -10,29 +10,29 @@ namespace vgl
 namespace detail
 {
 
-/// Convert float between -1 and 1 into an ivec4 element.
+/// Convert float between -1 and 1 into an ivec3 element.
 ///
 /// \param op Value.
 /// \return Element value.
-constexpr int16_t normalized_float_to_ivec4_element(float op) noexcept
+constexpr int16_t normalized_float_to_ivec3_element(float op) noexcept
 {
     return static_cast<int16_t>(iround((op + 1.0f) * (65535.0f / 2.0f)) - 32768);
 }
 
 }
 
-/// 4-component unsigned integer vector class.
+/// 3-component unsigned integer vector class.
 ///
-/// Practically, represents normal (and padding).
-class ivec4
+/// Practically, represents normal.
+class ivec3
 {
 private:
     /// Data.
-    array<int16_t, 4> m_data;
+    array<int16_t, 3> m_data;
 
 public:
     /// Default constructor.
-    constexpr explicit ivec4() noexcept :
+    constexpr explicit ivec3() noexcept :
         m_data()
     {
     }
@@ -42,31 +42,18 @@ public:
     /// \param px X component.
     /// \param py Y component.
     /// \param pz Z component.
-    /// \param pw W component.
-    constexpr explicit ivec4(int16_t px, int16_t py, int16_t pz, int16_t pw) noexcept :
-        m_data{px, py, pz, pw}
+    constexpr explicit ivec3(int16_t px, int16_t py, int16_t pz) noexcept :
+        m_data{px, py, pz}
     {
     }
 
     /// Constructor.
     ///
     /// \param op Input vector.
-    constexpr explicit ivec4(const vec3& op) noexcept :
-        m_data{detail::normalized_float_to_ivec4_element(op[0u]),
-            detail::normalized_float_to_ivec4_element(op[1u]),
-            detail::normalized_float_to_ivec4_element(op[2u]),
-            static_cast<int16_t>(0)}
-    {
-    }
-
-    /// Constructor.
-    ///
-    /// \param op Input vector.
-    constexpr explicit ivec4(const vec4& op) noexcept :
-        m_data{detail::normalized_float_to_ivec4_element(op[0u]),
-            detail::normalized_float_to_ivec4_element(op[1u]),
-            detail::normalized_float_to_ivec4_element(op[2u]),
-            detail::normalized_float_to_ivec4_element(op[3u])}
+    constexpr explicit ivec3(const vec3& op) noexcept :
+        m_data{detail::normalized_float_to_ivec3_element(op[0u]),
+            detail::normalized_float_to_ivec3_element(op[1u]),
+            detail::normalized_float_to_ivec3_element(op[2u])}
     {
     }
 
@@ -110,23 +97,14 @@ public:
         return m_data[2u];
     }
 
-    /// Accessor.
-    ///
-    /// \return W component.
-    constexpr int16_t w() const noexcept
-    {
-        return m_data[3u];
-    }
-
     /// Conversion operator.
     ///
-    /// \return Normalized vec4 representation.
-    constexpr vec4 toNormVec4() const noexcept
+    /// \return Normalized vec3 representation.
+    constexpr vec3 toNormVec3() const noexcept
     {
-        return vec4(to_fnorm(m_data[0u]),
+        return vec3(to_fnorm(m_data[0u]),
                 to_fnorm(m_data[1u]),
-                to_fnorm(m_data[2u]),
-                to_fnorm(m_data[3u]));
+                to_fnorm(m_data[2u]));
     }
 
 public:
@@ -162,17 +140,16 @@ public:
     /// Equals operator.
     ///
     /// \param rhs Right-hand-side operand.
-    constexpr bool operator==(const ivec4& rhs) const noexcept
+    constexpr bool operator==(const ivec3& rhs) const noexcept
     {
         return (m_data[0u] ==  rhs[0u]) &&
             (m_data[1u] == rhs[1u]) &&
-            (m_data[2u] == rhs[2u]) &&
-            (m_data[3u] == rhs[3u]);
+            (m_data[2u] == rhs[2u]);
     }
     /// Not equals operator.
     ///
     /// \param rhs Right-hand-side operand.
-    constexpr bool operator!=(const ivec4& rhs) const noexcept
+    constexpr bool operator!=(const ivec3& rhs) const noexcept
     {
         return !(*this == rhs);
     }
@@ -183,10 +160,10 @@ public:
     /// \param lhs Left-hand-side operand.
     /// \param rhs Right-hand-side operand.
     /// \return Output stream.
-    friend std::ostream& operator<<(std::ostream& lhs, const ivec4& rhs)
+    friend std::ostream& operator<<(std::ostream& lhs, const ivec3& rhs)
     {
         lhs << "[ " << static_cast<int>(rhs[0u]);
-        for(unsigned ii = 1; (ii < 4); ++ii)
+        for(unsigned ii = 1; (ii < 3); ++ii)
         {
             lhs << " ; " << static_cast<int>(rhs[ii]);
         }
@@ -201,12 +178,11 @@ public:
     /// \param rhs Right-hand-side operand.
     /// \param ratio Mixing ratio.
     /// \return Result color.
-    friend ivec4 mix(const ivec4& lhs, const ivec4& rhs, float ratio) noexcept
+    friend ivec3 mix(const ivec3& lhs, const ivec3& rhs, float ratio) noexcept
     {
-        return ivec4(mix(lhs[0], rhs[0], ratio),
+        return ivec3(mix(lhs[0], rhs[0], ratio),
                 mix(lhs[1], rhs[1], ratio),
-                mix(lhs[2], rhs[2], ratio),
-                mix(lhs[3], rhs[3], ratio));
+                mix(lhs[2], rhs[2], ratio));
     }
 };
 

@@ -5,7 +5,7 @@
 #include "vgl_buffer.hpp"
 #include "vgl_geometry_handle.hpp"
 #include "vgl_glsl_program.hpp"
-#include "vgl_ivec4.hpp"
+#include "vgl_ivec3.hpp"
 #include "vgl_packed_data.hpp"
 #include "vgl_state.hpp"
 #include "vgl_vec2.hpp"
@@ -249,7 +249,7 @@ public:
     ///
     /// \param channel Associated channel.
     /// \param data Geometry data.
-    void write(GeometryChannel channel, const ivec4& data)
+    void write(GeometryChannel channel, const ivec3& data)
     {
         setChannel(channel, getVertexOffset());
         m_vertex_data.push(data);

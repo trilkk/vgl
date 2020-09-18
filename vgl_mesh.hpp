@@ -85,7 +85,7 @@ public:
     ///
     /// \param channel Associated channel.
     /// \param data Geometry data.
-    void write(GeometryChannel channel, const ivec4& data)
+    void write(GeometryChannel channel, const ivec3& data)
     {
         m_data.write(channel, data);
     }
