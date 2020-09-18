@@ -88,6 +88,9 @@ enum class RenderCommand
 
     /// Uniform data (texture).
     UNIFORM_TEXTURE,
+
+    /// Uniform data (texture, persistent).
+    UNIFORM_TEXTURE_PERSISTENT,
 };
 
 /// RenderCommand or operation
@@ -239,6 +242,9 @@ private:
 
         /// Current texture unit.
         unsigned m_texture_unit = 0;
+
+        /// Current persistent texture unit.
+        unsigned m_texture_unit_persistent = 0;
 
     public:
         /// Constructor.
@@ -417,6 +423,7 @@ private:
                     applyMesh();
                     m_program = iter.read<GlslProgram*>();
                     m_program->bind();
+                    m_texture_unit_persistent = 0;
                     break;
 
                 case detail::RenderCommand::MESH:
@@ -462,9 +469,6 @@ private:
 
                     // Texture uniforms are stateful and require more work.
                 case detail::RenderCommand::UNIFORM_TEXTURE:
-#if !defined(USE_LD)
-                default:
-#endif
                     {
                         GLint location = getUniformLocation(iter);
                         unsigned count = static_cast<unsigned>(iter.read<int>());
@@ -477,8 +481,21 @@ private:
                         (void)count;
 #endif
                         Texture* tex = iter.read<Texture*>();
-                        GlslProgram::applyUniform(location, *tex, m_texture_unit);
+                        GlslProgram::applyUniform(location, *tex, m_texture_unit_persistent + m_texture_unit);
                         ++m_texture_unit;
+                    }
+                    break;
+
+                    /// Persistent texture uniform.
+                case detail::RenderCommand::UNIFORM_TEXTURE_PERSISTENT:
+#if !defined(USE_LD)
+                default:
+#endif
+                    {
+                        GLint location = getUniformLocation(iter);
+                        Texture* tex = iter.read<Texture*>();
+                        GlslProgram::applyUniform(location, *tex, m_texture_unit_persistent);
+                        ++m_texture_unit_persistent;
                     }
                     break;
 
@@ -541,6 +558,18 @@ private:
         {
             m_data.push(detail::get_uniform_push_value_type(ptr[ii]));
         }
+    }
+
+    /// Push persistent uniform.
+    ///
+    /// \param name Name of the uniform.
+    /// \param value Texture value.
+    void pushUniformPersistent(string_view name, UniformSemantic semantic, Texture2D& value)
+    {
+        m_data.push(static_cast<int>(detail::RenderCommand::UNIFORM_TEXTURE_PERSISTENT));
+        m_data.push(name);
+        m_data.push(static_cast<int>(semantic));
+        m_data.push(detail::get_uniform_push_value_type(value));
     }
 
 public:
@@ -677,7 +706,7 @@ public:
     /// Push uniform array.
     ///
     /// \param name Name of the uniform.
-    /// \param ptr Pointer to matrix array.
+    /// \param ptr Pointer to uniform array.
     /// \param count Number of matrices.
     template<typename T> void push(string_view name, const T* ptr, unsigned count)
     {
@@ -686,11 +715,28 @@ public:
     /// Push uniform array.
     ///
     /// \param semantic Uniform semantic.
-    /// \param ptr Pointer to matrix array.
+    /// \param ptr Pointer to uniform array.
     /// \param count Number of matrices.
     template<typename T> void push(UniformSemantic semantic, const T* ptr, unsigned count)
     {
         pushUniform(string_view(), semantic, ptr, count);
+    }
+
+    /// Push persistent uniform.
+    ///
+    /// \param name Name of the uniform.
+    /// \param value Texture value.
+    void pushPersistent(string_view name, Texture2D& value)
+    {
+        pushUniformPersistent(name, UniformSemantic::NONE, value);
+    }
+    /// Push persistent uniform.
+    ///
+    /// \param name Name of the uniform.
+    /// \param value Texture value.
+    void pushPersistent(UniformSemantic semantic, Texture2D& value)
+    {
+        pushUniformPersistent(string_view(), semantic, value);
     }
 
     /// Push blend mode switch.
