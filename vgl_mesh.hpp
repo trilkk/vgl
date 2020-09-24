@@ -46,7 +46,7 @@ public:
     /// Accessor.
     ///
     /// \return Bounding box.
-    const BoundingBox& getBoundingBox() const
+    constexpr const BoundingBox& getBoundingBox() const noexcept
     {
         return m_box;
     }
@@ -54,7 +54,7 @@ public:
     /// Draw the mesh.
     ///
     /// \param op Program to draw with.
-    void draw(const GlslProgram& op)
+    void draw(const GlslProgram& op) const
     {
 #if defined(USE_LD) && defined(DEBUG)
         if(!m_handle)

@@ -76,7 +76,7 @@ public:
     /// \param prog Program to draw with.
     /// \param mode Mode to draw with.
     /// \param count Number of elements to draw.
-    void draw(const GlslProgram& prog, GLenum mode, unsigned count)
+    void draw(const GlslProgram& prog, GLenum mode, unsigned count) const
     {
         detail::geometry_buffer_bind(m_geometry_buffer, prog);
         dnload_glDrawElements(mode, static_cast<GLsizei>(count), GL_UNSIGNED_SHORT,

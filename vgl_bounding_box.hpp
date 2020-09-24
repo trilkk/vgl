@@ -21,12 +21,12 @@ private:
 
 public:
     /// Empty constructor.
-    constexpr BoundingBox() noexcept = default;
+    constexpr explicit BoundingBox() noexcept = default;
 
     /// Constructor.
     ///
     /// \param op One point within the box.
-    constexpr BoundingBox(const vec3& op) :
+    constexpr explicit BoundingBox(const vec3& op) noexcept :
         m_min(op),
         m_max(op),
         m_center(op)
@@ -37,7 +37,7 @@ public:
     ///
     /// \param p1 Minimum coordinate.
     /// \param p2 Maximum coordinate.
-    constexpr BoundingBox(const vec3& p1, const vec3& p2) :
+    constexpr explicit BoundingBox(const vec3& p1, const vec3& p2) noexcept :
         m_min(p1),
         m_max(p2),
         m_center((p1 + p2) * 0.5f)
@@ -51,7 +51,7 @@ public:
     /// Accessor.
     ///
     /// \return Minimum point.
-    constexpr vec3 getMin() const
+    constexpr const vec3& getMin() const noexcept
     {
         return m_min;
     }
@@ -59,7 +59,7 @@ public:
     /// Accessor.
     ///
     /// \return Maximum point.
-    constexpr vec3 getMax() const
+    constexpr const vec3& getMax() const noexcept
     {
         return m_max;
     }
@@ -67,7 +67,7 @@ public:
     /// Accessor.
     ///
     /// \return Bounding box center.
-    constexpr vec3 getCenter() const
+    constexpr const vec3& getCenter() const noexcept
     {
         VGL_ASSERT(isInitialized());
         return *m_center;
@@ -76,7 +76,7 @@ public:
     /// Adds a point to the bounding box area.
     ///
     /// \param op Point to add.
-    constexpr void addPoint(const vec3& op)
+    constexpr void addPoint(const vec3& op) noexcept
     {
         if(!isInitialized())
         {
@@ -101,7 +101,7 @@ public:
     /// Is the bounding box initialized?
     ///
     /// \return True if any data has been inserted, false otherwise.
-    constexpr bool isInitialized() const
+    constexpr bool isInitialized() const noexcept
     {
         return static_cast<bool>(m_center);
     }
@@ -109,7 +109,7 @@ public:
     /// Returns a new bounding box, axis-aligned, transformed with given matrix.
     ///
     /// \param trns Transformation matrix.
-    constexpr BoundingBox transform(const vgl::mat4& trns) const
+    constexpr BoundingBox transform(const vgl::mat4& trns) const noexcept
     {
         VGL_ASSERT(isInitialized());
 
@@ -146,7 +146,7 @@ public:
     /// \param zmin Smaller Z value.
     /// \param zmax Larger Z value.
     /// \return True if collides, false otherwise.
-    constexpr bool collidesZ(float zmin, float zmax)
+    constexpr bool collidesZ(float zmin, float zmax) const noexcept
     {
         VGL_ASSERT(zmin <= zmax);
         return collides_range(m_min.z(), m_max.z(), zmin, zmax);
@@ -159,7 +159,7 @@ protected:
     /// \param max1 Maximum value 1.
     /// \param min2 Minimum value 2.
     /// \param max2 Maximum value 2.
-    static constexpr bool collides_range(float min1, float max1, float min2, float max2)
+    static constexpr bool collides_range(float min1, float max1, float min2, float max2) noexcept
     {
         return !((max1 <= min2) || (max2 <= min1));
     }
