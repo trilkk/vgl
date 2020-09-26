@@ -183,7 +183,7 @@ public:
     /// \param eye Eye focal point.
     /// \param up Up direction.
     /// \return Result matrix.
-    static mat4 lookat(const vec3& pos, const vec3& eye, const vec3& up = vec3(0.0f, 1.0f, 0.0f)) noexcept
+    VGL_MATH_CONSTEXPR static mat4 lookat(const vec3& pos, const vec3& eye, const vec3& up = vec3(0.0f, 1.0f, 0.0f)) noexcept
     {
         vec3 unit_fw = normalize(pos - eye);
         vec3 unit_up = normalize(up);
@@ -236,7 +236,8 @@ public:
     /// \param roll Roll rotation (Z axis).
     /// \param pos Translation vector.
     /// \return Result matrix.
-    static mat4 rotation_euler(float pitch, float yaw, float roll, const vec3& pos = vec3(0.0f, 0.0f, 0.0f)) noexcept
+    VGL_MATH_CONSTEXPR static mat4 rotation_euler(float pitch, float yaw, float roll,
+            const vec3& pos = vec3(0.0f, 0.0f, 0.0f)) noexcept
     {
         return mat4(mat3::rotation_euler(pitch, yaw, roll), pos);
     }
@@ -245,7 +246,7 @@ public:
     /// \param rot Rotation in order pitch, yaw and roll.
     /// \param pos Translation vector.
     /// \return Result matrix.
-    static mat4 rotation_euler(const vec3& rot, const vec3& pos = vec3(0.0f, 0.0f, 0.0f)) noexcept
+    VGL_MATH_CONSTEXPR static mat4 rotation_euler(const vec3& rot, const vec3& pos = vec3(0.0f, 0.0f, 0.0f)) noexcept
     {
         return rotation_euler(rot.x(), rot.y(), rot.z(), pos);
     }
@@ -279,7 +280,7 @@ public:
     /// \param roll Roll rotation.
     /// \param translation Translation vector.
     /// \return Result matrix.
-    static mat4 transformation_euler(const vec3 &sca, const vec3 &rot, const vec3 &tra) noexcept
+    VGL_MATH_CONSTEXPR static mat4 transformation_euler(const vec3 &sca, const vec3 &rot, const vec3 &tra) noexcept
     {
         mat3 rpart = mat3::rotation_euler(rot[0], rot[1], rot[2]);
         return mat4(

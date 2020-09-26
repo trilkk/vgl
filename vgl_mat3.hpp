@@ -43,7 +43,7 @@ private:
     /// \param ry Rotation Y (radians).
     /// \param rz Rotation Z (radians).
     /// \return Rotation matrix.
-    static mat3 rotation_zxy(float rx, float ry, float rz) noexcept
+    VGL_MATH_CONSTEXPR static mat3 rotation_zxy(float rx, float ry, float rz) noexcept
     {
         float sx = sin(rx);
         float sy = sin(ry);
@@ -143,7 +143,7 @@ public:
     /// \param pitch Pitch rotation (X axis).
     /// \param yaw Yaw rotation (Y axis).
     /// \param roll Roll rotation (Z axis).
-    static mat3 rotation_euler(float pitch, float yaw, float roll) noexcept
+    VGL_MATH_CONSTEXPR static mat3 rotation_euler(float pitch, float yaw, float roll) noexcept
     {
         return rotation_zxy(pitch, yaw, roll);
     }

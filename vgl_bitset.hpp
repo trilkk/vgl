@@ -1,7 +1,7 @@
 #ifndef VGL_BITSET_HPP
 #define VGL_BITSET_HPP
 
-#include <type_traits>
+#include "vgl_type_traits.hpp"
 
 namespace vgl
 {

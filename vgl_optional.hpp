@@ -1,11 +1,11 @@
 #ifndef VGL_OPTIONAL_HPP
 #define VGL_OPTIONAL_HPP
 
+#include "vgl_type_traits.hpp"
 #include "vgl_utility.hpp"
 
 #include <cstddef>
 #include <optional>
-#include <type_traits>
 
 namespace vgl
 {
@@ -131,11 +131,11 @@ protected:
 /// Optional value.
 ///
 /// Replacement for std::optional.
-template<typename T> class optional : public detail::optional_data<T, std::is_trivially_destructible<T>::value>
+template<typename T> class optional : public detail::optional_data<T, is_trivially_destructible<T>::value>
 {
 private:
     /// Base class type.
-    using base_type = detail::optional_data<T, std::is_trivially_destructible<T>::value>;
+    using base_type = detail::optional_data<T, is_trivially_destructible<T>::value>;
 
 public:
     /// Constructor.

@@ -521,7 +521,7 @@ public:
     ///
     /// \param op Vector to normalize.
     /// \return Result vector.
-    friend CrtpType normalize(const CrtpType& op)
+    friend VGL_MATH_CONSTEXPR CrtpType normalize(const CrtpType& op)
     {
         float len = length(op);
         if(len > 0.0f)
