@@ -3,7 +3,7 @@
 
 #include <type_traits>
 
-#if __cplusplus > 201703L
+#if __cplusplus > 201703L && !defined(__clang__)
 /// is_constant_evaluated() is available.
 #define VGL_IS_CONSTANT_EVALUATED
 #endif
