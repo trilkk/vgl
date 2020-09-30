@@ -193,6 +193,7 @@ void csg_pipe(LogicalMesh& lmesh, const vec3* points, unsigned count, unsigned f
 {
     unsigned index_base = lmesh.getLogicalVertexCount();
     bool flat = flags[CSG_FLAG_FLAT];
+    vgl::vec3 prev_unit_up;
 
     // Beginning and end.
     lmesh.addVertex(points[0]);
@@ -206,6 +207,14 @@ void csg_pipe(LogicalMesh& lmesh, const vec3* points, unsigned count, unsigned f
         vec3 diff1 = normalize(p2 - p1);
         vec3 diff2 = normalize(p3 - p2);
         vec3 unit_up = normalize(cross(diff1, diff2));
+
+        // Prevent absurd turns in the pipe.
+        if((ii > 1) && (dot(prev_unit_up, unit_up) < 0.0f))
+        {
+            unit_up = -unit_up;
+        }
+        prev_unit_up = unit_up;
+
         vec3 unit_rt1 = normalize(cross(diff1, unit_up));
         vec3 unit_rt2 = normalize(cross(diff2, unit_up));
         vec3 up = unit_up * radius;
