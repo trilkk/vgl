@@ -47,6 +47,16 @@ public:
         VGL_ASSERT(m_min.z() <= m_max.z());
     }
 
+    /// Copy constructor.
+    ///
+    /// \param op Source object.
+    constexpr BoundingBox(const BoundingBox& op) noexcept :
+        m_min(op.m_min),
+        m_max(op.m_max),
+        m_center(op.m_center)
+    {
+    }
+
 public:
     /// Accessor.
     ///
@@ -162,6 +172,18 @@ protected:
     static constexpr bool collides_range(float min1, float max1, float min2, float max2) noexcept
     {
         return !((max1 <= min2) || (max2 <= min1));
+    }
+
+public:
+    /// Copy operator.
+    ///
+    /// \param op Source object.
+    constexpr BoundingBox& operator=(const BoundingBox& op) noexcept
+    {
+        m_min = op.m_min;
+        m_max = op.m_max;
+        m_center = op.m_center;
+        return *this;
     }
 
 public:
