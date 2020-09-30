@@ -107,9 +107,19 @@ private:
     ///
     /// \param fname Filename.
     /// \return True on success, false on failure.
-    bool load(const char *fname)
+    bool load(const char* fname)
     {
-        FT_Error err = dnload_FT_New_Face(g_freetype_library, fname, 0, &m_face);
+        FT_Error err;
+#if defined(USE_LD)
+        boost::filesystem::path pth = find_file(fname);
+        if(pth.empty())
+        {
+            return false;
+        }
+        err = dnload_FT_New_Face(g_freetype_library, pth.string().c_str(), 0, &m_face);
+#else
+        err = dnload_FT_New_Face(g_freetype_library, fname, 0, &m_face);
+#endif
         return (0 == err);
     }
 
