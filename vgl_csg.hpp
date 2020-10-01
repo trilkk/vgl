@@ -78,11 +78,12 @@ static const unsigned CSG_FLAG_COUNT = 7;
 
 using CsgFlags = bitset<CSG_FLAG_COUNT>;
 
-/// Create a trapezoid shape.
+/// Create a trapezoid (chain) shape.
 ///
 /// \param lmesh Target logical mesh.
-/// \param p1 Center of front face.
-/// \param p2 Center of back face.
+/// \param points Point array.
+/// \param sizes Size array.
+/// \param count Number of points, should be at least 3.
 /// \param dir Face direction.
 /// \param up Up direction.
 /// \param width1 Width of back face.
@@ -90,8 +91,8 @@ using CsgFlags = bitset<CSG_FLAG_COUNT>;
 /// \param width2 Width of front face.
 /// \param height2 Height of front face.
 /// \param flags CSG flags.
-void csg_trapezoid(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3& param_dir, const vec3& param_up,
-        float width1, float height1, float width2, float height2, CsgFlags flags = CsgFlags(0))
+void csg_trapezoid(LogicalMesh& lmesh, const vec3* points, const vec2* sizes, unsigned count, const vec3& param_dir,
+        const vec3& param_up, CsgFlags flags = CsgFlags(0))
 {
     vec3 unit_fw = normalize(param_dir);
     vec3 unit_up = perpendiculate(param_up, unit_fw);
@@ -100,46 +101,54 @@ void csg_trapezoid(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec
     unsigned index_base = lmesh.getLogicalVertexCount();
     bool flat = flags[CSG_FLAG_FLAT];
 
+    for(unsigned ii = 0; (ii < count); ++ii)
     {
-        vec3 rt = unit_rt * (width1 * 0.5f);
-        vec3 up = unit_up * (height1 * 0.5f);
-        lmesh.addVertex(p1 - rt - up);
-        lmesh.addVertex(p1 + rt - up);
-        lmesh.addVertex(p1 + rt + up);
-        lmesh.addVertex(p1 - rt + up);
-    }
-    {
-        vec3 rt = unit_rt * (width2 * 0.5f);
-        vec3 up = unit_up * (height2 * 0.5f);
-        lmesh.addVertex(p2 - rt - up);
-        lmesh.addVertex(p2 + rt - up);
-        lmesh.addVertex(p2 + rt + up);
-        lmesh.addVertex(p2 - rt + up);
+        const vec3& pos = points[ii];
+        const vec2& sz = sizes[ii];
+
+        vec3 rt = unit_rt * (sz.x() * 0.5f);
+        vec3 up = unit_up * (sz.y() * 0.5f);
+
+        lmesh.addVertex(pos - rt - up);
+        lmesh.addVertex(pos + rt - up);
+        lmesh.addVertex(pos + rt + up);
+        lmesh.addVertex(pos - rt + up);
+
+        // Start laying out faces after the first segment.
+        if(ii < (count - 1))
+        {
+            unsigned curr = index_base + (ii * 4);
+
+            // Lay out sides.
+            if(!flags[CSG_FLAG_NO_RIGHT])
+            {
+                lmesh.addFace(curr + 1, curr + 5, curr + 6, curr + 2, flat);
+            }
+            if(!flags[CSG_FLAG_NO_LEFT])
+            {
+                lmesh.addFace(curr + 4, curr + 0, curr + 3, curr + 7, flat);
+            }
+            if(!flags[CSG_FLAG_NO_BOTTOM])
+            {
+                lmesh.addFace(curr + 4, curr + 5, curr + 1, curr + 0, flat);
+            }
+            if(!flags[CSG_FLAG_NO_TOP])
+            {
+                lmesh.addFace(curr + 3, curr + 2, curr + 6, curr + 7, flat);
+            }
+        }
     }
 
+    // Front face is the first.
     if(!flags[CSG_FLAG_NO_FRONT])
     {
         lmesh.addFace(index_base + 0, index_base + 1, index_base + 2, index_base + 3, flat);
     }
+    // Back face is the last.
     if(!flags[CSG_FLAG_NO_BACK])
     {
-        lmesh.addFace(index_base + 5, index_base + 4, index_base + 7, index_base + 6, flat);
-    }
-    if(!flags[CSG_FLAG_NO_RIGHT])
-    {
-        lmesh.addFace(index_base + 1, index_base + 5, index_base + 6, index_base + 2, flat);
-    }
-    if(!flags[CSG_FLAG_NO_LEFT])
-    {
-        lmesh.addFace(index_base + 4, index_base + 0, index_base + 3, index_base + 7, flat);
-    }
-    if(!flags[CSG_FLAG_NO_BOTTOM])
-    {
-        lmesh.addFace(index_base + 4, index_base + 5, index_base + 1, index_base + 0, flat);
-    }
-    if(!flags[CSG_FLAG_NO_TOP])
-    {
-        lmesh.addFace(index_base + 3, index_base + 2, index_base + 6, index_base + 7, flat);
+        unsigned last = index_base + (count * 4);
+        lmesh.addFace(last - 1, last - 2, last - 3, last - 4, flat);
     }
 }
 
@@ -155,7 +164,10 @@ void csg_trapezoid(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec
 void csg_box(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3& param_up, float width, float height,
         CsgFlags flags = CsgFlags(0))
 {
-    csg_trapezoid(lmesh, p1, p2, p2 - p1, param_up, width, height, width, height, flags);
+    vec3 points[2] = { p1, p2 };
+    vec2 bsize(width, height);
+    vec2 sizes[2] = { bsize, bsize };
+    csg_trapezoid(lmesh, points, sizes, 2, p2 - p1, param_up, flags);
 }
 
 /// Create a cylinder shape.
@@ -178,6 +190,12 @@ void csg_cylinder(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3
     unsigned index_base = lmesh.getLogicalVertexCount();
     bool flat = flags[CSG_FLAG_FLAT];
 
+    // Invalid values for cylinders.
+    VGL_ASSERT(!flags[CSG_FLAG_NO_BOTTOM]);
+    VGL_ASSERT(!flags[CSG_FLAG_NO_TOP]);
+    VGL_ASSERT(!flags[CSG_FLAG_NO_LEFT]);
+    VGL_ASSERT(!flags[CSG_FLAG_NO_RIGHT]);
+
     // Bottom and top.
     lmesh.addVertex(p1);
     lmesh.addVertex(p2);
@@ -199,11 +217,11 @@ void csg_cylinder(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3
             n2 = index_base + 3;
         }
 
-        if(!flags[CSG_FLAG_NO_BOTTOM])
+        if(!flags[CSG_FLAG_NO_FRONT])
         {
             lmesh.addFace(index_base + 0, c1, c2, flat);
         }
-        if(!flags[CSG_FLAG_NO_TOP])
+        if(!flags[CSG_FLAG_NO_BACK])
         {
             lmesh.addFace(index_base + 1, n2, n1, flat);
         }
@@ -227,6 +245,12 @@ void csg_pipe(LogicalMesh& lmesh, const vec3* points, unsigned count, unsigned f
     unsigned index_base = lmesh.getLogicalVertexCount();
     bool flat = flags[CSG_FLAG_FLAT];
     vgl::vec3 prev_unit_up;
+
+    // Invalid values for pipes.
+    VGL_ASSERT(!flags[CSG_FLAG_NO_BOTTOM]);
+    VGL_ASSERT(!flags[CSG_FLAG_NO_TOP]);
+    VGL_ASSERT(!flags[CSG_FLAG_NO_LEFT]);
+    VGL_ASSERT(!flags[CSG_FLAG_NO_RIGHT]);
 
     // Beginning and end.
     lmesh.addVertex(points[0]);
@@ -389,6 +413,14 @@ enum class CsgCommand
     /// - Height.
     /// - CSG flags.
     BOX,
+
+    /// Trapezoid (chain).
+    /// - Number of points.
+    /// - Points / sizes (3 + 2 each).
+    /// - Forward vector (1/4).
+    /// - Up vector (1/4).
+    /// - CSG flags.
+    TRAPEZOID,
 
     /// Cylinder.
     /// - Start position (3).
@@ -625,6 +657,25 @@ void csg_read_data(LogicalMesh& msh, const int16_t* data)
 
         case CsgCommand::BOX:
             {
+                vec3 p1 = reader.readVec3();
+                vec3 p2 = reader.readVec3();
+                vec3 up = reader.readDirVec();
+                float width = reader.readFloat();
+                float height = reader.readFloat();
+                CsgFlags flags = reader.readFlags();
+                csg_box(msh, p1, p2, up, width, height, flags);
+            }
+            break;
+
+        case CsgCommand::TRAPEZOID:
+            {
+                vector<vec3> points;
+                vector<vec2> sizes;
+                for(unsigned ii = 0, ee = reader.readUnsigned(); (ii < ee); ++ii)
+                {
+                    points.push_back(reader.readVec3());
+                    sizes.push_back(reader.readVec2());
+                }
                 vec3 p1 = reader.readVec3();
                 vec3 p2 = reader.readVec3();
                 vec3 up = reader.readDirVec();
