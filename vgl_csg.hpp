@@ -669,20 +669,18 @@ void csg_read_data(LogicalMesh& msh, const int16_t* data)
 
         case CsgCommand::TRAPEZOID:
             {
+                unsigned count = reader.readUnsigned();
                 vector<vec3> points;
                 vector<vec2> sizes;
-                for(unsigned ii = 0, ee = reader.readUnsigned(); (ii < ee); ++ii)
+                for(unsigned ii = 0; (ii < count); ++ii)
                 {
                     points.push_back(reader.readVec3());
                     sizes.push_back(reader.readVec2());
                 }
-                vec3 p1 = reader.readVec3();
-                vec3 p2 = reader.readVec3();
+                vec3 dir = reader.readDirVec();
                 vec3 up = reader.readDirVec();
-                float width = reader.readFloat();
-                float height = reader.readFloat();
                 CsgFlags flags = reader.readFlags();
-                csg_box(msh, p1, p2, up, width, height, flags);
+                csg_trapezoid(msh, points.data(), sizes.data(), count, dir, up, flags);
             }
             break;
 
@@ -700,15 +698,16 @@ void csg_read_data(LogicalMesh& msh, const int16_t* data)
 
         case CsgCommand::PIPE:
             {
+                unsigned count = reader.readUnsigned();
                 vector<vec3> points;
-                for(unsigned ii = 0, ee = reader.readUnsigned(); (ii < ee); ++ii)
+                for(unsigned ii = 0; (ii < count); ++ii)
                 {
                     points.push_back(reader.readVec3());
                 }
                 unsigned fidelity = reader.readUnsigned();
                 float radius = reader.readFloat();
                 CsgFlags flags = reader.readFlags();
-                csg_pipe(msh, points.data(), points.size(), fidelity, radius, flags);
+                csg_pipe(msh, points.data(), count, fidelity, radius, flags);
             }
             break;
 
