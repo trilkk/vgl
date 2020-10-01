@@ -3,6 +3,10 @@
 
 #include "vgl_logical_mesh.hpp"
 
+#if defined(USE_LD)
+#include <iostream>
+#endif
+
 namespace vgl
 {
 
@@ -18,13 +22,17 @@ namespace detail
 vec3 perpendiculate(const vec3& dir, const vec3& ref)
 {
     vec3 unit_dir = normalize(dir);
-
+#if defined(USE_LD)
     // Rotate direction vector components once if it's perpendicular to the reference vector.
     float dot_result = dot(unit_dir, normalize(ref));
     if(abs(dot_result) >= 0.999f)
     {
+        std::cerr << "WARNING: direction vector " << dir << " is perpendicular to reference vector " << ref << std::endl;
         return vec3(unit_dir.z(), unit_dir.x(), unit_dir.y());
     }
+#else
+    (void)ref;
+#endif
     return unit_dir;
 }
 
@@ -70,34 +78,44 @@ static const unsigned CSG_FLAG_COUNT = 7;
 
 using CsgFlags = bitset<CSG_FLAG_COUNT>;
 
-/// Create a box shape.
+/// Create a trapezoid shape.
 ///
 /// \param lmesh Target logical mesh.
 /// \param p1 Center of front face.
 /// \param p2 Center of back face.
-/// \param width Width.
-/// \param height Height.
-/// \param flags CSG flags.
+/// \param dir Face direction.
 /// \param up Up direction.
-void csg_box(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, float width, float height,
-        CsgFlags flags = CsgFlags(0), const vec3& param_up = vec3(0.0f, 1.0f, 0.0f))
+/// \param width1 Width of back face.
+/// \param height1 Height of back face.
+/// \param width2 Width of front face.
+/// \param height2 Height of front face.
+/// \param flags CSG flags.
+void csg_trapezoid(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3& param_dir, const vec3& param_up,
+        float width1, float height1, float width2, float height2, CsgFlags flags = CsgFlags(0))
 {
-    vec3 forward = p2 - p1;
-    vec3 unit_up = perpendiculate(param_up, forward);
-    vec3 rt = normalize(cross(forward, unit_up)) * (width * 0.5f);
-    vec3 up = normalize(cross(rt, forward)) * (height * 0.5f);
+    vec3 unit_fw = normalize(param_dir);
+    vec3 unit_up = perpendiculate(param_up, unit_fw);
+    vec3 unit_rt = normalize(cross(unit_fw, unit_up));
 
     unsigned index_base = lmesh.getLogicalVertexCount();
     bool flat = flags[CSG_FLAG_FLAT];
 
-    lmesh.addVertex(p1 - rt - up);
-    lmesh.addVertex(p1 + rt - up);
-    lmesh.addVertex(p1 + rt + up);
-    lmesh.addVertex(p1 - rt + up);
-    lmesh.addVertex(p2 - rt - up);
-    lmesh.addVertex(p2 + rt - up);
-    lmesh.addVertex(p2 + rt + up);
-    lmesh.addVertex(p2 - rt + up);
+    {
+        vec3 rt = unit_rt * (width1 * 0.5f);
+        vec3 up = unit_up * (height1 * 0.5f);
+        lmesh.addVertex(p1 - rt - up);
+        lmesh.addVertex(p1 + rt - up);
+        lmesh.addVertex(p1 + rt + up);
+        lmesh.addVertex(p1 - rt + up);
+    }
+    {
+        vec3 rt = unit_rt * (width2 * 0.5f);
+        vec3 up = unit_up * (height2 * 0.5f);
+        lmesh.addVertex(p2 - rt - up);
+        lmesh.addVertex(p2 + rt - up);
+        lmesh.addVertex(p2 + rt + up);
+        lmesh.addVertex(p2 - rt + up);
+    }
 
     if(!flags[CSG_FLAG_NO_FRONT])
     {
@@ -125,17 +143,32 @@ void csg_box(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, float width, fl
     }
 }
 
+/// Create a box shape.
+///
+/// \param lmesh Target logical mesh.
+/// \param p1 Center of front face.
+/// \param p2 Center of back face.
+/// \param param_up Up direction.
+/// \param width Width.
+/// \param height Height.
+/// \param flags CSG flags.
+void csg_box(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3& param_up, float width, float height,
+        CsgFlags flags = CsgFlags(0))
+{
+    csg_trapezoid(lmesh, p1, p2, p2 - p1, param_up, width, height, width, height, flags);
+}
+
 /// Create a cylinder shape.
 ///
 /// \param lmesh Target logical mesh.
 /// \param p1 Starting point.
 /// \param p2 End point.
+/// \param param_up Up direction.
 /// \param fidelity Fidelity of the cylinder, should be at least 3.
 /// \param radius Radius of the cylinder.
 /// \param flags CSG flags.
-/// \param up Up direction.
-void csg_cylinder(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, unsigned fidelity, float radius,
-        CsgFlags flags = CsgFlags(0), const vec3& param_up = vec3(0.0f, 1.0f, 0.0f))
+void csg_cylinder(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3& param_up, unsigned fidelity, float radius,
+        CsgFlags flags = CsgFlags(0))
 {
     vec3 forward = p2 - p1;
     vec3 unit_up = perpendiculate(param_up, forward);
@@ -598,7 +631,7 @@ void csg_read_data(LogicalMesh& msh, const int16_t* data)
                 float width = reader.readFloat();
                 float height = reader.readFloat();
                 CsgFlags flags = reader.readFlags();
-                csg_box(msh, p1, p2, width, height, flags, up);
+                csg_box(msh, p1, p2, up, width, height, flags);
             }
             break;
 
@@ -610,7 +643,7 @@ void csg_read_data(LogicalMesh& msh, const int16_t* data)
                 unsigned fidelity = reader.readUnsigned();
                 float radius = reader.readFloat();
                 CsgFlags flags = reader.readFlags();
-                csg_cylinder(msh, p1, p2, fidelity, radius, flags, up);
+                csg_cylinder(msh, p1, p2, up, fidelity, radius, flags);
             }
             break;
 
