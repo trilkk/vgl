@@ -16,31 +16,37 @@ using std::nullopt;
 namespace detail
 {
 
-/// Trivial union member.
-class optional_trivial_union_member
+/// Internal data container for optional.
+///
+/// This class intentionally has no constructor or destructor.
+template<typename T> class optional_internal_data
 {
 public:
-    /// Constructor.
-    constexpr explicit optional_trivial_union_member() noexcept
+    /// Storage size for the optional.
+    /// Aligned to 4 bytes, since if it isn't, ARM32 will crash.
+    static const size_t STORAGE_SIZE = sizeof(T)/* + ((sizeof(T) % 4) ? (4 - (sizeof(T) % 4)) : 0)*/;
+
+protected:
+    /// Internal data storage.
+    uint8_t m_data[STORAGE_SIZE];
+
+    /// Flag for initialization.
+    bool m_initialized;
+
+protected:
+    /// Accessor.
+    ///
+    /// \return Pointer to internal data.
+    constexpr T* getPtr() noexcept
     {
+        return reinterpret_cast<T*>(m_data);
     }
-
-};
-
-/// Container union for optional specialization that ensures correct alingment.
-template<typename T> union optional_union
-{
-    /// Type data (not trivially destructible).
-    T m_type_data;
-
-    /// Trivially destructible alternative.
-    optional_trivial_union_member m_trivial_data;
-
-
-    /// Constructor.
-    constexpr explicit optional_union() noexcept :
-        m_trivial_data()
+    /// Accessor.
+    ///
+    /// \return Pointer to internal data.
+    constexpr const T* getPtr() const noexcept
     {
+        return reinterpret_cast<const T*>(m_data);
     }
 };
 
@@ -48,22 +54,19 @@ template<typename T> union optional_union
 ///
 /// Optional inherits either the trivially destructible or not trivially destructible optional depending on whether
 /// the templated type is trivially destructible or not.
-template<typename T, bool> class optional_data
+template<typename T, bool> class optional_data : public optional_internal_data<T>
 {
 protected:
-    /// Trivially destructible data.
-    optional_union<T> m_data;
-
-    /// Flag for initialization.
-    bool m_initialized;
+    /// Base type.
+    using base_type = optional_internal_data<T>;
 
 protected:
     /// Default constructor.
     ///
     /// \param op Initial value.
-    constexpr explicit optional_data(bool op) noexcept :
-       m_initialized(op)
+    constexpr explicit optional_data(bool op) noexcept
     {
+        base_type::m_initialized = op;
     }
 
 protected:
@@ -76,27 +79,24 @@ protected:
     constexpr void reset()
     {
         destruct();
-        m_initialized = false;
+        base_type::m_initialized = false;
     }
 };
 
 /// Specialization for nontrivially destructible optional data.
-template<typename T> class optional_data<T, false>
+template<typename T> class optional_data<T, false> : public optional_internal_data<T>
 {
 protected:
-    /// Nontrivially destructible data.
-    optional_union<T> m_data;
-
-    /// Flag for initialization.
-    bool m_initialized;
+    /// Base type.
+    using base_type = optional_internal_data<T>;
 
 protected:
     /// Default constructor.
     ///
     /// \param op Initial value.
-    constexpr explicit optional_data(bool op) noexcept :
-        m_initialized(op)
+    constexpr explicit optional_data(bool op) noexcept
     {
+        base_type::m_initialized = op;
     }
 
     /// Destructor.
@@ -109,19 +109,19 @@ protected:
     /// Nontrivial destructi.
     constexpr void destruct()
     {
-        if(m_initialized)
+        if(base_type::m_initialized)
         {
-            (*(&(m_data.m_type_data))).~T();
+            base_type::getPtr()->~T();
         }
     }
 
     /// Nontrivial destruct and flag uninitialized.
     constexpr void reset()
     {
-        if(m_initialized)
+        if(base_type::m_initialized)
         {
-            (*(&(m_data.m_type_data))).~T();
-            m_initialized = false;
+            base_type::getPtr()->~T();
+            base_type::m_initialized = false;
         }
     }
 };
@@ -135,12 +135,15 @@ template<typename T> class optional : public detail::optional_data<T, is_trivial
 {
 private:
     /// Base class type.
-    using base_type = detail::optional_data<T, is_trivially_destructible<T>::value>;
+    using parent_type = detail::optional_data<T, is_trivially_destructible<T>::value>;
+
+    /// Internal data type.
+    using base_type = detail::optional_internal_data<T>;
 
 public:
     /// Constructor.
     constexpr explicit optional() noexcept :
-        base_type(false)
+        parent_type(false)
     {
     }
 
@@ -148,29 +151,29 @@ public:
     ///
     /// \param op Value.
     constexpr optional(const T& op) :
-        base_type(true)
+        parent_type(true)
     {
-        new(getPtr()) T(op);
+        new(base_type::getPtr()) T(op);
     }
 
     /// Constructor with moved value.
     ///
     /// \param op Value.
     constexpr optional(T&& op) :
-        base_type(true)
+        parent_type(true)
     {
-        new(getPtr()) T(move(op));
+        new(base_type::getPtr()) T(move(op));
     }
 
     /// Copy constructor.
     ///
     /// \param op Value.
     constexpr optional(const optional<T>& op) :
-        base_type(false)
+        parent_type(false)
     {
         if(op)
         {
-            new(getPtr()) T(*op);
+            new(base_type::getPtr()) T(*op);
             base_type::m_initialized = true;
         }
     }
@@ -179,11 +182,11 @@ public:
     ///
     /// \param op Value.
     constexpr optional(optional<T>&& op) :
-        base_type(false)
+        parent_type(false)
     {
         if(op)
         {
-            new(getPtr()) T(move(*op));
+            new(base_type::getPtr()) T(move(*op));
             op.reset();
             base_type::m_initialized = true;
         }
@@ -191,7 +194,7 @@ public:
 
     /// Initializer with nullopt.
     constexpr optional(const nullopt_t&) noexcept :
-        base_type(false)
+        parent_type(false)
     {
     }
 
@@ -209,21 +212,6 @@ private:
 #endif
     }
 
-    /// Get the pointer value top internal data.
-    ///
-    /// \return Pointer to internal data.
-    constexpr T* getPtr()
-    {
-        return &(base_type::m_data.m_type_data);
-    }
-    /// Get the pointer value top internal data (const version).
-    ///
-    /// \return Pointer to internal data.
-    constexpr const T* getPtr() const
-    {
-        return &(base_type::m_data.m_type_data);
-    }
-
 public:
     /// Tell if this optional value is initialized.
     ///
@@ -236,7 +224,7 @@ public:
     /// Destroys the contents of the optional.
     void reset()
     {
-        base_type::reset();
+        parent_type::reset();
     }
 
     /// Get the contained object.
@@ -245,7 +233,7 @@ public:
     constexpr T& value()
     {
         accessCheck();
-        return *getPtr();
+        return *base_type::getPtr();
     }
     /// Get the contained object (const version).
     ///
@@ -253,7 +241,18 @@ public:
     constexpr const T& value() const
     {
         accessCheck();
-        return *getPtr();
+        return *base_type::getPtr();
+    }
+
+    /// Constructs a member in-place.
+    ///
+    /// \param args Arguments.
+    template<typename...Args> T& emplace(Args&&...args)
+    {
+        parent_type::destruct();
+        new(base_type::getPtr()) T(args...);
+        base_type::m_initialized = true;
+        return *base_type::getPtr();
     }
 
 public:
@@ -280,7 +279,7 @@ public:
     constexpr T* operator->()
     {
         accessCheck();
-        return getPtr();
+        return base_type::getPtr();
     }
     /// Member access operator.
     ///
@@ -288,7 +287,7 @@ public:
     constexpr const T* operator->() const
     {
         accessCheck();
-        return getPtr();
+        return base_type::getPtr();
     }
 
     /// Boolean operator.
@@ -333,8 +332,8 @@ public:
     /// \param op Assigned object.
     constexpr optional<T>& operator=(const T& op)
     {
-        base_type::destruct();
-        new(getPtr()) T(op);
+        parent_type::destruct();
+        new(base_type::getPtr()) T(op);
         base_type::m_initialized = true;
         return *this;
     }
@@ -343,8 +342,8 @@ public:
     /// \param op Assigned object.
     constexpr optional<T>& operator=(T&& op)
     {
-        base_type::destruct();
-        new(getPtr()) T(move(op));
+        parent_type::destruct();
+        new(base_type::getPtr()) T(move(op));
         base_type::m_initialized = true;
         return *this;
     }
@@ -357,7 +356,7 @@ public:
         reset();
         if(op)
         {
-            new(getPtr()) T(*op);
+            new(base_type::getPtr()) T(*op);
             base_type::m_initialized = true;
         }
         return *this;
@@ -372,7 +371,7 @@ public:
         reset();
         if(op)
         {
-            new(getPtr()) T(move(*op));
+            new(base_type::getPtr()) T(move(*op));
             op.reset();
             base_type::m_initialized = true;
         }

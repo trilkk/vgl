@@ -286,8 +286,7 @@ public:
     /// \param mesh Mesh used by the font.
     static unique_ptr<Font> create(unsigned fs, const char **fnames)
     {
-        unique_ptr<Font> ret(new Font(fs, fnames));
-        return ret;
+        return make_unique<Font>(fs, fnames);
     }
 
 #if defined(USE_LD)
