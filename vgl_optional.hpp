@@ -19,16 +19,13 @@ namespace detail
 /// Internal data container for optional.
 ///
 /// This class intentionally has no constructor or destructor.
-template<typename T> class optional_internal_data
+///
+/// Aligned to the alignment of the optional type to.
+template<typename T> class alignas(T) optional_internal_data
 {
-public:
-    /// Storage size for the optional.
-    /// Aligned to 4 bytes, since if it isn't, ARM32 will crash.
-    static const size_t STORAGE_SIZE = sizeof(T)/* + ((sizeof(T) % 4) ? (4 - (sizeof(T) % 4)) : 0)*/;
-
 protected:
     /// Internal data storage.
-    uint8_t m_data[STORAGE_SIZE];
+    uint8_t m_data[sizeof(T)];
 
     /// Flag for initialization.
     bool m_initialized;
