@@ -193,12 +193,13 @@ public:
         float fsize = static_cast<float>(m_font_size);
 
         // No Y advance - only left-right text supported.
-        m_characters[unicode] = new Character(idx,
-                &(glyph->bitmap),
-                static_cast<float>(glyph->bitmap_left) / fsize,
-                static_cast<float>(glyph->bitmap_top) / fsize,
-                (static_cast<float>(glyph->advance.x) / fsize) * (1.0f / 64.0f),
-                fsize);
+        m_characters[unicode].reset(
+                new Character(idx,
+                    &(glyph->bitmap),
+                    static_cast<float>(glyph->bitmap_left) / fsize,
+                    static_cast<float>(glyph->bitmap_top) / fsize,
+                    (static_cast<float>(glyph->advance.x) / fsize) * (1.0f / 64.0f),
+                    fsize));
     }
 
     /// Accessor.
@@ -286,7 +287,7 @@ public:
     /// \param mesh Mesh used by the font.
     static unique_ptr<Font> create(unsigned fs, const char **fnames)
     {
-        return make_unique<Font>(fs, fnames);
+        return unique_ptr<Font>(new Font(fs, fnames));
     }
 
 #if defined(USE_LD)

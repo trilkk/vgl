@@ -81,14 +81,14 @@ public:
     constexpr T* release() noexcept
     {
         T* ret = m_ref;
-        m_ref = NULL;
+        m_ref = nullptr;
         return ret;
     }
 
     /// Replace contents.
     ///
     /// \param op New contents.
-    void reset(T* op = NULL)
+    void reset(T* op = nullptr)
     {
         erase();
         m_ref = op;
@@ -162,18 +162,6 @@ public:
         return (m_ref != NULL);
     }
 };
-
-/// Creates an unique_ptr and returns it.
-///
-/// Note that this function may sometimes increase code size.
-/// Only use it for trivial situations such as returning unique pointers.
-///
-/// \param args Arguments.
-/// \return New unique_ptr of the chosen type.
-template<typename T, typename...Args> inline unique_ptr<T> make_unique(Args&&...args)
-{
-    return unique_ptr<T>(new T(args...));
-}
 
 }
 
