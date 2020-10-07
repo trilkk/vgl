@@ -512,7 +512,7 @@ public:
     ///
     /// \param op Vector input.
     /// \return Length.
-    friend VGL_MATH_CONSTEXPR float length(const CrtpType& op)
+    VGL_MATH_CONSTEXPR friend float length(const CrtpType& op)
     {
         return sqrt(dot(op, op));
     }
@@ -521,7 +521,7 @@ public:
     ///
     /// \param op Vector to normalize.
     /// \return Result vector.
-    friend VGL_MATH_CONSTEXPR CrtpType normalize(const CrtpType& op)
+    VGL_MATH_CONSTEXPR friend CrtpType normalize(const CrtpType& op)
     {
         float len = length(op);
         if(len > 0.0f)

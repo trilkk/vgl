@@ -153,6 +153,19 @@ public:
     ///
     /// Input values need not be in order.
     ///
+    /// \param op Another bounding box.
+    /// \return True if collides, false otherwise.
+    constexpr bool collides(const BoundingBox& op) const noexcept
+    {
+        return collides_range(m_min.x(), m_max.x(), op.m_min.x(), op.m_max.x()) &&
+            collides_range(m_min.y(), m_max.y(), op.m_min.y(), op.m_max.y()) &&
+            collides_range(m_min.z(), m_max.z(), op.m_min.z(), op.m_max.z());
+    }
+
+    /// Tells if the bounding box collides with a Z range.
+    ///
+    /// Input values need not be in order.
+    ///
     /// \param zmin Smaller Z value.
     /// \param zmax Larger Z value.
     /// \return True if collides, false otherwise.
