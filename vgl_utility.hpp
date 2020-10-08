@@ -7,6 +7,7 @@ namespace vgl
 {
 
 using std::move;
+using std::swap;
 
 }
 
