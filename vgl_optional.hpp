@@ -24,8 +24,13 @@ namespace detail
 template<typename T> class alignas(T) optional_internal_data
 {
 protected:
+    /// Align to uint32_t at the very least.
+    /// This removes an alignment warning on some platforms.
+    static const size_t STORAGE_SIZE = (sizeof(T) / sizeof(uint32_t)) + ((sizeof(T) % sizeof(uint32_t)) ? 1 : 0);
+
+protected:
     /// Internal data storage.
-    uint8_t m_data[sizeof(T)];
+    uint32_t m_data[STORAGE_SIZE];
 
     /// Flag for initialization.
     bool m_initialized;
