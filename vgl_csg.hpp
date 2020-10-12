@@ -154,6 +154,8 @@ void csg_trapezoid(LogicalMesh& lmesh, const vec3* points, const vec2* sizes, un
 
 /// Create a box shape.
 ///
+/// Box is a specialization of trapezoid.
+///
 /// \param lmesh Target logical mesh.
 /// \param p1 Center of front face.
 /// \param p2 Center of back face.
@@ -177,16 +179,18 @@ void csg_box(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3& par
 /// \param p2 End point.
 /// \param param_up Up direction.
 /// \param fidelity Fidelity of the cylinder, should be at least 3.
-/// \param radius Radius of the cylinder.
+/// \param radius1 Radius of cone front.
+/// \param radius2 Radius of cone back.
 /// \param flags CSG flags.
-void csg_cylinder(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3& param_up, unsigned fidelity, float radius,
-        CsgFlags flags = CsgFlags(0))
+void csg_cone(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3& param_up, unsigned fidelity, float radius1,
+        float radius2, CsgFlags flags = CsgFlags(0))
 {
     vec3 forward = p2 - p1;
     vec3 unit_up = perpendiculate(param_up, forward);
-    vec3 rt = normalize(cross(forward, unit_up)) * radius;
-    vec3 up = normalize(cross(rt, forward)) * radius;
+    vec3 unit_rt = normalize(cross(forward, unit_up));
+    unit_up = normalize(cross(unit_rt, forward));
 
+    const float rad_offset = static_cast<float>(M_PI) * 2.0f / static_cast<float>(fidelity) * 0.5f;
     unsigned index_base = lmesh.getLogicalVertexCount();
     bool flat = flags[CSG_FLAG_FLAT];
 
@@ -202,10 +206,11 @@ void csg_cylinder(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3
 
     for(unsigned ii = 0; (ii < fidelity); ++ii)
     {
-        float rad = static_cast<float>(ii) / static_cast<float>(fidelity) * static_cast<float>(M_PI * 2.0);
-        vec3 dir = cos(rad) * rt + sin(rad) * up;
-        lmesh.addVertex(p1 + dir);
-        lmesh.addVertex(p2 + dir);
+        float rad = static_cast<float>(ii) / static_cast<float>(fidelity) * static_cast<float>(M_PI * 2.0) + rad_offset;
+        vec3 dir1 = (cos(rad) * unit_rt + sin(rad) * unit_up) * radius1;
+        vec3 dir2 = (cos(rad) * unit_rt + sin(rad) * unit_up) * radius2;
+        lmesh.addVertex(p1 + dir1);
+        lmesh.addVertex(p2 + dir2);
 
         unsigned c1 = index_base + 2 + (ii * 2);
         unsigned n1 = c1 + 1;
@@ -229,6 +234,23 @@ void csg_cylinder(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3
     }
 }
 
+/// Create a cylinder shape.
+///
+/// Cylinder is an specialization of cone.
+///
+/// \param lmesh Target logical mesh.
+/// \param p1 Starting point.
+/// \param p2 End point.
+/// \param param_up Up direction.
+/// \param fidelity Fidelity of the cylinder, should be at least 3.
+/// \param radius Radius of the cylinder.
+/// \param flags CSG flags.
+void csg_cylinder(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3& param_up, unsigned fidelity, float radius,
+        CsgFlags flags = CsgFlags(0))
+{
+    csg_cone(lmesh, p1, p2, param_up, fidelity, radius, radius, flags);
+}
+
 /// Create a pipe shape.
 ///
 /// Very sharp angles and spirals generate degenerate geometry.
@@ -242,6 +264,7 @@ void csg_cylinder(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3
 void csg_pipe(LogicalMesh& lmesh, const vec3* points, unsigned count, unsigned fidelity, float radius,
         CsgFlags flags = CsgFlags(0))
 {
+    const float rad_offset = static_cast<float>(M_PI) * 2.0f / static_cast<float>(fidelity) * 0.5f;
     unsigned index_base = lmesh.getLogicalVertexCount();
     bool flat = flags[CSG_FLAG_FLAT];
     vgl::vec3 prev_unit_up;
@@ -283,7 +306,7 @@ void csg_pipe(LogicalMesh& lmesh, const vec3* points, unsigned count, unsigned f
 
             for(unsigned jj = 0; (jj < fidelity); ++jj)
             {
-                float rad = static_cast<float>(jj) / static_cast<float>(fidelity) * static_cast<float>(M_PI * 2.0);
+                float rad = static_cast<float>(jj) / static_cast<float>(fidelity) * static_cast<float>(M_PI * 2.0) + rad_offset;
                 vec3 dir = cos(rad) * rt + sin(rad) * up;
                 lmesh.addVertex(p1 + dir);
 
@@ -309,7 +332,7 @@ void csg_pipe(LogicalMesh& lmesh, const vec3* points, unsigned count, unsigned f
 
             for(unsigned jj = 0; (jj < fidelity); ++jj)
             {
-                float rad = static_cast<float>(jj) / static_cast<float>(fidelity) * static_cast<float>(M_PI * 2.0);
+                float rad = static_cast<float>(jj) / static_cast<float>(fidelity) * static_cast<float>(M_PI * 2.0) + rad_offset;
                 vec3 dir = cos(rad) * rt + sin(rad) * up;
                 lmesh.addVertex(p2 + dir);
 
@@ -334,7 +357,7 @@ void csg_pipe(LogicalMesh& lmesh, const vec3* points, unsigned count, unsigned f
 
             for(unsigned jj = 0; (jj < fidelity); ++jj)
             {
-                float rad = static_cast<float>(jj) / static_cast<float>(fidelity) * static_cast<float>(M_PI * 2.0);
+                float rad = static_cast<float>(jj) / static_cast<float>(fidelity) * static_cast<float>(M_PI * 2.0) + rad_offset;
                 vec3 dir = cos(rad) * rt + sin(rad) * up;
                 lmesh.addVertex(p3 + dir);
 
@@ -421,6 +444,16 @@ enum class CsgCommand
     /// - Up vector (1/4).
     /// - CSG flags.
     TRAPEZOID,
+
+    /// Cone.
+    /// - Start position (3).
+    /// - End position (3).
+    /// - Up vector (1/4).
+    /// - Fidelity.
+    /// - Radius start.
+    /// - Radius end.
+    /// - CSG flags.
+    CONE,
 
     /// Cylinder.
     /// - Start position (3).
@@ -681,6 +714,19 @@ void csg_read_data(LogicalMesh& msh, const int16_t* data)
                 vec3 up = reader.readDirVec();
                 CsgFlags flags = reader.readFlags();
                 csg_trapezoid(msh, points.data(), sizes.data(), count, dir, up, flags);
+            }
+            break;
+
+        case CsgCommand::CONE:
+            {
+                vec3 p1 = reader.readVec3();
+                vec3 p2 = reader.readVec3();
+                vec3 up = reader.readDirVec();
+                unsigned fidelity = reader.readUnsigned();
+                float radius1 = reader.readFloat();
+                float radius2 = reader.readFloat();
+                CsgFlags flags = reader.readFlags();
+                csg_cone(msh, p1, p2, up, fidelity, radius1, radius2, flags);
             }
             break;
 
