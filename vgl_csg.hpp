@@ -166,13 +166,20 @@ void csg_trapezoid(LogicalMesh& lmesh, const vec3* points, const vec2* sizes, un
 void csg_box(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3& param_up, float width, float height,
         CsgFlags flags = CsgFlags(0))
 {
+    // Data arrays for trapezoid.
     vec3 points[2] = { p1, p2 };
     vec2 bsize(width, height);
     vec2 sizes[2] = { bsize, bsize };
-    csg_trapezoid(lmesh, points, sizes, 2, p2 - p1, param_up, flags);
+    // Ensure up is actually perpendicular to fw.
+    // Do not normalize to prevent degradation of precision.
+    vec3 fw = p2 - p1;
+    vec3 rt = cross(fw, param_up);
+    vec3 up = cross(rt, fw);
+    // Pass to trapezoid.
+    csg_trapezoid(lmesh, points, sizes, 2, fw, up, flags);
 }
 
-/// Create a cylinder shape.
+/// Create a cone shape.
 ///
 /// \param lmesh Target logical mesh.
 /// \param p1 Starting point.
@@ -248,6 +255,7 @@ void csg_cone(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3& pa
 void csg_cylinder(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3& param_up, unsigned fidelity, float radius,
         CsgFlags flags = CsgFlags(0))
 {
+    // Pass to cone.
     csg_cone(lmesh, p1, p2, param_up, fidelity, radius, radius, flags);
 }
 
