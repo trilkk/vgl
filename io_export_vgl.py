@@ -462,25 +462,18 @@ def vgl_animation_apply(context, basename, span):
     if not (basename in poses):
         raise RuntimeError("no poses found for basename '%s'" % basename)
         return {"FINISHED"}
-    # Apply keyframes for basename animation.
+    # Apply keyframes for basename animation, map to span.
     anim = poses[basename]
     for ii in anim:
         context.scene.frame_set(int(ii.getTime() * 24.0 * span))
         bpy.ops.poselib.apply_pose(pose_index=ii.getIndex())
         bpy.ops.anim.keyframe_insert(type='LocRotScale')
-        #if not first_pose:
-        #    first_pose = ii
-        #idx += 1
 
 def vgl_animation_clear(context, span):
     """Function for clearing animation data."""
-    # Delete all keyframes (FIXME: this may not be needed).
-    for ii in context.selected_objects:
+    # Delete all keyframes for all objects.
+    for ii in context.selectable_objects:
         ii.animation_data_clear()
-    # Delete all keyframe data for the span area times 8 (arbitrarily selected).
-    for ii in range(0, int(24.0 * span * 8.0)):
-        context.scene.frame_set(ii)
-        bpy.ops.anim.keyframe_delete(type='LocRotScale')
 
 class VglPanelAnimation(Panel):
     """Creates an additional panel in the armature window."""
@@ -498,10 +491,6 @@ class VglPanelAnimation(Panel):
 
     def draw(self, context):
         layout = self.layout
-
-        #row = layout.row()
-        #row.label(text="Active object is: " + context.object.name)
-
         box = layout.box()
         row = box.row()
         row.prop(context.scene, "vgl_animation_target", text="Pose basename")
