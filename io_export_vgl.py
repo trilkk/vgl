@@ -11,7 +11,7 @@ bl_info = {
     "category": "Import-Export"}
 
 """
-VGL C++ header export script.
+VGL C++ header export script and animation panel.
 http://faemiyah.fi/demoscene/vgl
 """
 
@@ -20,6 +20,22 @@ import copy
 import os
 import re
 from mathutils import Vector
+
+# TODO: Remove useless imports
+from bpy.props import (
+        StringProperty,
+        BoolProperty,
+        CollectionProperty,
+        EnumProperty,
+        FloatProperty,
+        )
+from bpy_extras.io_utils import (
+        ExportHelper,
+        )
+from bpy.types import (
+        Operator,
+        Panel
+        )
 
 ########################################
 # Misc. ################################
@@ -328,6 +344,13 @@ def getVertexGroupOrdering(msh, amap):
         ret[ii] = amap.index(grp.name)
     return ret
 
+def findArmature(context):
+    """Finds the first armature in a context."""
+    for ii in context.selectable_objects:
+        if isExportName(ii.name) and ("ARMATURE" == ii.type):
+            return ii
+    return None
+
 def collectPoses(pl):
     """Collects poses from a pose library."""
     ret = {}
@@ -338,8 +361,7 @@ def collectPoses(pl):
             ret[basename] = []
         ret[basename] += [pose]
     for kk in ret.keys():
-        pose_list = ret[kk]
-        ret[kk] = sorted(pose_list)
+        ret[kk] = sorted(ret[kk])
     return ret
 
 def animToString(context, anim, amap, arm, name, key_name, mat, armature_scale, export_scale):
@@ -385,10 +407,7 @@ def exportAllMeshesToHeader(filename, context):
     # Everything needs to be exported in the same scale, discard two bits of accuracy and fit in int16_t.
     export_scale = 32767.0 / (meshFindMaxVertexValue(msh.data, msh.scale) * 4.0)
     # Find armature.
-    arm = None
-    for ii in context.selectable_objects:
-        if isExportName(ii.name) and ("ARMATURE" == ii.type):
-            arm = ii
+    arm = findArmature(context)
     # Export armature.
     if arm:
         # Not having scale 1 is suspicious.
@@ -419,56 +438,138 @@ def exportAllMeshesToHeader(filename, context):
         fd.write(g_template_header.format(subst))
 
 ########################################
-# Blender integration ##################
+# Blender animation panel ##############
 ########################################
 
-# TODO: Remove useless imports
-from bpy.props import (
-        StringProperty,
-        BoolProperty,
-        CollectionProperty,
-        EnumProperty,
-        FloatProperty,
-        )
-from bpy_extras.io_utils import (
-        ExportHelper,
-        )
-from bpy.types import (
-        Operator,
-        )
+bpy.types.Scene.vgl_animation_target = bpy.props.StringProperty(
+    name = "vgl_animation_target",
+    description = "Name of the pose library to map into the animation timeline",
+    maxlen = 32)
 
-class ExportVGL(Operator, ExportHelper):
-    bl_idname = "export_mesh.cpp"
-    bl_label = "Export Faemiyah C++"
+bpy.types.Scene.vgl_animation_span = bpy.props.FloatProperty(
+    name = "vgl_animation_span",
+    description = "Time span in seconds used for mapping the animation for preview",
+    default = 1.0)
+
+def vgl_animation_apply(context, basename, span):
+    """Apply animation keyframes from given basename to given span."""
+    # If no pose given, just destroying animation data is ok.
+    if len(basename) <= 0:
+        return {"FINISHED"}
+    # Find armature and collect poses.
+    arm = findArmature(context)
+    poses = collectPoses(arm.pose_library)
+    if not (basename in poses):
+        raise RuntimeError("no poses found for basename '%s'" % basename)
+        return {"FINISHED"}
+    # Apply keyframes for basename animation.
+    anim = poses[basename]
+    for ii in anim:
+        context.scene.frame_set(int(ii.getTime() * 24.0 * span))
+        bpy.ops.poselib.apply_pose(pose_index=ii.getIndex())
+        bpy.ops.anim.keyframe_insert(type='LocRotScale')
+        #if not first_pose:
+        #    first_pose = ii
+        #idx += 1
+
+def vgl_animation_clear(context, span):
+    """Function for clearing animation data."""
+    # Delete all keyframes (FIXME: this may not be needed).
+    for ii in context.selected_objects:
+        ii.animation_data_clear()
+    # Delete all keyframe data for the span area times 8 (arbitrarily selected).
+    for ii in range(0, int(24.0 * span * 8.0)):
+        context.scene.frame_set(ii)
+        bpy.ops.anim.keyframe_delete(type='LocRotScale')
+
+class VglPanelAnimation(Panel):
+    """Creates an additional panel in the armature window."""
+    bl_idname = "DATA_PT_vgl_animation"
+    bl_label = "VGL Animation Panel"
+    bl_context = "data"
+    bl_region_type = "WINDOW"
+    bl_space_type = "PROPERTIES"
+
+    @classmethod
+    def poll(cls, context):
+        if not context.armature:
+            return False
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+
+        #row = layout.row()
+        #row.label(text="Active object is: " + context.object.name)
+
+        box = layout.box()
+        row = box.row()
+        row.prop(context.scene, "vgl_animation_target", text="Pose basename")
+        row = box.row()
+        row.prop(context.scene, "vgl_animation_span", text="Animation span")
+        row = box.row()
+        row.operator("wm.vgl_operator_animation_apply", text="Apply")
+        row = box.row()
+        row.operator("wm.vgl_operator_animation_clear", text="Clear")
+
+class VglOperatorAnimationApply(Operator):
+    bl_idname = "wm.vgl_operator_animation_apply"
+    bl_label = "VGL Apply Animation Operator"
+
+    def execute(self, context):
+        span = context.scene.vgl_animation_span
+        vgl_animation_clear(context, span)
+        basename = context.scene.vgl_animation_target
+        vgl_animation_apply(context, basename, span)
+        return {'FINISHED'}
+
+class VglOperatorAnimationClear(Operator):
+    bl_idname = "wm.vgl_operator_animation_clear"
+    bl_label = "VGL Clear Animation Operator"
+
+    def execute(self, context):
+        span = context.scene.vgl_animation_span
+        vgl_animation_clear(context, span)
+        return {'FINISHED'}
+
+########################################
+# Blender export operator ##############
+########################################
+
+class VglOperatorExport(Operator, ExportHelper):
+    bl_idname = "export.vgl_hpp"
+    bl_label = "Export VGL C++ header (.hpp)"
     filename_ext = ".hpp"
 
-    filter_glob = StringProperty(default="*.hpp", options={'HIDDEN'})
-    test_prop = FloatProperty(
-            name="Test property",
-            description="Just a property for testing shit",
-            min=-1.0, max=1.0,
-            default=0.0)
+    filter_glob: StringProperty(default="*.hpp", options={'HIDDEN'})
 
     def execute(self, context):
         filu = self.filepath
         exportAllMeshesToHeader(filu, context)
-        return {'FINISHED'}
+        return {"FINISHED"}
 
-def menu_func_export(self, context):
+def vgl_menu_export(self, context):
     default_path = os.path.splitext(bpy.data.filepath)[0] + ".hpp"
-    self.layout.operator(ExportVGL.bl_idname, text="VGL C++ header (.hpp)")
+    self.layout.operator(VglExport.bl_idname, text="VGL C++ header (.hpp)")
+
+########################################
+# Blender integration ##################
+########################################
 
 classes = [
-    ExportVGL,
+    VglPanelAnimation,
+    VglOperatorAnimationApply,
+    VglOperatorAnimationClear,
+    VglOperatorExport,
 ]
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
-    bpy.types.TOPBAR_MT_file_export.append(menu_func_export)
+    bpy.types.TOPBAR_MT_file_export.append(vgl_menu_export)
 
 def unregister():
-    bpy.types.TOPBAR_MT_file_export.remove(menu_func_export)
+    bpy.types.TOPBAR_MT_file_export.remove(vgl_menu_export)
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
