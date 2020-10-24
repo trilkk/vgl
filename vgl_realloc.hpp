@@ -68,6 +68,23 @@ constexpr void* internal_memcpy(void* dst, const void* src, unsigned count)
     return dst;
 }
 
+/// Internal memset.
+///
+/// \param ptr Destination pointer.
+/// \param value Value to clear to.
+/// \param count Number of bytes to clear.
+/// \return Destination pointer.
+constexpr void* internal_memset(void* ptr, int value, unsigned count)
+{
+    uint8_t write_value = static_cast<uint8_t>(value);
+    uint8_t* udst = static_cast<uint8_t*>(ptr);
+    for(unsigned ii = 0; (ii < count); ++ii)
+    {
+        udst[ii] = write_value;
+    }
+    return ptr;
+}
+
 /// Internal array_new implementation to hide typed information.
 ///
 /// \param ptr Pointer to reallocate. May be nullptr.
