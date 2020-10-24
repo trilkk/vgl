@@ -79,16 +79,16 @@ class Template:
         """String representation."""
         return self.__content
 
-g_template_header = Template("""#ifndef [[HEADER_NAME]]_HPP
-#define [[HEADER_NAME]]_HPP\n
+g_template_header = Template("""#ifndef [[HEADER_NAME]]
+#define [[HEADER_NAME]]\n
 [[MODEL_DATA]]\n
 #endif""")
 
-g_template_mesh = Template("""int16_t g_vertices_[[MODEL_NAME]][] =
+g_template_mesh = Template("""int16_t g_[[MODEL_NAME]]_vertices[] =
 {
 [[VERTEX_DATA]]
 };\n
-[[INDEX_TYPE]] g_indices_[[MODEL_NAME]][] =
+[[INDEX_TYPE]] g_[[MODEL_NAME]]_indices[] =
 {
 [[INDEX_DATA]]
 };""")
@@ -223,7 +223,7 @@ def meshVertexDataToString(msh, mesh_scale, export_scale):
 def meshTriangleToString(msh, face, idx1, idx2, idx3):
     """Create string for one triangle with given vertices."""
     vv = face.vertices
-    if len(msh.materials) > 0:
+    if (len(msh.materials) > 0) and msh.materials[face.material_index]:
         color = msh.materials[face.material_index].diffuse_color
         cr = toExportU8(color[0] * 255.0)
         cg = toExportU8(color[1] * 255.0)
@@ -282,10 +282,11 @@ def meshToString(msh, vmap, name, mesh_scale, export_scale):
     if len(msh.vertices) >= 65536:
         subst["INDEX_TYPE"] = "uint32_t"
     ret = g_template_mesh.format(subst)
-    # May need to add group data.
-    wdata = meshWeightDataToString(msh, vmap)
-    if wdata:
-        return ret + "\n\n" + g_template_weights.format({"MODEL_NAME" : name, "WEIGHT_DATA" : wdata})
+    # May need to add weight data data for meshes with armatures.
+    if vmap:
+        wdata = meshWeightDataToString(msh, vmap)
+        if wdata:
+            return ret + "\n\n" + g_template_weights.format({"MODEL_NAME" : name, "WEIGHT_DATA" : wdata})
     return ret
 
 def armatureBoneDataToString(arm, mat, armature_scale, export_scale):
@@ -433,7 +434,7 @@ def exportAllMeshesToHeader(filename, context):
     with open(filename, "w") as fd:
         subst = {
                 "MODEL_DATA" : "\n\n".join(export_strings),
-                "HEADER_NAME" : "MODEL_" + export_name.upper() + "_HEADER",
+                "HEADER_NAME" : "__" + os.path.basename(filename).replace(".", "_").lower() + "__",
                 }
         fd.write(g_template_header.format(subst))
 
@@ -539,7 +540,7 @@ class VglOperatorExport(Operator, ExportHelper):
 
 def vgl_menu_export(self, context):
     default_path = os.path.splitext(bpy.data.filepath)[0] + ".hpp"
-    self.layout.operator(VglExport.bl_idname, text="VGL C++ header (.hpp)")
+    self.layout.operator(VglOperatorExport.bl_idname, text="VGL C++ header (.hpp)")
 
 ########################################
 # Blender integration ##################

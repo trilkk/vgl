@@ -81,11 +81,21 @@ public:
         // Mutexes are recursive, so it's safe to lock just for signalling.
         if(m_fence_data)
         {
-            detail::internal_fence_data_signal(*m_fence_data);
+            m_fence_data->signal();
         }
     }
 
 public:
+    /// Gets the function task function.
+    ///
+    /// The function returned should not be executed, as potential fence data will not be updated.
+    ///
+    /// \return Task function.
+    TaskFunc getFunc() const
+    {
+        return m_func;
+    }
+
     /// Execute function.
     ///
     /// \return Pointer to function that was executed.
