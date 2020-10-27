@@ -69,12 +69,9 @@ public:
         m_active = op;
     }
 
-    /// Signal the fence.
-    ///
-    /// Deactivates the fence and signals anyone waiting at it.
+    /// Signal anyone waiting on the fence.
     void signal()
     {
-        m_active = false;
         m_cond.signal();
     }
 

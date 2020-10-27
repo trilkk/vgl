@@ -81,7 +81,7 @@ public:
         // Mutexes are recursive, so it's safe to lock just for signalling.
         if(m_fence_data)
         {
-            m_fence_data->signal();
+            detail::internal_fence_data_signal(*m_fence_data);
         }
     }
 
