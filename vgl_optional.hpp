@@ -16,12 +16,22 @@ using std::nullopt;
 namespace detail
 {
 
+/// Gets alignment suitable for an optional.
+///
+/// \return Alignment for an optional.
+template<typename T> constexpr size_t optional_alignof()
+{
+    size_t min_align = alignof(uint32_t);
+    size_t ret = alignof(T);
+    return (ret < min_align) ? min_align : ret;
+}
+
 /// Internal data container for optional.
 ///
 /// This class intentionally has no constructor or destructor.
 ///
 /// Aligned to the alignment of the optional type to.
-template<typename T> class alignas(T) optional_internal_data
+template<typename T> class alignas(optional_alignof<T>()) optional_internal_data
 {
 protected:
     /// Align to uint32_t at the very least.
