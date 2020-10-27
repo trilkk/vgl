@@ -600,7 +600,7 @@ public:
     /// \param color Optional clear color.
     /// \param depth Optional clear depth.
     /// \param stencil Optional clear stencil.
-    void push(optional<uvec4> color, optional<float> depth, optional<uint8_t> stencil = nullopt)
+    void pushClear(optional<uvec4> color, optional<float> depth, optional<uint8_t> stencil = nullopt)
     {
         m_data.push(static_cast<int>(detail::RenderCommand::CLEAR));
         {
