@@ -8,6 +8,24 @@
 namespace vgl
 {
 
+namespace detail
+{
+
+#if defined(USE_LD)
+
+/// Increment data sizes by given mesh data size.
+///
+/// \param op Mesh data being uploaded.
+void increment_buffer_data_sizes(const MeshData& op)
+{
+    increment_data_size_vertex(op.getVertexOffset());
+    increment_data_size_index(op.getIndexOffset());
+}
+
+#endif
+
+}
+
 /// Geometry buffer.
 ///
 /// Collection attribute data.
@@ -36,6 +54,9 @@ public:
         m_data(op)
     {
         update();
+#if defined(USE_LD)
+        detail::increment_buffer_data_sizes(op);
+#endif
     }
 
     ~GeometryBuffer()
@@ -57,6 +78,9 @@ private:
         GeometryHandle ret(*this, m_data.getVertexOffset(), m_data.getIndexOffset());
         m_data.append(op);
         update();
+#if defined(USE_LD)
+        detail::increment_buffer_data_sizes(op);
+#endif
         return ret;
     }
 

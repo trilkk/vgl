@@ -362,10 +362,6 @@ public:
     {
         vertex_buffer.update(m_vertex_data);
         index_buffer.update(m_index_data);
-#if defined(USE_LD)
-        increment_data_size_vertex(m_vertex_data.size());
-        increment_data_size_index(m_index_data.getSizeBytes());
-#endif
     }
     /// Update vertex subdata GPU.
     ///
