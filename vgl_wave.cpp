@@ -62,7 +62,7 @@ std::pair<std::string, std::string> glsl_split(std::string_view source)
         {
             ii = boost::trim_copy(ii.substr(1));
 
-            if(boost::starts_with(ii, "define") ||
+            if(boost::starts_with(ii, "extension") ||
                     boost::starts_with(ii, "version"))
             {
                 glsl_list.push_back(vv);
