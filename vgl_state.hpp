@@ -532,6 +532,87 @@ const char* gl_error_string(GLenum err)
     return "unknown error";
 }
 
+/// Gets OpenGL extension string.
+///
+/// \param align Lines are at most this long (0: infinite).
+/// \param indent Lines after the first one have this many spaces as indentation.
+/// \return Result string.
+static std::string gl_extension_string(unsigned align = 78, unsigned indent = 0)
+{
+    std::string extension_string(reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS)));
+    std::vector<std::string> extensions;
+    for(unsigned ii = 0; (ii < extension_string.length());)
+    {
+        int cc = extension_string[ii];
+        if(!cc || (cc == ' ') || (cc == '\t') || (cc == '\r') || (cc == '\n'))
+        {
+            if(ii != 0)
+            {
+                extensions.push_back(extension_string.substr(0, ii));
+            }
+            extension_string = extension_string.substr(ii + 1);
+            ii = 0;
+            continue;
+        }
+        ++ii;
+    }
+    if(!extension_string.empty())
+    {
+        extensions.push_back(extension_string);
+    }
+
+    std::string istr;
+    for(unsigned ii = 0; (ii < indent); ++ii)
+    {
+        istr += " ";
+    }
+
+    std::string ret;
+    std::string line;
+    for(const auto& vv : extensions)
+    {
+        // If line would exceed length, append it to return value.
+        if(!line.empty() && align && ((istr.length() + line.length() + 1 + vv.length()) > align))
+        {
+            if(!ret.empty())
+            {
+                ret += "\n";
+            }
+            ret += line;
+            line.clear();
+        }
+
+        // May need to add indent to line.
+        if(line.empty())
+        {
+            if(ret.empty())
+            {
+                line += vv;
+            }
+            else
+            {
+                line += istr + vv;
+            }
+        }
+        else
+        {
+            line += " " + vv;
+        }
+    }
+
+    // Add last line.
+    if(!line.empty())
+    {
+        if(!ret.empty())
+        {
+            ret += "\n";
+        }
+        ret += line;
+    }
+
+    return ret;
+}
+
 /// Gets OpenGL vendor string.
 ///
 /// \return OpenGL vendor.
