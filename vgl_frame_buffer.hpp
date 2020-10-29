@@ -31,10 +31,10 @@ private:
 #endif
 
     /// Width of this framebuffer.
-    unsigned m_width;
+    unsigned m_width = 0;
 
     /// Height of this framebuffer.
-    unsigned m_height;
+    unsigned m_height = 0;
 
 private:
     /// Deleted copy constructor.
@@ -154,13 +154,13 @@ public:
         return m_color_texture.get();
     }
 
-#if !defined(VGL_DISABLE_DEPTH_TEXTURE)
+#if defined(VGL_DISABLE_DEPTH_TEXTURE)
     /// Accessor.
     ///
     /// \return Depth renderbuffer id.
-    constexpr const Texture2D* getTextureDepth() const noexcept
+    constexpr GLuint getDepthBufferId() const noexcept
     {
-        return m_depth_texture.get();
+        return m_depth_buffer_id;
     }
 #else
     /// Accessor.
@@ -194,7 +194,7 @@ private:
     /// \return ID of currently bound render target or 0.
     static unsigned get_current_frame_buffer_id() noexcept
     {
-        return g_current_frame_buffer ? g_current_frame_buffer->getId() : 0;
+        return g_current_frame_buffer->getId();
     }
 
 public:
@@ -286,7 +286,7 @@ public:
 #endif
 };
 
-const FrameBuffer* FrameBuffer::g_current_frame_buffer = nullptr;
+const FrameBuffer* FrameBuffer::g_current_frame_buffer = &g_default_frame_buffer;
 FrameBuffer FrameBuffer::g_default_frame_buffer;
 
 /// FrameBuffer unique pointer type.
