@@ -447,15 +447,17 @@ private:
         switch(bpc)
         {
         case 2:
-#if defined(DNLOAD_GLESV2)
+#if defined(DNLOAD_GLESV2) && !defined(VGL_DISABLE_DEPTH_TEXTURE)
             return GL_DEPTH_COMPONENT;
 #else
             return GL_DEPTH_COMPONENT16;
 #endif
 
         case 3:
-#if defined(DNLOAD_GLESV2)
+#if defined(DNLOAD_GLESV2) && !defined(VGL_DISABLE_DEPTH_TEXTURE)
             return GL_DEPTH_COMPONENT;
+#elif !defined(GL_DEPTH_COMPONENT24)
+            return 0x81A6;
 #else
             return GL_DEPTH_COMPONENT24;
 #endif
@@ -464,8 +466,10 @@ private:
 #if !defined(USE_LD)
         default:
 #endif
-#if defined(DNLOAD_GLESV2)
+#if defined(DNLOAD_GLESV2) && !defined(VGL_DISABLE_DEPTH_TEXTURE)
             return GL_DEPTH_COMPONENT;
+#elif !defined(GL_DEPTH_COMPONENT32F)
+            return 0x8CAC;
 #else
             return GL_DEPTH_COMPONENT32F;
 #endif
@@ -495,7 +499,7 @@ private:
 #if !defined(USE_LD)
         default:
 #endif
-#if defined(DNLOAD_GLESV2)
+#if defined(DNLOAD_GLESV2) && !defined(VGL_DISABLE_DEPTH_TEXTURE)
             return GL_UNSIGNED_INT;
 #else
             return GL_FLOAT;

@@ -21,6 +21,13 @@ void csg_read_raw(LogicalMesh&, const int16_t*, const uint8_t*, const uint16_t*,
 void csg_read_raw(LogicalMesh&, const int16_t*, const uint16_t*, unsigned, unsigned, float);
 /// \endcond
 
+#if defined(USE_LD)
+
+/// Number of vertices erased during logical mesh generation.
+unsigned int g_vertices_erased = 0;
+
+#endif
+
 }
 
 /// Logical mesh.
@@ -147,11 +154,12 @@ private:
     /// \param op Vertex index.
     void eraseOrphanedVertex(unsigned op)
     {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(USE_LD)
         if(!isOrphanedVertex(op))
         {
             BOOST_THROW_EXCEPTION(std::runtime_error("cannot erase non-orphaned vertex " + std::to_string(op)));
         }
+        ++detail::g_vertices_erased;
 #endif
         if((op + 1) < m_vertices.size())
         {
@@ -206,6 +214,28 @@ private:
 #endif
 
         return ret;
+    }
+
+    /// Remove identical vertices.
+    void removeIdenticalVertices()
+    {
+        for(unsigned ii = 0; (ii < m_vertices.size()); ++ii)
+        {
+            LogicalVertex& vertex = m_vertices[ii];
+
+            for(unsigned jj = ii + 1; (jj < m_vertices.size());)
+            {
+                if(vertex.matches(m_vertices[jj]))
+                {
+                    replaceVertexIndex(jj, ii);
+                    eraseOrphanedVertex(jj);
+                }
+                else
+                {
+                    ++jj;
+                }
+            }
+        }
     }
         
 public:
@@ -267,7 +297,7 @@ public:
                 // Face references this vertex.
                 vertex->addFaceReference(face);
 
-                // Calculate normal and create a new vertex if face flatness decision requires it.
+                // Calculate normals for flat faces and apply to face vertices.
                 calculateNormal(face);
                 {
                     optional<vec3> vertex_nor = vertex->getNormal();
@@ -280,7 +310,8 @@ public:
                             vertex->setNormal(*face_nor);
                         }
                     }
-                    else if(!almost_equal(vertex_nor, face_nor))
+                    // Clone vertices for flat faces if existing vertex normal does not match.
+                    else if(face_nor && !almost_equal(*vertex_nor, *face_nor))
                     {
                         vidx = cloneVertexForFace(face, vidx);
                         vertex = &(m_vertices[vidx]);
@@ -288,6 +319,12 @@ public:
                     }
                 }
             }
+        }
+
+        // Merge vertices that are identical after creating normals for flat faces.
+        if(removeIdentical)
+        {
+            removeIdenticalVertices();
         }
 
         // Calculate normals for all vertices that were not parts of a flat face.
@@ -362,23 +399,7 @@ public:
         // Loop through vertices and remove identical ones.
         if(removeIdentical)
         {
-            for(unsigned ii = 0; (ii < m_vertices.size()); ++ii)
-            {
-                LogicalVertex& vertex = m_vertices[ii];
-
-                for(unsigned jj = ii + 1; (jj < m_vertices.size());)
-                {
-                    if(vertex.matches(m_vertices[jj]))
-                    {
-                        replaceVertexIndex(jj, ii);
-                        eraseOrphanedVertex(jj);
-                    }
-                    else
-                    {
-                        ++jj;
-                    }
-                }
-            }
+            removeIdenticalVertices();
         }
 
         Fence ret = task_wait_main(taskfunc_create_mesh, this);
