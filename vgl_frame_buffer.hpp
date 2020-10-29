@@ -23,14 +23,18 @@ private:
     /// Attached render target texture.
     Texture2DUptr m_color_texture;
 
+#if defined(VGL_DISABLE_DEPTH_TEXTURE)
+    GLuint m_depth_buffer_id = 0;
+#else
     /// Attached render target texture.
     Texture2DUptr m_depth_texture;
+#endif
 
     /// Width of this framebuffer.
-    unsigned m_width = 0;
+    unsigned m_width;
 
     /// Height of this framebuffer.
-    unsigned m_height = 0;
+    unsigned m_height;
 
 private:
     /// Deleted copy constructor.
@@ -79,9 +83,16 @@ public:
 
         if(depthFormat)
         {
+#if defined(VGL_DISABLE_DEPTH_TEXTURE)
+            dnload_glGenRenderbuffers(1, &m_depth_buffer_id);
+            dnload_glBindRenderbuffer(GL_RENDERBUFFER, m_depth_buffer_id);
+            dnload_glRenderbufferStorage(GL_RENDERBUFFER, depthFormat->getInternalFormat(), width, height);
+            dnload_glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depth_buffer_id);
+#else
             m_depth_texture = Texture2D::create(width, height, *depthFormat, filtering, wrap);
             dnload_glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
                     m_depth_texture->getId(), 0);
+#endif
         }
 
 #if defined(USE_LD)
@@ -106,6 +117,12 @@ public:
         {
             glDeleteFramebuffers(1, &m_id);
         }
+#if defined(VGL_DISABLE_DEPTH_TEXTURE)
+        if(m_depth_buffer_id)
+        {
+            glDeleteRenderbuffers(1, &m_depth_buffer_id);
+        }
+#endif
 #endif
     }
 
@@ -131,19 +148,29 @@ public:
 
     /// Accessor.
     ///
-    /// \return Get attached texture.
+    /// \return Color texture.
     constexpr const Texture2D* getTextureColor() const noexcept
     {
         return m_color_texture.get();
     }
 
+#if !defined(VGL_DISABLE_DEPTH_TEXTURE)
     /// Accessor.
     ///
-    /// \return Get attached texture.
+    /// \return Depth renderbuffer id.
     constexpr const Texture2D* getTextureDepth() const noexcept
     {
         return m_depth_texture.get();
     }
+#else
+    /// Accessor.
+    ///
+    /// \return Depth texture.
+    constexpr const Texture2D* getTextureDepth() const noexcept
+    {
+        return m_depth_texture.get();
+    }
+#endif
 
     /// Accessor.
     ///
@@ -250,8 +277,11 @@ public:
     /// \return Output stream.
     friend std::ostream& operator<<(std::ostream& lhs, const FrameBuffer& rhs)
     {
-        return lhs << "FrameBuffer(" << rhs.m_width << "x" << rhs.m_height << (rhs.m_color_texture ? "C" : "") <<
-            (rhs.m_depth_texture ? "D" : "") << ")";
+        lhs << "FrameBuffer(" << rhs.m_width << "x" << rhs.m_height << (rhs.m_color_texture ? "C" : "");
+#if !defined(VGL_DISABLE_DEPTH_TEXTURE)
+        lhs  << (rhs.m_depth_texture ? "D" : "");
+#endif
+        return lhs << ")";
     }
 #endif
 };
