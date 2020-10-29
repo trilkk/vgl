@@ -503,7 +503,7 @@ unsigned increment_data_size_vertex(unsigned op)
 ///
 /// \param op GL error.
 /// \return Error string.
-const char* error_str(GLenum err)
+const char* gl_error_string(GLenum err)
 {
     switch(err)
     {
@@ -532,6 +532,24 @@ const char* error_str(GLenum err)
     return "unknown error";
 }
 
+/// Gets OpenGL vendor string.
+///
+/// \return OpenGL vendor.
+static std::string gl_vendor_string()
+{
+    return reinterpret_cast<const char*>(glGetString(GL_VENDOR)) + std::string(" ") +
+        reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+}
+
+/// Gets OpenGL version string.
+///
+/// \return OpenGL version.
+static std::string gl_version_string()
+{
+    return reinterpret_cast<const char*>(glGetString(GL_VERSION)) + std::string(" GLSL ") +
+        reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
+}
+
 /// Perform error check.
 ///
 /// Throws an error on failure.
@@ -541,12 +559,12 @@ static void error_check(const char* str = NULL)
     if(GL_NO_ERROR != err)
     {
         std::ostringstream sstr;
-        sstr << "GL error " << error_str(err);
+        sstr << "GL error " << gl_error_string(err);
         if(str)
         {
             sstr << " at '" << str << "'";
         }
-        sstr << ": " << error_str(err);
+        sstr << ": " << gl_error_string(err);
         BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
     }
 }
