@@ -184,18 +184,18 @@ void csg_box(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3& par
 /// \param lmesh Target logical mesh.
 /// \param p1 Starting point.
 /// \param p2 End point.
+/// \param param_fw Forward direction.
 /// \param param_up Up direction.
 /// \param fidelity Fidelity of the cylinder, should be at least 3.
 /// \param radius1 Radius of cone front.
 /// \param radius2 Radius of cone back.
 /// \param flags CSG flags.
-void csg_cone(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3& param_up, unsigned fidelity, float radius1,
-        float radius2, CsgFlags flags = CsgFlags(0))
+void csg_cone(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3 param_fw, const vec3& param_up, unsigned fidelity,
+        float radius1, float radius2, CsgFlags flags = CsgFlags(0))
 {
-    vec3 forward = p2 - p1;
-    vec3 unit_up = perpendiculate(param_up, forward);
-    vec3 unit_rt = normalize(cross(forward, unit_up));
-    unit_up = normalize(cross(unit_rt, forward));
+    vec3 unit_fw = normalize(param_fw);
+    vec3 unit_up = perpendiculate(param_up, unit_fw);
+    vec3 unit_rt = normalize(cross(unit_fw, unit_up));
 
     const float rad_offset = static_cast<float>(M_PI) * 2.0f / static_cast<float>(fidelity) * 0.5f;
     unsigned index_base = lmesh.getLogicalVertexCount();
@@ -256,7 +256,8 @@ void csg_cylinder(LogicalMesh& lmesh, const vec3& p1, const vec3& p2, const vec3
         CsgFlags flags = CsgFlags(0))
 {
     // Pass to cone.
-    csg_cone(lmesh, p1, p2, param_up, fidelity, radius, radius, flags);
+    vec3 fw = p2 - p1;
+    csg_cone(lmesh, p1, p2, fw, param_up, fidelity, radius, radius, flags);
 }
 
 /// Create a pipe shape.
@@ -456,6 +457,7 @@ enum class CsgCommand
     /// Cone.
     /// - Start position (3).
     /// - End position (3).
+    /// - Forward vector (1/4).
     /// - Up vector (1/4).
     /// - Fidelity.
     /// - Radius start.
@@ -729,12 +731,13 @@ void csg_read_data(LogicalMesh& msh, const int16_t* data)
             {
                 vec3 p1 = reader.readVec3();
                 vec3 p2 = reader.readVec3();
+                vec3 fw = reader.readDirVec();
                 vec3 up = reader.readDirVec();
                 unsigned fidelity = reader.readUnsigned();
                 float radius1 = reader.readFloat();
                 float radius2 = reader.readFloat();
                 CsgFlags flags = reader.readFlags();
-                csg_cone(msh, p1, p2, up, fidelity, radius1, radius2, flags);
+                csg_cone(msh, p1, p2, fw, up, fidelity, radius1, radius2, flags);
             }
             break;
 
