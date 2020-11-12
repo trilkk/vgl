@@ -240,13 +240,15 @@ def meshIndexDataToString(context, msh):
 
 def normalizedWeightData(data, vmap):
     """Turns sorted weight data block into a normalized mode."""
-    # First convert existing references.
+    # First convert existing references before sorting.
     for ii in data:
         ii[1] = vmap[ii[1]]
-    # Then add empty stubs before sorting.
+    data = sorted(data, key = lambda x: x[0], reverse = True)
+    # Ensure data length is exactly 3.
     while 3 > len(data):
         data += [(0.0, 0)]
-    data = sorted(data, key = lambda x: x[0], reverse = True)
+    data = data[:3]
+    # Calculate total weights.
     total_weight = 0.0
     for ii in data:
         total_weight += ii[0]
@@ -384,12 +386,13 @@ def animToString(context, amap, arm, name, key_name, mat, armature_scale, export
         context.view_layer.update()
     # Go forward while saving frames.
     while True:
+        evarm = arm.evaluated_get(context.evaluated_depsgraph_get())
         current_frame = context.scene.frame_current
         ret += ["%s%i," % (g_indent, toExport8F8(float(current_frame) / 24.0))]
         # Iterate using armature order.
         for jj in amap:
             bone_orig = arm.data.bones[jj]
-            bone_curr = arm.pose.bones[jj]
+            bone_curr = evarm.pose.bones[jj]
             # Heaven knows why we have to rearrange the quaternion order.
             qq = toExportBoneQuaternion(bone_orig, bone_curr)
             qw = toExport4F12(qq[0])
