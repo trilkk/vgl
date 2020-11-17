@@ -140,10 +140,19 @@ public:
             float ltime = lhs.getTime();
             float rtime = rhs.getTime();
             float mix_time = (current_time - ltime) / (rtime - ltime);
+
+            // Linear interpolation is ok for position.
             vec3 mix_pos = mix(ll.getPosition(), rr.getPosition(), mix_time);
+
+            // This is incorrect, since linear interpolation between quaternions is not correct.
+            const quat& lq = ll.getRotation();
+            const quat& rq = rr.getRotation();
             quat mix_rot = mix(ll.getRotation(), rr.getRotation(), mix_time);
 
-            m_bones[ii] = BoneState(mix_pos, mix_rot);
+            // This should be calculated from position and rotation, but works for now.
+            mat4 mix_trns = mix(ll.getTransform(), rr.getTransform(), mix_time);
+
+            m_bones[ii] = BoneState(mix_pos, mix_rot, mix_trns);
         }
     }
 

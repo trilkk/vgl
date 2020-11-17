@@ -14,9 +14,6 @@ private:
     /// Mixing frame for temporary calculation.
     AnimationFrame m_mix_frame;
 
-    /// Matrix data (rotation-only).
-    vector<mat3> m_rotations;
-
     /// Matrix data (final).
     vector<mat4> m_matrices;
 
@@ -139,20 +136,21 @@ public:
         }
 
         unsigned bone_count = m_mix_frame.getBoneCount();
-        m_rotations.resize(bone_count);
         m_matrices.resize(bone_count);
 
+#if 0
+        vector<mat3> rotations(bone_count);
         for(unsigned ii = 0; (bone_count > ii); ++ii)
         {
             BoneState &st = m_mix_frame.getBoneState(ii);
             quat rot = st.getRotation();
-            m_rotations[ii] = mat3::rotation(rot);
+            rotations[ii] = mat3::rotation(rot);
         }
 
         for(unsigned ii = 0; (bone_count > ii); ++ii)
         {
             const BoneState &st = m_mix_frame.getBoneState(ii);
-            mat4 trns_positive(m_rotations[ii], st.getPosition());
+            mat4 trns_positive(rotations[ii], st.getPosition());
 #if 0
             // Create negative translation using the bone's original position.
             // This approach is unnecessary if the bone transform has been baked into the export.
@@ -163,6 +161,13 @@ public:
             m_matrices[ii] = trns_positive;
 #endif
         }
+#else
+        // Use the matrix already calculated into bone state.
+        for(unsigned ii = 0; (bone_count > ii); ++ii)
+        {
+            m_matrices[ii] = m_mix_frame.getBoneState(ii).getTransform();
+        }
+#endif
     }
 };
 

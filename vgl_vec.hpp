@@ -12,8 +12,15 @@ namespace detail
 {
 
 /// Mathematical GLSL-lookalike templated vector class.
-template<unsigned N, typename CrtpType> class vec
+template<unsigned N, typename ReflectionType> class vec
 {
+public:
+    /// Publicly visible data size.
+    static const unsigned data_size = N;
+
+    /// Publicly visible CRTP type.
+    using CrtpType = ReflectionType;
+
 protected:
     /// Vector data.
     array<float, N> m_data;
@@ -452,122 +459,6 @@ public:
         return lhs << " ]";
     }
 #endif
-
-public:
-    /// Dot product.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return Result value.
-    constexpr friend float dot(const CrtpType& lhs, const CrtpType& rhs) noexcept
-    {
-        float ret = 0.0f;
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            ret += lhs[ii] * rhs[ii];
-        }
-        return ret;
-    }
-
-    /// Mix two vectors.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \param ratio Mixing ratio.
-    constexpr friend CrtpType mix(const CrtpType& lhs, const CrtpType& rhs, float ratio) noexcept
-    {
-        return lhs + (rhs - lhs) * ratio;
-    }
-
-    /// Component-wise maximum.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return Result value.
-    constexpr friend CrtpType max(const CrtpType& lhs, const CrtpType& rhs) noexcept
-    {
-        CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            ret[ii] = max(lhs[ii], rhs[ii]);
-        }
-        return ret;
-    }
-    /// Component-wise minimum.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return Result value.
-    constexpr friend CrtpType min(const CrtpType& lhs, const CrtpType& rhs) noexcept
-    {
-        CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            ret[ii] = min(lhs[ii], rhs[ii]);
-        }
-        return ret;
-    }
-
-    /// Calculates the length of a vector.
-    ///
-    /// \param op Vector input.
-    /// \return Length.
-    VGL_MATH_CONSTEXPR friend float length(const CrtpType& op)
-    {
-        return sqrt(dot(op, op));
-    }
-
-    /// Normalize a vector.
-    ///
-    /// \param op Vector to normalize.
-    /// \return Result vector.
-    VGL_MATH_CONSTEXPR friend CrtpType normalize(const CrtpType& op)
-    {
-        float len = length(op);
-        if(len > 0.0f)
-        {
-            return op * (1.0f / len);
-        }
-        return CrtpType(0.0f);
-    }
-
-    /// Test if vectors are almost equal.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return True if almost equal, false otherwise.
-    constexpr friend bool almost_equal(const CrtpType& lhs, const CrtpType& rhs) noexcept
-    {
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            if(!floats_almost_equal(lhs[ii], rhs[ii]))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-    /// Test if optional vectors are almost equal.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return True if almost equal, false otherwise.
-    constexpr friend bool almost_equal(const optional<CrtpType>& lhs, const optional<CrtpType>& rhs) noexcept
-    {
-        if(lhs)
-        {
-            if(rhs)
-            {
-                return almost_equal(*lhs, *rhs);
-            }
-            return false;
-        }
-        else if(rhs)
-        {
-            return false;
-        }
-        return true;
-    }
 };
 
 }

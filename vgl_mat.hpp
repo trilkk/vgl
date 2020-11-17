@@ -13,11 +13,18 @@ namespace detail
 /// Mathematical GLSL-lookalike templated matrix class.
 ///
 /// All matrices have column-major representation.
-template<unsigned A, typename CrtpType, typename VecType> class mat
+template<unsigned A, typename ReflectionType, typename VecType> class mat
 {
-public:
+protected:
     /// Number of elements (not axis).
     static const unsigned N = A * A;
+
+public:
+    /// Publicly visible data size.
+    static const unsigned data_size = N;
+
+    /// Publicly visible CRTP type.
+    using CrtpType = ReflectionType;
 
 protected:
     /// Matrix data.
@@ -497,55 +504,6 @@ public:
     constexpr friend bool operator!=(const CrtpType& lhs, const CrtpType& rhs) noexcept
     {
         return !(lhs == rhs);
-    }
-
-public:
-    /// Mix between two matrices.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \param ratio Mixing ratio.
-    constexpr friend CrtpType mix(const CrtpType& lhs, const CrtpType& rhs, float ratio) noexcept
-    {
-        return lhs + (rhs - lhs) * ratio;
-    }
-
-    /// Test if matrices are almost equal.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return True if almost equal, false otherwise.
-    constexpr friend bool almost_equal(const CrtpType& lhs, const CrtpType& rhs) noexcept
-    {
-        for(unsigned ii = 0; (ii < N); ++ii)
-        {
-            if(!floats_almost_equal(lhs[ii], rhs[ii]))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-    /// Test if optional matrices are almost equal.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return True if almost equal, false otherwise.
-    constexpr friend bool almost_equal(const optional<CrtpType>& lhs, const optional<CrtpType>& rhs) noexcept
-    {
-        if(lhs)
-        {
-            if(rhs)
-            {
-                return almost_equal(*lhs, *rhs);
-            }
-            return false;
-        }
-        else if(rhs)
-        {
-            return false;
-        }
-        return true;
     }
 };
 

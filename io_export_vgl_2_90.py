@@ -376,23 +376,25 @@ def collectPoses(pl):
         ret[kk] = sorted(ret[kk])
     return ret
 
-def animToString(context, amap, arm, name, key_name, mat, armature_scale, export_scale):
+def animToString(context, amap, arm, action, model_name, mat, armature_scale, export_scale):
     """Exports singular animation to string."""
     ret = []
-    # Go to beginning.
+    # Assign action, iterate to first frame.
+    arm.animation_data.action = action
     while True:
         if bpy.ops.screen.keyframe_jump(next=False) != {"FINISHED"}:
             break
-        context.view_layer.update()
+        bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=1)
     # Go forward while saving frames.
     while True:
-        evarm = arm.evaluated_get(context.evaluated_depsgraph_get())
+        # Action must be reassigned or the pose won't update.
+        arm.animation_data.action = action
         current_frame = context.scene.frame_current
         ret += ["%s%i," % (g_indent, toExport8F8(float(current_frame) / 24.0))]
         # Iterate using armature order.
         for jj in amap:
             bone_orig = arm.data.bones[jj]
-            bone_curr = evarm.pose.bones[jj]
+            bone_curr = arm.pose.bones[jj]
             # Heaven knows why we have to rearrange the quaternion order.
             qq = toExportBoneQuaternion(bone_orig, bone_curr)
             qw = toExport4F12(qq[0])
@@ -408,11 +410,13 @@ def animToString(context, amap, arm, name, key_name, mat, armature_scale, export
         # Advance to next frame, abort if not possible.
         if bpy.ops.screen.keyframe_jump(next=True) != {"FINISHED"}:
             break
-        context.view_layer.update()
+        bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=1)
+    # Create export string.
+    anim_name = toExportName(action.name)
     subst = {
             "ANIM_DATA" : "\n".join(ret),
-            "MODEL_NAME" : name,
-            "ANIM_NAME" : key_name,
+            "MODEL_NAME" : model_name,
+            "ANIM_NAME" : anim_name,
             }
     return g_template_anim.format(subst)
 
@@ -441,9 +445,7 @@ def exportAllMeshesToHeader(filename, context):
         export_strings += [armatureToString(arm.data, export_name, arm.matrix_basis, arm.scale, export_scale)]
         # Animations in armatures.
         for ii in bpy.data.actions:
-            arm.animation_data.action = ii
-            anim_name = toExportName(ii.name)
-            export_strings += [animToString(context, amap, arm, export_name, anim_name, arm.matrix_basis, arm.scale, export_scale)]
+            export_strings += [animToString(context, amap, arm, ii, export_name, arm.matrix_basis, arm.scale, export_scale)]
     # Export mesh.
     vmap = None
     if arm:

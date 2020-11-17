@@ -1,8 +1,7 @@
 #ifndef VGL_BONE_STATE_HPP
 #define VGL_BONE_STATE_HPP
 
-#include "vgl_mat3.hpp"
-#include "vgl_quat.hpp"
+#include "vgl_mat4.hpp"
 
 namespace vgl
 {
@@ -13,11 +12,14 @@ namespace vgl
 class BoneState
 {
 private:
-    /// Position data (neutral).
+    /// Position data.
     vec3 m_pos;
 
-    /// Quaternion data (neutral).
+    /// Rotation data.
     quat m_rot;
+
+    /// Matrix representation of the orientation.
+    mat4 m_transform;
 
 public:
     /// Empty constructor.
@@ -27,14 +29,27 @@ public:
     ///
     /// \param pos Position.
     /// \param rot Rotation.
-    explicit BoneState(const vec3& pos, const quat& rot) :
+    explicit BoneState(const vec3& pos, const quat& rot) noexcept :
         m_pos(pos),
-        m_rot(rot)
+        m_rot(rot),
+        m_transform(mat3::rotation(rot), pos)
+    {
+    }
+
+    /// Constructor.
+    ///
+    /// \param pos Position.
+    /// \param rot Rotation.
+    /// \param trns Transform.
+    explicit BoneState(const vec3& pos, const quat& rot, const mat4& trns) noexcept :
+        m_pos(pos),
+        m_rot(rot),
+        m_transform(trns)
     {
     }
 
 public:
-    /// Const accessor.
+    /// Accessor.
     ///
     /// \return Position.
     const vec3& getPosition() const
@@ -42,12 +57,20 @@ public:
         return m_pos;
     }
 
-    /// Const accessor.
+    /// Accessor.
     ///
     /// \return Rotation.
     const quat& getRotation() const
     {
         return m_rot;
+    }
+
+    /// Accessor.
+    ///
+    /// \return Transformation.
+    const mat4& getTransform() const
+    {
+        return m_transform;
     }
 
 public:

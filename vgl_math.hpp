@@ -171,7 +171,7 @@ double constexpr compile_time_sqrt(double tgt, double curr)
 /// \param lhs Left-hand-side operand.
 /// \param rhs Right-hand-side operand.
 /// \return True if match, false if floats definitely differ.
-constexpr bool floats_almost_equal(float lhs, float rhs) noexcept
+constexpr bool almost_equal(float lhs, float rhs) noexcept
 {
     if(lhs == rhs)
     {
@@ -182,6 +182,23 @@ constexpr bool floats_almost_equal(float lhs, float rhs) noexcept
     float lr = (lhs - rhs) * ALMOST_EQUAL_MUL;
     float rl = (rhs - lhs) * ALMOST_EQUAL_MUL;
     return ((lhs + lr) == lhs) || ((lhs + rl) == lhs) || ((rhs + lr) == rhs) || ((rhs + rl) == rhs);
+}
+
+/// Component-wise almost_equal.
+///
+/// \param lhs Left-hand-side operand.
+/// \param rhs Right-hand-side operand.
+/// \return True if almost equal, false otherwise.
+template<typename T> constexpr bool almost_equal(const T& lhs, const T& rhs) noexcept
+{
+    for(unsigned ii = 0; (ii < T::data_size); ++ii)
+    {
+        if(!almost_equal(lhs[ii], rhs[ii]))
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 /// Clamp float.
@@ -347,7 +364,7 @@ constexpr float mix(float lhs, float rhs, float ratio) noexcept
 /// \param rhs Right-hand-side operand.
 /// \param ratio Mixing ratio.
 /// \return Mixing value.
-int8_t constexpr mix(int8_t lhs, int8_t rhs, float ratio) noexcept
+constexpr int8_t mix(int8_t lhs, int8_t rhs, float ratio) noexcept
 {
     float c1 = static_cast<float>(lhs);
     float c2 = static_cast<float>(rhs);
@@ -361,7 +378,7 @@ int8_t constexpr mix(int8_t lhs, int8_t rhs, float ratio) noexcept
 /// \param rhs Right-hand-side operand.
 /// \param ratio Mixing ratio.
 /// \return Mixing value.
-int16_t constexpr mix(int16_t lhs, int16_t rhs, float ratio) noexcept
+constexpr int16_t mix(int16_t lhs, int16_t rhs, float ratio) noexcept
 {
     float c1 = static_cast<float>(lhs);
     float c2 = static_cast<float>(rhs);
@@ -375,12 +392,22 @@ int16_t constexpr mix(int16_t lhs, int16_t rhs, float ratio) noexcept
 /// \param rhs Right-hand-side operand.
 /// \param ratio Mixing ratio.
 /// \return Mixing value.
-uint8_t constexpr mix(uint8_t lhs, uint8_t rhs, float ratio) noexcept
+constexpr uint8_t mix(uint8_t lhs, uint8_t rhs, float ratio) noexcept
 {
     float c1 = static_cast<float>(lhs);
     float c2 = static_cast<float>(rhs);
     float ret = clamp(mix(c1, c2, ratio), 0.0f, 255.0f);
     return static_cast<uint8_t>(iround(ret));
+}
+
+/// Generic fallback implementation of mix().
+///
+/// \param lhs Left-hand-side operand.
+/// \param rhs Right-hand-side operand.
+/// \param ratio Mixing ratio.
+template<typename T> constexpr typename T::CrtpType mix(const T& lhs, const T& rhs, float ratio) noexcept
+{
+    return lhs + (rhs - lhs) * ratio;
 }
 
 /// Linear mix function.
@@ -558,6 +585,44 @@ VGL_MATH_CONSTEXPR float sqrt(float op) noexcept
 float pow(float val, float power)
 {
     return dnload_powf(val, power);
+}
+
+/// Dot product between two vectors.
+///
+/// \param lhs Left-hand-side operand.
+/// \param rhs Right-hand-side operand.
+/// \return Result value.
+template<typename T> constexpr float dot(const T& lhs, const T& rhs) noexcept
+{
+    float ret = 0.0f;
+    for(unsigned ii = 0; (ii < T::data_size); ++ii)
+    {
+        ret += lhs[ii] * rhs[ii];
+    }
+    return ret;
+}
+
+/// Length of a vector.
+///
+/// \param op Vector input.
+/// \return Length.
+template<typename T> VGL_MATH_CONSTEXPR float length(const T& op)
+{
+    return sqrt(dot(op, op));
+}
+
+/// Normalize a vector.
+///
+/// \param op Vector to normalize.
+/// \return Result vector.
+template<typename T> VGL_MATH_CONSTEXPR typename T::CrtpType normalize(const T& op)
+{
+    float len = length(op);
+    if(len > 0.0f)
+    {
+        return op * (1.0f / len);
+    }
+    return T::CrtpType(0.0f);
 }
 
 }

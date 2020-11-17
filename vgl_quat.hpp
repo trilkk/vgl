@@ -9,6 +9,13 @@ namespace vgl
 /// Quaternion.
 class quat
 {
+public:
+    /// Publicly visible data size.
+    static const unsigned data_size = 4;
+
+    /// Publicly visible CRTP type.
+    using CrtpType = quat;
+
 private:
     /// Quaternion data.
     array<float, 4> m_data;
@@ -153,10 +160,10 @@ public:
     /// \return Result quaternion.
     constexpr quat operator*(float rhs) const noexcept
     {
-        return quat(m_data[0] * rhs,
-                m_data[1] * rhs,
-                m_data[2] * rhs,
-                m_data[3] * rhs);
+        return quat(m_data[0u] * rhs,
+                m_data[1u] * rhs,
+                m_data[2u] * rhs,
+                m_data[3u] * rhs);
     }
     /// Multiplication into operator.
     ///
@@ -220,17 +227,6 @@ public:
         return lhs << "[ " << rhs[0u] << " ; " << rhs[1u] << " ; " << rhs[2u] << " ; " << rhs[3u] << " ]";
     }
 #endif
-
-public:
-    /// Mix two quaternions.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \param ratio Mixing ratio.
-    constexpr friend quat mix(const quat &lhs, const quat &rhs, float ratio) noexcept
-    {
-        return lhs + (rhs - lhs) * ratio;
-    }
 };
 
 }
