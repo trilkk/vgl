@@ -16,7 +16,7 @@ using std::min;
 /// \return Result value.
 template<typename T> constexpr typename T::CrtpType max(const T& lhs, const T& rhs) noexcept
 {
-    T::CrtpType ret;
+    typename T::CrtpType ret;
     for(unsigned ii = 0; (ii < N); ++ii)
     {
         ret[ii] = max(lhs[ii], rhs[ii]);
@@ -31,7 +31,7 @@ template<typename T> constexpr typename T::CrtpType max(const T& lhs, const T& r
 /// \return Result value.
 template<typename T> constexpr typename T::CrtpType min(const T& lhs, const T& rhs) noexcept
 {
-    T::CrtpType ret;
+    typename T::CrtpType ret;
     for(unsigned ii = 0; (ii < T::data_size); ++ii)
     {
         ret[ii] = min(lhs[ii], rhs[ii]);
