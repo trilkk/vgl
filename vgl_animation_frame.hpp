@@ -145,8 +145,6 @@ public:
             vec3 mix_pos = mix(ll.getPosition(), rr.getPosition(), mix_time);
 
             // This is incorrect, since linear interpolation between quaternions is not correct.
-            const quat& lq = ll.getRotation();
-            const quat& rq = rr.getRotation();
             quat mix_rot = mix(ll.getRotation(), rr.getRotation(), mix_time);
 
             // This should be calculated from position and rotation, but works for now.

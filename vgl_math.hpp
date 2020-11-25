@@ -622,7 +622,7 @@ template<typename T> VGL_MATH_CONSTEXPR typename T::CrtpType normalize(const T& 
     {
         return op * (1.0f / len);
     }
-    return T::CrtpType(0.0f);
+    return typename T::CrtpType(0.0f);
 }
 
 }
