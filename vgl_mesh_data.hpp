@@ -187,6 +187,21 @@ private:
 public:
     /// Accessor.
     ///
+    /// \return Pointer to raw mesh data.
+    void* getData() noexcept
+    {
+        return m_vertex_data.data();
+    }
+    /// Accessor.
+    ///
+    /// \return Pointer to raw mesh data.
+    const void* getData() const noexcept
+    {
+        return m_vertex_data.data();
+    }
+
+    /// Accessor.
+    ///
     /// \return Size of index buffer.
     constexpr unsigned getIndexCount() const noexcept
     {

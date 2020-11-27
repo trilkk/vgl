@@ -51,6 +51,29 @@ public:
         return m_box;
     }
 
+    /// Accessor.
+    ///
+    /// \return Geometry handle.
+    constexpr const GeometryHandle& getGeometryHandle() const noexcept
+    {
+        return *m_handle;
+    }
+
+    /// Accessor.
+    ///
+    /// \return Data.
+    constexpr MeshData& getData() noexcept
+    {
+        return m_data;
+    }
+    /// Accessor.
+    ///
+    /// \return Data.
+    constexpr const MeshData& getData() const noexcept
+    {
+        return m_data;
+    }
+
     /// Draw the mesh.
     ///
     /// \param op Program to draw with.

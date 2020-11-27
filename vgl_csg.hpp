@@ -695,8 +695,8 @@ void csg_read_data(LogicalMesh& msh, const int16_t* data)
                 unsigned c4 = reader.readUnsigned();
                 vec2 tc4 = reader.readVec2();
                 msh.addFace(c1, tc1, c2, tc2, c3, tc3, c4, tc4);
-                break;
             }
+            break;
 
         case CsgCommand::BOX:
             {

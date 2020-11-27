@@ -83,6 +83,13 @@ public:
     /// Accessor.
     ///
     /// \return Pointer to internal data.
+    constexpr void* data() noexcept
+    {
+        return m_data.data();
+    }
+    /// Accessor.
+    ///
+    /// \return Pointer to internal data.
     constexpr const void* data() const noexcept
     {
         return m_data.data();
