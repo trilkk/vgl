@@ -202,6 +202,14 @@ public:
 
     /// Accessor.
     ///
+    /// \return Data size in bytes.
+    unsigned getDataSize() const
+    {
+        return m_vertex_data.size();
+    }
+
+    /// Accessor.
+    ///
     /// \return Size of index buffer.
     constexpr unsigned getIndexCount() const noexcept
     {
