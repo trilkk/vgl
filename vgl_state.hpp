@@ -22,11 +22,11 @@ enum OperationMode
     /// Disable mode.
     DISABLED,
 
+    /// Additive.
+    ADDITIVE,
+
     /// Premultiplied alpha.
     PREMULTIPLIED,
-
-    /// Alpha.
-    ALPHA,
 
     /// Carmack reverse.
     CARMACK,
@@ -45,11 +45,11 @@ std::string to_string(OperationMode op)
     case DISABLED:
         return std::string("DISABLED");
 
+    case ADDITIVE:
+        return std::string("ADDITIVE");
+
     case PREMULTIPLIED:
         return std::string("PREMULTIPLIED");
-
-    case ALPHA:
-        return std::string("ALPHA");
 
     case CARMACK:
         return std::string("CARMACK");
@@ -199,19 +199,19 @@ void blend_mode(OperationMode op)
 
         if(detail::g_blend_mode != op)
         {
-            if(op == PREMULTIPLIED)
+            if(op == ADDITIVE)
             {
-                dnload_glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+                dnload_glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
             }
-            else // Default is alpha.
+            else // Default is premultiplied.
             {
 #if defined(USE_LD)
-                if(op != ALPHA)
+                if(op != PREMULTIPLIED)
                 {
                     BOOST_THROW_EXCEPTION(std::runtime_error("invalid blend mode: '" + to_string(op) + "'"));
                 }
 #endif
-                dnload_glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+                dnload_glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
             }
             detail::g_blend_mode = op;
         }
