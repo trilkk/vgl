@@ -39,6 +39,9 @@ private:
     /// Number of threads active currently.
     unsigned m_threads_active = 0;
 
+    /// Number of threads waiting for tasks to execute.
+    unsigned m_threads_waiting = 0;
+
     /// Flag signifying the task queue is being destroyed.
     bool m_quitting = false;
 
@@ -177,7 +180,9 @@ private:
             }
             else
             {
+                ++m_threads_waiting;
                 m_tasks_any.wait(sl);
+                --m_threads_waiting;
             }
         }
 
@@ -303,10 +308,10 @@ public:
         {
             bool is_spawned = isSpawnedThread();
 
-            // If waiting would lock the last concurrent thread, spawn a new one.
+            // If waiting would lock the last concurrent thread, spawn a new thread.
             if(is_spawned)
             {
-                if(m_threads_active >= m_concurrency)
+                if(m_threads_waiting <= 0)
                 {
                     spawnThread();
                 }

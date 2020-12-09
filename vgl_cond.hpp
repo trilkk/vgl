@@ -113,7 +113,7 @@ public:
     /// \param op Scoped lock (already held).
     void wait(ScopedLock& op)
     {
-    detail::internal_cond_wait(m_cond, op.getMutexImpl());
+        detail::internal_cond_wait(m_cond, op.getMutexImpl());
     }
 
 public:
