@@ -53,10 +53,10 @@ public:
 
     /// Accessor.
     ///
-    /// \return Geometry handle.
-    constexpr const GeometryHandle& getGeometryHandle() const noexcept
+    /// \return Pointer to geometry handle already created for this mesh or nullptr.
+    constexpr const GeometryHandle* getGeometryHandle() const noexcept
     {
-        return *m_handle;
+        return m_handle ? &(*m_handle) : nullptr;
     }
 
     /// Accessor.
@@ -153,6 +153,7 @@ public:
         if(m_handle)
         {
             m_data.update(*m_handle);
+            return;
         }
 
         for(auto& vv : detail::g_geometry_buffers)
