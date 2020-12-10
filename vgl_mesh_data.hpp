@@ -188,14 +188,14 @@ public:
     /// Accessor.
     ///
     /// \return Pointer to raw mesh data.
-    void* getData() noexcept
+    constexpr void* getData() noexcept
     {
         return m_vertex_data.data();
     }
     /// Accessor.
     ///
     /// \return Pointer to raw mesh data.
-    const void* getData() const noexcept
+    constexpr const void* getData() const noexcept
     {
         return m_vertex_data.data();
     }
@@ -203,7 +203,7 @@ public:
     /// Accessor.
     ///
     /// \return Data size in bytes.
-    unsigned getDataSize() const
+    constexpr unsigned getDataSize() const
     {
         return m_vertex_data.size();
     }

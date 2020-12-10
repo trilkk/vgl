@@ -74,6 +74,21 @@ public:
         return m_data;
     }
 
+    /// Accessor.
+    ///
+    /// \return Raw data.
+    constexpr void* getDataRaw() noexcept
+    {
+        return m_data.getData();
+    }
+    /// Accessor.
+    ///
+    /// \return Raw data.
+    constexpr const void* getDataRaw() const noexcept
+    {
+        return m_data.getData();
+    }
+
     /// Draw the mesh.
     ///
     /// \param op Program to draw with.
