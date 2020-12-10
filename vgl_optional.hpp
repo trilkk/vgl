@@ -400,28 +400,6 @@ public:
     }
 };
 
-/// Test if optional values are almost equal.
-///
-/// \param lhs Left-hand-side operand.
-/// \param rhs Right-hand-side operand.
-/// \return True if almost equal, false otherwise.
-template<typename T> bool almost_equal(const optional<T>& lhs, const optional<T>& rhs) noexcept
-{
-    if(lhs)
-    {
-        if(rhs)
-        {
-            return almost_equal(*lhs, *rhs);
-        }
-        return false;
-    }
-    else if(rhs)
-    {
-        return false;
-    }
-    return true;
-}
-
 }
 
 #endif

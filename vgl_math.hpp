@@ -23,17 +23,17 @@ using std::abs;
 namespace detail
 {
 
-/// Rounds floating point value towards negative infinity.
+/// Floor wrapper for double.
 ///
 /// \param val Value to round.
 /// \return Rounded integer value.
-template<typename T> constexpr T floor_template(T val) noexcept
+constexpr double compile_time_floor(double val) noexcept
 {
-    if(val < static_cast<T>(0))
+    if(val < 0.0)
     {
-        return static_cast<T>(static_cast<int>(val) - 1);
+        return static_cast<double>(static_cast<int>(val) - 1);
     }
-    return static_cast<T>(static_cast<int>(val));
+    return static_cast<double>(static_cast<int>(val));
 }
 
 /// Remainder function.
@@ -41,31 +41,25 @@ template<typename T> constexpr T floor_template(T val) noexcept
 /// \param val Value to divide.
 /// \param divisor Divisor to the value.
 /// \return Remainder of val / divisor.
-template<typename T> constexpr T remainder_template(T val, T divisor) noexcept
+constexpr double compile_time_remainder(double val, double divisor) noexcept
 {
-    return val - (floor_template(val / divisor) * divisor);
+    return val - (compile_time_floor(val / divisor) * divisor);
 }
-/// \cond
-template<> constexpr int remainder_template(int val, int divisor) noexcept
-{
-    return val % divisor;
-}
-/// \endcond
 
 /// Congruence function.
 ///
 /// \param val Value to divide.
 /// \param divisor Divisor, must be positive.
 /// \return Value in [0, divisor[.
-template<typename T> constexpr T congr_template(T val, T divisor) noexcept
+constexpr double compile_time_congr(double val, double divisor) noexcept
 {
-    VGL_ASSERT(divisor > static_cast<T>(0));
-    if(static_cast<T>(0) <= val)
+    VGL_ASSERT(divisor > 0.0);
+    if(0.0 <= val)
     {
-        return remainder_template(val, divisor);
+        return compile_time_remainder(val, divisor);
     }
-    T ret = divisor - remainder_template(-val, divisor);
-    return (ret < divisor) ? ret : static_cast<T>(0);
+    double ret = divisor - compile_time_remainder(-val, divisor);
+    return (ret < divisor) ? ret : 0.0;
 }
 
 #if defined(VGL_IS_CONSTANT_EVALUATED)
@@ -443,6 +437,29 @@ constexpr uint8_t modulate(uint8_t lhs, uint8_t rhs) noexcept
     return static_cast<uint8_t>(iround(ret * 255.0f));
 }
 
+/// Floor wrapper.
+///
+/// \param val Value to round.
+/// \return Rounded integer value.
+constexpr float floor(float val) noexcept
+{
+    if(val < 0.0f)
+    {
+        return static_cast<float>(static_cast<int>(val) - 1);
+    }
+    return static_cast<float>(static_cast<int>(val));
+}
+
+/// Remainder function.
+///
+/// \param val Value to divide.
+/// \param divisor Divisor to the value.
+/// \return Remainder of val / divisor.
+constexpr int remainder(int val, int divisor) noexcept
+{
+    return val % divisor;
+}
+
 /// Remainder function.
 ///
 /// \param val Value to divide.
@@ -450,7 +467,7 @@ constexpr uint8_t modulate(uint8_t lhs, uint8_t rhs) noexcept
 /// \return Remainder of val / divisor.
 constexpr float remainder(float val, float divisor) noexcept
 {
-    return detail::remainder_template(val, divisor);
+    return val - (floor(val / divisor) * divisor);
 }
 
 /// Congruence function.
@@ -460,7 +477,13 @@ constexpr float remainder(float val, float divisor) noexcept
 /// \return Value in [0, divisor[
 constexpr int congr(int val, int divisor) noexcept
 {
-    return detail::congr_template(val, divisor);
+    VGL_ASSERT(divisor > 0);
+    if(0 <= val)
+    {
+        return remainder(val, divisor);
+    }
+    int ret = divisor - remainder(-val, divisor);
+    return (ret < divisor) ? ret : 0;
 }
 
 /// Congruence function.
@@ -470,7 +493,13 @@ constexpr int congr(int val, int divisor) noexcept
 /// \return Value in [0, divisor[.
 constexpr float congr(float val, float divisor) noexcept
 {
-    return detail::congr_template(val, divisor);
+    VGL_ASSERT(divisor > 0.0f);
+    if(0.0f <= val)
+    {
+        return remainder(val, divisor);
+    }
+    float ret = divisor - remainder(-val, divisor);
+    return (ret < divisor) ? ret : 0.0f;
 }
 
 /// Convert RGB values to luma.
@@ -503,21 +532,6 @@ template <typename T> constexpr T lerp(float x, float y, const T& x1y1, const T&
 }
 #endif
 
-/// Floor wrapper.
-///
-/// \param val Value to round.
-/// \return Rounded integer value.
-VGL_MATH_CONSTEXPR float floor(float val) noexcept
-{
-#if defined(VGL_IS_CONSTANT_EVALUATED)
-    if(is_constant_evaluated())
-    {
-        return detail::floor_template(val);
-    }
-#endif
-    return dnload_floorf(val);
-}
-
 /// Cosine wrapper.
 ///
 /// \param op Value in radians.
@@ -527,7 +541,7 @@ VGL_MATH_CONSTEXPR float cos(float op) noexcept
 #if defined(VGL_IS_CONSTANT_EVALUATED)
     if(is_constant_evaluated())
     {
-        double val = detail::congr_template(static_cast<double>(op), M_PI * 2.0);
+        double val = detail::compile_time_congr(static_cast<double>(op), M_PI * 2.0);
         if(val >= M_PI)
         {
             val -= 2.0 * M_PI;
@@ -547,7 +561,7 @@ VGL_MATH_CONSTEXPR float sin(float op) noexcept
 #if defined(VGL_IS_CONSTANT_EVALUATED)
     if(is_constant_evaluated())
     {
-        double val = detail::congr_template(static_cast<double>(op), M_PI * 2.0);
+        double val = detail::compile_time_congr(static_cast<double>(op), M_PI * 2.0);
         if(val >= M_PI)
         {
             val -= 2.0 * M_PI;
@@ -585,44 +599,6 @@ VGL_MATH_CONSTEXPR float sqrt(float op) noexcept
 float pow(float val, float power)
 {
     return dnload_powf(val, power);
-}
-
-/// Dot product between two vectors.
-///
-/// \param lhs Left-hand-side operand.
-/// \param rhs Right-hand-side operand.
-/// \return Result value.
-template<typename T> constexpr float dot(const T& lhs, const T& rhs) noexcept
-{
-    float ret = 0.0f;
-    for(unsigned ii = 0; (ii < T::data_size); ++ii)
-    {
-        ret += lhs[ii] * rhs[ii];
-    }
-    return ret;
-}
-
-/// Length of a vector.
-///
-/// \param op Vector input.
-/// \return Length.
-template<typename T> VGL_MATH_CONSTEXPR float length(const T& op)
-{
-    return sqrt(dot(op, op));
-}
-
-/// Normalize a vector.
-///
-/// \param op Vector to normalize.
-/// \return Result vector.
-template<typename T> VGL_MATH_CONSTEXPR typename T::CrtpType normalize(const T& op)
-{
-    float len = length(op);
-    if(len > 0.0f)
-    {
-        return op * (1.0f / len);
-    }
-    return typename T::CrtpType(0.0f);
 }
 
 }

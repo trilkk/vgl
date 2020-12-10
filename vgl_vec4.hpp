@@ -62,6 +62,52 @@ public:
     }
 };
 
+/// Test if optional values are almost equal.
+///
+/// \param lhs Left-hand-side operand.
+/// \param rhs Right-hand-side operand.
+/// \return True if almost equal, false otherwise.
+constexpr bool almost_equal(const optional<vec4>& lhs, const optional<vec4>& rhs) noexcept
+{
+    if(lhs)
+    {
+        return rhs ? almost_equal(*lhs, *rhs) : false;
+    }
+    return rhs ? false : true;
+}
+
+/// Dot product between two vector types.
+///
+/// \param lhs Left-hand-side operand.
+/// \param rhs Right-hand-side operand.
+/// \return Result value.
+constexpr float dot(const vec4& lhs, const vec4& rhs) noexcept
+{
+    return (lhs[0] * rhs[0]) +
+        (lhs[1] * rhs[1]) +
+        (lhs[2] * rhs[2]) +
+        (lhs[3] * rhs[3]);
+}
+
+/// Length of a vector type.
+///
+/// \param op Vector input.
+/// \return Length.
+VGL_MATH_CONSTEXPR float length(const vec4& op)
+{
+    return sqrt(dot(op, op));
+}
+
+/// Normalize a vector type.
+///
+/// \param op Vector to normalize.
+/// \return Result vector.
+VGL_MATH_CONSTEXPR vec4 normalize(const vec4& op)
+{
+    float len = length(op);
+    return (len <= 0.0f) ? vec4(0.0f) : (op * (1.0f / len));
+}
+
 }
 
 #endif
