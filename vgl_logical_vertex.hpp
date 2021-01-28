@@ -244,6 +244,17 @@ public:
         removeFaceReference(&op);
     }
 
+    /// Append all face references from another vertex into this vertex.
+    ///
+    /// \param op Another vertex.
+    void appendFaceReferences(const LogicalVertex& op)
+    {
+        for(auto& vv : op.m_face_references)
+        {
+            addFaceReference(vv);
+        }
+    }
+
     /// Clear face references.
     void clearFaceReferences()
     {

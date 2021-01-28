@@ -221,12 +221,15 @@ private:
     {
         for(unsigned ii = 0; (ii < m_vertices.size()); ++ii)
         {
-            LogicalVertex& vertex = m_vertices[ii];
+            LogicalVertex& lhs = m_vertices[ii];
 
             for(unsigned jj = ii + 1; (jj < m_vertices.size());)
             {
-                if(vertex.matches(m_vertices[jj]))
+                LogicalVertex& rhs = m_vertices[jj];
+
+                if(lhs.matches(rhs))
                 {
+                    lhs.appendFaceReferences(rhs);
                     replaceVertexIndex(jj, ii);
                     eraseOrphanedVertex(jj);
                 }
