@@ -240,10 +240,11 @@ vector<float> opus_read_memory(void* input, unsigned size, int channels)
                 break;
             }
 
-            // Resize to allow at least maximum opus packet size at output.
+            // Must have size for at least one opus packet decoded.
             ret.resize(outpos + OPUS_MAX_PACKET_SIZE_48000);
 
-            std::cout << "decoding packet: " << packet.bytes << std::endl;
+            std::cout << "decoding packet: " << packet.bytes << " ;; " << packet.packetno << " ;; " << packet.b_o_s <<
+                " ;; " << packet.e_o_s << std::endl;
             //sleep(1);
 
             err = opus_decode_float(decoder, packet.packet, static_cast<opus_int32>(packet.bytes), ret.data() + outpos,
