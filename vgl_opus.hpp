@@ -9,6 +9,9 @@
 namespace vgl
 {
 
+namespace detail
+{
+
 /// Abstraction for ogg reading.
 class OggReader
 {
@@ -55,10 +58,8 @@ public:
 
         for(;;)
         {
-            if (ogg_sync_pageout(&m_sync, &page) == 1)
+            if(ogg_sync_pageout(&m_sync, &page) == 1)
             {
-                std::cout << "got page: " << page.header_len << " ;; " << page.body_len << " ;; " <<
-                    ogg_page_serialno(&page) << std::endl;
                 return true;
             }
 
@@ -70,13 +71,9 @@ public:
 
             unsigned increment = min(m_size - m_pos, BLOCK_SIZE);
 
-            std::cout << "ogg_sync_buffer with " << increment << std::endl;
-
             char* buffer = ogg_sync_buffer(&m_sync, static_cast<long>(increment));
             detail::internal_memcpy(buffer, m_input + m_pos, increment);
             m_pos += increment;
-
-            std::cout << "ogg_sync_wrote with " << increment << std::endl;
 
             int err = ogg_sync_wrote(&m_sync, static_cast<long>(increment));
 #if defined(USE_LD)
@@ -132,8 +129,6 @@ public:
             }
         }
 #endif
-
-        std::cout << "ogg page serial was " << serial << std::endl;
 
         {
             int err = ogg_stream_init(&m_stream_state, serial);
@@ -210,14 +205,51 @@ private:
     }
 };
 
+/// Read the opus header from ogg stream.
+/// See: https://tools.ietf.org/html/rfc7845#section-5.1
+/// \param stream Stream to read from.
+/// \return Audio bytes to skip.
+unsigned opus_read_ogg_header(OggStream& stream)
+{
+    ogg_packet packet;
+    bool err = stream.readPacket(packet);
+#if defined(USE_LD)
+    if(!err)
+    {
+        BOOST_THROW_EXCEPTION(std::runtime_error("could not read opus header"));
+    }
+#else
+    (void)err;
+#endif
+    VGL_ASSERT(packet.bytes >= 19);
+    unsigned ret = static_cast<unsigned>(packet.packet[10]) + (static_cast<unsigned>(packet.packet[11]) << 8);
+
+    // Comment packet is just discarded.
+    err = stream.readPacket(packet);
+#if defined(USE_LD)
+    if(!err)
+    {
+        BOOST_THROW_EXCEPTION(std::runtime_error("could not read opus comment"));
+    }
+#endif
+
+    return ret;
+}
+
+}
+
 /// Read opus data from memory.
 ///
 /// \param input Input data.
 /// \param size Input data size.
 /// \return Data read as samples.
-vector<float> opus_read_memory(void* input, unsigned size, int channels)
+vector<float> opus_read_ogg_memory(void* input, unsigned size, int channels)
 {
-    static const unsigned OPUS_MAX_PACKET_SIZE_48000 = 5760;
+    static const int OPUS_MAX_PACKET_SIZE_48000 = 5760;
+
+    // Read header and comment.
+    detail::OggStream stream(input, size);
+    unsigned skip_samples = detail::opus_read_ogg_header(stream);
 
     int err;
     OpusDecoder* decoder = opus_decoder_create(48000, channels, &err);
@@ -228,44 +260,40 @@ vector<float> opus_read_memory(void* input, unsigned size, int channels)
     }
 #endif
 
-    OggStream stream(input, size);
     vector<float> ret;
     {
-        unsigned outpos = 0;
         for(;;)
         {
+            float output[OPUS_MAX_PACKET_SIZE_48000];
             ogg_packet packet;
             if(!stream.readPacket(packet))
             {
                 break;
             }
 
-            // Must have size for at least one opus packet decoded.
-            ret.resize(outpos + OPUS_MAX_PACKET_SIZE_48000);
-
-            std::cout << "decoding packet: " << packet.bytes << " ;; " << packet.packetno << " ;; " << packet.b_o_s <<
-                " ;; " << packet.e_o_s << std::endl;
-            //sleep(1);
-
-            err = opus_decode_float(decoder, packet.packet, static_cast<opus_int32>(packet.bytes), ret.data() + outpos,
-                    static_cast<int>(OPUS_MAX_PACKET_SIZE_48000), 0);
+            err = opus_decode_float(decoder, packet.packet, static_cast<opus_int32>(packet.bytes), output,
+                OPUS_MAX_PACKET_SIZE_48000, 0);
 #if defined(USE_LD)
-            if(err == OPUS_INVALID_PACKET)
-            {
-                std::cout << "invalid packet\n";
-            }
-            else if(err <= 0)
+            if(err <= 0)
             {
                 BOOST_THROW_EXCEPTION(std::runtime_error("opus_decode_float() error: " + std::to_string(err)));
             }
             else
 #endif
             {
-                std::cout << "decoded " << err << " samples" << std::endl;
-                outpos += err;
+                for(int ii = 0; (ii < err); ++ii)
+                {
+                    if(skip_samples > 0)
+                    {
+                        --skip_samples;
+                    }
+                    else
+                    {
+                        ret.push_back(output[ii]);
+                    }
+                }
             }
         }
-        ret.resize(outpos);
     }
 
 #if defined(USE_LD)
