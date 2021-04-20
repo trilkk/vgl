@@ -4,7 +4,7 @@
 #include "vgl_realloc.hpp"
 
 #include "ogg/ogg.h"
-#include "opus/opus.h"
+#include "opus.h"
 
 namespace vgl
 {

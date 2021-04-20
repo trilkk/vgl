@@ -48,6 +48,7 @@ set(VGL_HEADERS
     "${VGL_ROOT}/vgl_mesh_data.hpp"
     "${VGL_ROOT}/vgl_mutex.hpp"
     "${VGL_ROOT}/vgl_optional.hpp"
+    "${VGL_ROOT}/vgl_opus.hpp"
     "${VGL_ROOT}/vgl_packed_data.hpp"
     "${VGL_ROOT}/vgl_packed_data_reader.hpp"
     "${VGL_ROOT}/vgl_quat.hpp"
