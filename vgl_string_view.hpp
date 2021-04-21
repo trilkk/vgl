@@ -29,6 +29,15 @@ public:
 
     /// Constructor.
     ///
+    /// \param ptr C string input.
+    /// \param len Length of input.
+    constexpr explicit string_view(const char* ptr, unsigned len) :
+        base_type(ptr, len)
+    {
+    }
+
+    /// Constructor.
+    ///
     /// Intentionally not explicit.
     ///
     /// \param op C string input.

@@ -3,7 +3,6 @@
 
 #if defined(USE_LD)
 #include <string>
-#include <boost/exception/diagnostic_information.hpp>
 #endif
 
 namespace vgl

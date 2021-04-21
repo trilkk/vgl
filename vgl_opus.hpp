@@ -1,16 +1,28 @@
 #ifndef VGL_OPUS_HPP
 #define VGL_OPUS_HPP
 
+#include "vgl_algorithm.hpp"
+#include "vgl_assert.hpp"
 #include "vgl_realloc.hpp"
 
+#if !defined(VGL_DISABLE_OGG)
 #include "ogg/ogg.h"
+#endif
+#if !defined(VGL_DISABLE_OPUS)
+#include "vgl_vector.hpp"
 #include "opus.h"
+#endif
 
 namespace vgl
 {
 
 namespace detail
 {
+
+/// Opus maximum packet size in samples for 48kHz.
+constexpr int OPUS_MAX_PACKET_SIZE_48000 = 5760;
+
+#if !defined(VGL_DISABLE_OGG)
 
 /// Abstraction for ogg reading.
 class OggReader
@@ -37,7 +49,7 @@ public:
         m_input(reinterpret_cast<const uint8_t*>(input)),
         m_size(size)
     {
-        ogg_sync_init(&m_sync);
+        dnload_ogg_sync_init(&m_sync);
     }
 
     /// Destructor.
@@ -58,7 +70,7 @@ public:
 
         for(;;)
         {
-            if(ogg_sync_pageout(&m_sync, &page) == 1)
+            if(dnload_ogg_sync_pageout(&m_sync, &page) == 1)
             {
                 return true;
             }
@@ -71,11 +83,11 @@ public:
 
             unsigned increment = min(m_size - m_pos, BLOCK_SIZE);
 
-            char* buffer = ogg_sync_buffer(&m_sync, static_cast<long>(increment));
+            char* buffer = dnload_ogg_sync_buffer(&m_sync, static_cast<long>(increment));
             detail::internal_memcpy(buffer, m_input + m_pos, increment);
             m_pos += increment;
 
-            int err = ogg_sync_wrote(&m_sync, static_cast<long>(increment));
+            int err = dnload_ogg_sync_wrote(&m_sync, static_cast<long>(increment));
 #if defined(USE_LD)
             if(err)
             {
@@ -102,7 +114,7 @@ public:
     /// Constructor.
     /// \param input Input data.
     /// \param size Input data size.
-    explicit OggStream(void* input, unsigned size) :
+    explicit OggStream(const void* input, unsigned size) :
         m_reader(input, size)
     {
         ogg_page page;
@@ -119,7 +131,7 @@ public:
         }
 
         // First page must correspond to the opus stream.
-        int serial = ogg_page_serialno(&page);
+        int serial = dnload_ogg_page_serialno(&page);
 #if defined(USE_LD)
         {
             int err = ogg_page_bos(&page);
@@ -131,7 +143,7 @@ public:
 #endif
 
         {
-            int err = ogg_stream_init(&m_stream_state, serial);
+            int err = dnload_ogg_stream_init(&m_stream_state, serial);
 #if defined(USE_LD)
             if(err)
             {
@@ -165,7 +177,7 @@ public:
     {
         for(;;)
         {
-            int err = ogg_stream_packetout(&m_stream_state, &op);
+            int err = dnload_ogg_stream_packetout(&m_stream_state, &op);
             // Not enough data -> try to submit more packets.
             if(!err)
             {
@@ -178,12 +190,11 @@ public:
                 continue;
             }
 #if defined(USE_LD)
-            if(err < 0)
+            if(err != 1)
             {
                 BOOST_THROW_EXCEPTION(std::runtime_error("ogg_stream_packetout() error: " + std::to_string(err)));
             }
 #endif
-            VGL_ASSERT(err == 1);
             return true;
         }
     }
@@ -193,7 +204,7 @@ private:
     /// \param page Page to submit.
     void submitPage(ogg_page& page)
     {
-        int err = ogg_stream_pagein(&m_stream_state, &page);
+        int err = dnload_ogg_stream_pagein(&m_stream_state, &page);
 #if defined(USE_LD)
         if(err)
         {
@@ -236,23 +247,27 @@ unsigned opus_read_ogg_header(OggStream& stream)
     return ret;
 }
 
+#endif
+
 }
 
-/// Read opus data from memory.
+#if !defined(VGL_DISABLE_OPUS)
+
+#if !defined(VGL_DISABLE_OGG)
+
+/// Read ogg opus data from memory.
 ///
 /// \param input Input data.
 /// \param size Input data size.
 /// \return Data read as samples.
-vector<float> opus_read_ogg_memory(void* input, unsigned size, int channels)
+vector<float> opus_read_ogg_memory(const void* input, unsigned size, int channels)
 {
-    static const int OPUS_MAX_PACKET_SIZE_48000 = 5760;
-
     // Read header and comment.
     detail::OggStream stream(input, size);
     unsigned skip_samples = detail::opus_read_ogg_header(stream);
 
     int err;
-    OpusDecoder* decoder = opus_decoder_create(48000, channels, &err);
+    OpusDecoder* decoder = dnload_opus_decoder_create(48000, channels, &err);
 #if defined(USE_LD)
     if(err != OPUS_OK)
     {
@@ -261,36 +276,34 @@ vector<float> opus_read_ogg_memory(void* input, unsigned size, int channels)
 #endif
 
     vector<float> ret;
+    for(;;)
     {
-        for(;;)
+        float output[detail::OPUS_MAX_PACKET_SIZE_48000];
+        ogg_packet packet;
+        if(!stream.readPacket(packet))
         {
-            float output[OPUS_MAX_PACKET_SIZE_48000];
-            ogg_packet packet;
-            if(!stream.readPacket(packet))
-            {
-                break;
-            }
+            break;
+        }
 
-            err = opus_decode_float(decoder, packet.packet, static_cast<opus_int32>(packet.bytes), output,
-                OPUS_MAX_PACKET_SIZE_48000, 0);
+        err = dnload_opus_decode_float(decoder, packet.packet, static_cast<opus_int32>(packet.bytes), output,
+                detail::OPUS_MAX_PACKET_SIZE_48000, 0);
 #if defined(USE_LD)
-            if(err <= 0)
-            {
-                BOOST_THROW_EXCEPTION(std::runtime_error("opus_decode_float() error: " + std::to_string(err)));
-            }
-            else
+        if(err <= 0)
+        {
+            BOOST_THROW_EXCEPTION(std::runtime_error("opus_decode_float() error: " + std::to_string(err)));
+        }
+        else
 #endif
+        {
+            for(int ii = 0; (ii < err); ++ii)
             {
-                for(int ii = 0; (ii < err); ++ii)
+                if(skip_samples > 0)
                 {
-                    if(skip_samples > 0)
-                    {
-                        --skip_samples;
-                    }
-                    else
-                    {
-                        ret.push_back(output[ii]);
-                    }
+                    --skip_samples;
+                }
+                else
+                {
+                    ret.push_back(output[ii]);
                 }
             }
         }
@@ -301,6 +314,75 @@ vector<float> opus_read_ogg_memory(void* input, unsigned size, int channels)
 #endif
     return ret;
 }
+
+#else
+
+/// Read ogg opus data from memory.
+///
+/// \param input Input data.
+/// \param size Input data size.
+/// \param channels Channel count.
+/// \param skip_samples Samples to skip from beginning.
+/// \return Data read as samples.
+vector<float> opus_read_raw_memory(const void* input, unsigned size, int channels, unsigned skip_samples)
+{
+    vector<float> ret;
+
+    int err;
+    OpusDecoder* decoder = dnload_opus_decoder_create(48000, channels, &err);
+#if defined(USE_LD)
+    if(err != OPUS_OK)
+    {
+        BOOST_THROW_EXCEPTION(std::runtime_error("opus_decoder_create() failed: " + std::to_string(err)));
+    }
+#endif
+
+    const uint8_t* input_iter = reinterpret_cast<const uint8_t*>(input);
+    const uint8_t* iter_end = input_iter + size;
+    do
+    {
+        float output[detail::OPUS_MAX_PACKET_SIZE_48000];
+
+        // Read packet size.
+        opus_int32 bytes = static_cast<opus_int32>(input_iter[0] + (input_iter[1] << 8));
+        input_iter += 2;
+
+        err = dnload_opus_decode_float(decoder, input_iter, bytes, output, detail::OPUS_MAX_PACKET_SIZE_48000, 0);
+#if defined(USE_LD)
+        if(err <= 0)
+        {
+            BOOST_THROW_EXCEPTION(std::runtime_error("opus_decode_float() error: " + std::to_string(err)));
+        }
+        else
+#endif
+        {
+            for(int ii = 0; (ii < err); ++ii)
+            {
+                if(skip_samples > 0)
+                {
+                    --skip_samples;
+                }
+                else
+                {
+                    ret.push_back(output[ii]);
+                }
+            }
+        }
+
+        // Advance position.
+        input_iter += bytes;
+        VGL_ASSERT(input_iter <= iter_end);
+    } while(input_iter != iter_end);
+
+#if defined(USE_LD)
+    opus_decoder_destroy(decoder);
+#endif
+    return ret;
+}
+
+#endif
+
+#endif
 
 }
 
