@@ -33,9 +33,6 @@ private:
     /// Characters loaded.
     CharacterUptr m_characters[MAX_CHARACTERS];
 
-    /// Mesh used for rendering single characters.
-    Mesh* m_mesh;
-
     /// 'M' size for the face (pixels).
     unsigned m_font_size;
 
@@ -124,22 +121,6 @@ private:
     }
 
 public:
-    /// Accessor.
-    ///
-    /// \return Character mesh.
-    const Mesh& getMesh() const
-    {
-        VGL_ASSERT(m_mesh);
-        return *m_mesh;
-    }
-    /// Set the mesh.
-    ///
-    /// \param op Mesh to use.
-    void setMesh(Mesh& op)
-    {
-        m_mesh = &op;
-    }
-
     /// Create one character (for later use).
     ///
     /// \param unicode Unicode character id.

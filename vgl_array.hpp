@@ -67,6 +67,13 @@ public:
     /// Iterator to the beginning.
     ///
     /// \return Iterator.
+    constexpr const_iterator begin() const
+    {
+        return m_data;
+    }
+    /// Iterator to the beginning.
+    ///
+    /// \return Iterator.
     constexpr const_iterator cbegin() const
     {
         return m_data;
@@ -76,6 +83,13 @@ public:
     ///
     /// \return Iterator.
     constexpr iterator end()
+    {
+        return m_data + N;
+    }
+    /// Iterator to the end.
+    ///
+    /// \return Iterator.
+    constexpr const_iterator end() const
     {
         return m_data + N;
     }
