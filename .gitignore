@@ -3,6 +3,7 @@ CMakeFiles/
 Debug/
 Release/
 test.dir/
+/opus2raw
 /test
 /*.exe
 cmake_install.cmake
