@@ -208,34 +208,34 @@ private:
     {
     private:
         /// Current projection matrix.
-        const mat4* m_projection_matrix;
+        const mat4* VGL_VOLUNTARY_MEMBER_VALUE(m_projection_matrix, nullptr);
 
         /// Current camera depth range.
-        const vec2* m_projection_range;
+        const vec2* VGL_VOLUNTARY_MEMBER_VALUE(m_projection_range, nullptr);
 
         /// Current camera matrix.
-        const mat4* m_camera_matrix;
+        const mat4* VGL_VOLUNTARY_MEMBER_VALUE(m_camera_matrix, nullptr);
 
         /// Current projection camera matrix.
-        const mat4* m_projection_camera_matrix;
+        const mat4* VGL_VOLUNTARY_MEMBER_VALUE(m_projection_camera_matrix, nullptr);
 
         /// Current modelview matrix.
-        const mat4* m_modelview_matrix;
+        const mat4* VGL_VOLUNTARY_MEMBER_VALUE(m_modelview_matrix, nullptr);
 
         /// Current normal matrix.
-        const mat3* m_normal_matrix;
+        const mat3* VGL_VOLUNTARY_MEMBER_VALUE(m_normal_matrix, nullptr);
 
         /// Current camera modelview matrix.
-        const mat4* m_camera_modelview_matrix;
+        const mat4* VGL_VOLUNTARY_MEMBER_VALUE(m_camera_modelview_matrix, nullptr);
 
         /// Current projection camera modelview matrix.
-        const mat4* m_projection_camera_modelview_matrix;
+        const mat4* VGL_VOLUNTARY_MEMBER_VALUE(m_projection_camera_modelview_matrix, nullptr);
 
         /// Current camera position.
-        const vec3* m_camera_position;
+        const vec3* VGL_VOLUNTARY_MEMBER_VALUE(m_camera_position, nullptr);
 
         /// Current program.
-        GlslProgram* m_program;
+        GlslProgram* VGL_VOLUNTARY_MEMBER_VALUE(m_program, nullptr);
 
         /// Current mesh.
         Mesh* m_mesh = nullptr;
@@ -248,23 +248,7 @@ private:
 
     public:
         /// Constructor.
-        ///
-        /// \param op Render queue to render.
-        explicit RenderState()
-        {
-#if defined(USE_LD)
-            m_projection_matrix = nullptr;
-            m_projection_range = nullptr;
-            m_camera_matrix = nullptr;
-            m_projection_camera_matrix = nullptr;
-            m_modelview_matrix = nullptr;
-            m_normal_matrix = nullptr;
-            m_camera_modelview_matrix = nullptr;
-            m_projection_camera_modelview_matrix = nullptr;
-            m_camera_position = nullptr;
-            m_program = nullptr;
-#endif
-        }
+        explicit RenderState() = default;
 
     private:
         /// Apply a mesh.
@@ -279,6 +263,10 @@ private:
             }
 
 #if defined(USE_LD)
+            if(!m_program)
+            {
+                BOOST_THROW_EXCEPTION(std::runtime_error("cannot apply mesh before a program has been set"));
+            }
             if(!m_projection_matrix)
             {
                 BOOST_THROW_EXCEPTION(std::runtime_error("cannot apply mesh before view settings have been read"));
