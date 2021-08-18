@@ -18,29 +18,6 @@ using wave_context = boost::wave::context<std::string::const_iterator, wave_cppl
 namespace
 {
 
-/// Read a file.
-///
-/// \param name File to open.
-/// \return Contents of file as a string.
-std::string read_file(const fs::path &name)
-{
-    std::ostringstream ret;
-    std::ifstream fd(name.string());
-
-    for(;;)
-    {
-        char cc;
-        fd.get(cc);
-
-        if(fd.eof())
-        {
-            return ret.str();
-        }
-
-        ret << cc;
-    }
-}
-
 /// Split GLSL source to onward-passed preprocessor definitions and the rest.
 ///
 /// \param source Source input.
@@ -356,55 +333,6 @@ std::string convert_glesv2_gl(std::string_view op)
 
 namespace vgl
 {
-
-fs::path find_file(std::string_view fname)
-{
-    fs::path attempt = fname.data();
-    if(fs::exists(attempt))
-    {
-        return attempt;
-    }
-
-    attempt = fs::path("..") / fs::path(fname.data());
-    if(fs::exists(attempt))
-    {
-        return attempt;
-    }
-
-    const fs::path SRC_PATH("src");
-    attempt = SRC_PATH / fs::path(fname.data());
-    if(fs::exists(attempt))
-    {
-        return attempt;
-    }
-
-    attempt = fs::path("..") / SRC_PATH / fs::path(fname.data());
-    if(fs::exists(attempt))
-    {
-        return attempt;
-    }
-
-    const fs::path REL_PATH("rel");
-    attempt = REL_PATH / fs::path(fname.data());
-    if(fs::exists(attempt))
-    {
-        return attempt;
-    }
-
-    attempt = fs::path("..") / REL_PATH / fs::path(fname.data());
-    if(fs::exists(attempt))
-    {
-        return attempt;
-    }
-
-    return fs::path();
-}
-
-std::string read_file_locate(std::string_view fname)
-{
-    fs::path real_path = find_file(fname);
-    return read_file(real_path).data();
-}
 
 std::string wave_preprocess_glsl(std::string_view op)
 {

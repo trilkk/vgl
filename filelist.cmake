@@ -18,6 +18,7 @@ set(VGL_HEADERS
     "${VGL_ROOT}/vgl_character.hpp"
     "${VGL_ROOT}/vgl_cond.hpp"
     "${VGL_ROOT}/vgl_csg.hpp"
+    "${VGL_ROOT}/vgl_csg_file.hpp"
     "${VGL_ROOT}/vgl_cstddef.hpp"
     "${VGL_ROOT}/vgl_fence.hpp"
     "${VGL_ROOT}/vgl_font.hpp"
@@ -51,6 +52,7 @@ set(VGL_HEADERS
     "${VGL_ROOT}/vgl_opus.hpp"
     "${VGL_ROOT}/vgl_packed_data.hpp"
     "${VGL_ROOT}/vgl_packed_data_reader.hpp"
+    "${VGL_ROOT}/vgl_path.hpp"
     "${VGL_ROOT}/vgl_quat.hpp"
     "${VGL_ROOT}/vgl_queue.hpp"
     "${VGL_ROOT}/vgl_realloc.hpp"
@@ -78,4 +80,6 @@ set(VGL_HEADERS
     "${VGL_ROOT}/vgl_vector.hpp"
     "${VGL_ROOT}/vgl_wave.hpp")
 set(VGL_SOURCES
+    "${VGL_ROOT}/vgl_csg_file.cpp"
+    "${VGL_ROOT}/vgl_path.cpp"
     "${VGL_ROOT}/vgl_wave.cpp")
