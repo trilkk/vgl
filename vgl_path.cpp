@@ -4,8 +4,6 @@
 
 #include <boost/throw_exception.hpp>
 
-#include <iostream>
-
 namespace fs = boost::filesystem;
 
 namespace vgl
@@ -87,7 +85,6 @@ std::string read_file_locate(std::string_view fname)
 
 void write_file(const boost::filesystem::path& name, std::string_view contents)
 {
-    std::cout << contents << std::endl;
     std::ofstream fd(name.string());
     fd << contents;
 }

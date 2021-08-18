@@ -4,8 +4,6 @@
 
 #include <boost/throw_exception.hpp>
 
-#include <iostream>
-
 namespace vgl
 {
 
@@ -53,7 +51,6 @@ CsgFile::CsgFile(std::string_view filename) :
 bool CsgFile::update(const int16_t* data, size_t count)
 {
     std::string cmp_contents = generate_contents(m_basename, data, count);
-    std::cout << cmp_contents << std::endl;
     if(cmp_contents == m_contents)
     {
         return false;
