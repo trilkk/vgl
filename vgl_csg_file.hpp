@@ -34,6 +34,23 @@ public:
     /// \return Truth value corresponding to the file being updated or not.
     bool update(const int16_t* data, size_t count);
 
+    /// Accessor.
+    ///
+    /// \return Truth value corresponding to the CSG file being valid.
+    bool isValid() const
+    {
+        return !m_filename.empty();
+    }
+
+public:
+    /// Conversion to bool.
+    ///
+    /// \return Truth value corresponding to the CSG file being valid.
+    operator bool() const
+    {
+        return isValid();
+    }
+
 private:
     /// Generate contents corresponding to a data block.
     ///

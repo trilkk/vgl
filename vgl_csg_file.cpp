@@ -1,5 +1,6 @@
 #include "vgl_csg_file.hpp"
 
+#include <iostream>
 #include <sstream>
 
 #include <boost/throw_exception.hpp>
@@ -41,9 +42,9 @@ CsgFile::CsgFile(std::string_view filename) :
     m_basename(filename),
     m_filename(find_file(m_basename))
 {
-    if(m_filename.empty())
+    if(!isValid())
     {
-        BOOST_THROW_EXCEPTION(std::runtime_error("CsgFile(): '" + m_basename + "' not found"));
+        std::cerr << "CsgFile(): '" << m_basename << "' not found" << std::endl;
     }
     m_contents = read_file(m_filename);
 }
