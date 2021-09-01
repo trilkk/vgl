@@ -49,7 +49,7 @@ CsgFile::CsgFile(std::string_view filename) :
     m_contents = read_file(m_filename);
 }
 
-size_t CsgFile::update(const int16_t* data, size_t count)
+unsigned CsgFile::update(const int16_t* data, unsigned count)
 {
     if(!data || (count <= 0))
     {
@@ -62,10 +62,10 @@ size_t CsgFile::update(const int16_t* data, size_t count)
         return 0;
     }
     write_file(m_filename, cmp_contents);
-    return sizeof(*data) * count;
+    return static_cast<unsigned>(sizeof(*data) * count);
 }
 
-std::string CsgFile::generate_contents(std::string_view filename, const int16_t* data, size_t count)
+std::string CsgFile::generate_contents(std::string_view filename, const int16_t* data, unsigned count)
 {
     const size_t LINE_LEN = 78;
 

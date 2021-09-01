@@ -32,7 +32,7 @@ public:
     /// \param data Input data to compare to file contents.
     /// \param count Number of data elements.
     /// \return Size of data array written to the header. Zero if header not updated.
-    size_t update(const int16_t* data, size_t count);
+    unsigned update(const int16_t* data, unsigned count);
 
     /// Accessor.
     ///
@@ -66,7 +66,7 @@ private:
     /// \param data Input data.
     /// \param count Number of data elements.
     /// \return Header data generated from the data.
-    static std::string generate_contents(std::string_view filename, const int16_t* data, size_t count);
+    static std::string generate_contents(std::string_view filename, const int16_t* data, unsigned count);
 };
 
 }
