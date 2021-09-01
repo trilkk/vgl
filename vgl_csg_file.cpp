@@ -67,7 +67,7 @@ unsigned CsgFile::update(const int16_t* data, unsigned count)
 
 std::string CsgFile::generate_contents(std::string_view filename, const int16_t* data, unsigned count)
 {
-    const size_t LINE_LEN = 78;
+    const unsigned LINE_LEN = 78;
 
     std::ostringstream sstr;
     std::string fname = headerify(filename);
@@ -76,7 +76,7 @@ std::string CsgFile::generate_contents(std::string_view filename, const int16_t*
     sstr << "#ifndef __" << fname << "__\n#define __" << fname << "__\n\nconst int16_t g_" << fname << "[] =\n{\n";
 
     std::string cumulative;
-    for(size_t ii = 0; (ii < count); ++ii)
+    for(unsigned ii = 0; (ii < count); ++ii)
     {
     std::string increment = std::to_string(data[ii]) + ",";
         std::string prospective = cumulative;
