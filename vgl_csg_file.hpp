@@ -31,8 +31,16 @@ public:
     ///
     /// \param data Input data to compare to file contents.
     /// \param count Number of data elements.
-    /// \return Truth value corresponding to the file being updated or not.
-    bool update(const int16_t* data, size_t count);
+    /// \return Size of data array written to the header. Zero if header not updated.
+    size_t update(const int16_t* data, size_t count);
+
+    /// Accessor.
+    ///
+    /// \return Filename.
+    const boost::filesystem::path& getFilename() const
+    {
+        return m_filename;
+    }
 
     /// Accessor.
     ///

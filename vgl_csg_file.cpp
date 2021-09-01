@@ -44,20 +44,25 @@ CsgFile::CsgFile(std::string_view filename) :
 {
     if(!isValid())
     {
-        std::cerr << "CsgFile(): '" << m_basename << "' not found" << std::endl;
+        std::cerr << "CsgFile::CsgFile(): '" << m_basename << "' not found" << std::endl;
     }
     m_contents = read_file(m_filename);
 }
 
-bool CsgFile::update(const int16_t* data, size_t count)
+size_t CsgFile::update(const int16_t* data, size_t count)
 {
+    if(!data || (count <= 0))
+    {
+        std::cerr << "CsgFile::update(): illegal input data: " << data << " ; " << count << std::endl;
+        return 0;
+    }
     std::string cmp_contents = generate_contents(m_basename, data, count);
     if(cmp_contents == m_contents)
     {
-        return false;
+        return 0;
     }
     write_file(m_filename, cmp_contents);
-    return true;
+    return sizeof(*data) * count;
 }
 
 std::string CsgFile::generate_contents(std::string_view filename, const int16_t* data, size_t count)
