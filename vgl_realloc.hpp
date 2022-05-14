@@ -5,6 +5,7 @@
 
 #if defined(USE_LD)
 #include <boost/throw_exception.hpp>
+#include <iostream>
 #endif
 
 /// A global delete operator using free().
@@ -39,7 +40,7 @@ void* operator new(size_t sz)
 #if defined(USE_LD)
     if(!sz)
     {
-        BOOST_THROW_EXCEPTION(std::runtime_error("call to 'new' with size 0"));
+        std::cerr << "WARNING: call to new() with size 0" << std::endl;
     }
 #endif
     return dnload_realloc(NULL, sz);
