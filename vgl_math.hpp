@@ -23,34 +23,6 @@ using std::abs;
 namespace detail
 {
 
-/// Remainder function.
-///
-/// \param val Value to divide.
-/// \param divisor Divisor to the value.
-/// \return Remainder of val / divisor.
-constexpr double compile_time_remainder(double val, double divisor) noexcept
-{
-    return val - (compile_time_floor(val / divisor) * divisor);
-}
-
-/// Congruence function.
-///
-/// \param val Value to divide.
-/// \param divisor Divisor, must be positive.
-/// \return Value in [0, divisor[.
-constexpr double compile_time_congr(double val, double divisor) noexcept
-{
-    VGL_ASSERT(divisor > 0.0);
-    if(0.0 <= val)
-    {
-        return compile_time_remainder(val, divisor);
-    }
-    double ret = divisor - compile_time_remainder(-val, divisor);
-    return (ret < divisor) ? ret : 0.0;
-}
-
-#if defined(VGL_IS_CONSTANT_EVALUATED)
-
 /// Floor wrapper for double.
 ///
 /// \param val Value.
@@ -86,6 +58,34 @@ constexpr double compile_time_ceil(double val) noexcept
     }
     return static_cast<double>(cast_value + 1);
 }
+
+/// Remainder function.
+///
+/// \param val Value to divide.
+/// \param divisor Divisor to the value.
+/// \return Remainder of val / divisor.
+constexpr double compile_time_remainder(double val, double divisor) noexcept
+{
+    return val - (compile_time_floor(val / divisor) * divisor);
+}
+
+/// Congruence function.
+///
+/// \param val Value to divide.
+/// \param divisor Divisor, must be positive.
+/// \return Value in [0, divisor[.
+constexpr double compile_time_congr(double val, double divisor) noexcept
+{
+    VGL_ASSERT(divisor > 0.0);
+    if(0.0 <= val)
+    {
+        return compile_time_remainder(val, divisor);
+    }
+    double ret = divisor - compile_time_remainder(-val, divisor);
+    return (ret < divisor) ? ret : 0.0;
+}
+
+#if defined(VGL_IS_CONSTANT_EVALUATED)
 
 /// Calculate power (compile-time).
 ///
