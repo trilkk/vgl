@@ -531,6 +531,7 @@ VGL_MATH_CONSTEXPR float floor(float val) noexcept
     return dnload_floorf(val);
 }
 
+#if !defined(VGL_DISABLE_CEIL)
 /// Ceil wrapper.
 ///
 /// \param val Value.
@@ -545,6 +546,7 @@ VGL_MATH_CONSTEXPR float ceil(float val) noexcept
 #endif
     return dnload_ceilf(val);
 }
+#endif
 
 /// Remainder function.
 ///

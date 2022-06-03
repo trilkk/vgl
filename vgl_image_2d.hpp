@@ -72,7 +72,7 @@ protected:
     /// \param pc Channel.
     /// \param nearest True to sample nearest as opposed to linear.
     /// \return Sampled color.
-    constexpr float sample(float px, float py, unsigned pc, bool nearest) const noexcept
+    VGL_MATH_CONSTEXPR float sample(float px, float py, unsigned pc, bool nearest) const noexcept
     {
         float fwidth = static_cast<float>(m_width);
         float fheight = static_cast<float>(m_height);
@@ -209,7 +209,7 @@ public:
     /// \param py Y position.
     /// \param channel Channel to access.
     /// \return Address of the closest pixel to given location.
-    constexpr float* getClosestPixelAddress(float px, float py, unsigned channel) noexcept
+    VGL_MATH_CONSTEXPR float* getClosestPixelAddress(float px, float py, unsigned channel) noexcept
     {
         float fwidth = static_cast<float>(m_width);
         float fheight = static_cast<float>(m_height);
@@ -223,7 +223,7 @@ public:
     /// \param pos Position.
     /// \param channel Channel to access.
     /// \return Address of the closest pixel to given location.
-    constexpr float* getClosestPixelAddress(const vec2& pos, unsigned channel) noexcept
+    VGL_MATH_CONSTEXPR float* getClosestPixelAddress(const vec2& pos, unsigned channel) noexcept
     {
         return getClosestPixelAddress(pos.x(), pos.y(), channel);
     }
@@ -286,7 +286,7 @@ public:
     /// \param px X coordinate [0, 1[.
     /// \param py Y coordinate [0, 1[.
     /// \param pc Channel.
-    constexpr float sampleLinear(float px, float py, unsigned pc) const noexcept
+    VGL_MATH_CONSTEXPR float sampleLinear(float px, float py, unsigned pc) const noexcept
     {
         return sample(px, py, pc, false);
     }
@@ -294,7 +294,7 @@ public:
     ///
     /// \param pos Sampling coordinates (components: [0, 1[).
     /// \param pc Channel.
-    constexpr float sampleLinear(const vec2& pos, unsigned pc) const noexcept
+    VGL_MATH_CONSTEXPR float sampleLinear(const vec2& pos, unsigned pc) const noexcept
     {
         return sampleLinear(pos.x(), pos.y(), pc);
     }
@@ -303,7 +303,7 @@ public:
     /// \param px X coordinate [0, 1[.
     /// \param py Y coordinate [0, 1[.
     /// \param pc Channel.
-    constexpr float sampleNearest(float px, float py, unsigned pc) const noexcept
+    VGL_MATH_CONSTEXPR float sampleNearest(float px, float py, unsigned pc) const noexcept
     {
         return sample(px, py, pc, true);
     }
@@ -311,7 +311,7 @@ public:
     ///
     /// \param pos Sampling coordinates (components: [0, 1[).
     /// \param pc Channel.
-    constexpr float sampleNearest(const vec2& pos, unsigned pc) const noexcept
+    VGL_MATH_CONSTEXPR float sampleNearest(const vec2& pos, unsigned pc) const noexcept
     {
         return sampleNearest(pos.x(), pos.y(), pc);
     }

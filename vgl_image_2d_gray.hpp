@@ -26,7 +26,7 @@ public:
     /// \param px X coordinate [0, 1[.
     /// \param py Y coordinate [0, 1[.
     /// \return Sampled value.
-    constexpr float sampleLinear(float px, float py) const noexcept
+    VGL_MATH_CONSTEXPR float sampleLinear(float px, float py) const noexcept
     {
         return Image2D::sampleLinear(px, py, 0);
     }
@@ -34,7 +34,7 @@ public:
     ///
     /// \param pos Position in image.
     /// \return Sampled value.
-    constexpr float sampleLinear(const vec2& pos) const noexcept
+    VGL_MATH_CONSTEXPR float sampleLinear(const vec2& pos) const noexcept
     {
         return sampleLinear(pos.x(), pos.y());
     }
@@ -43,7 +43,7 @@ public:
     /// \param px X coordinate [0, 1[.
     /// \param py Y coordinate [0, 1[.
     /// \return Sampled value.
-    constexpr float sampleNearest(float px, float py) const noexcept
+    VGL_MATH_CONSTEXPR float sampleNearest(float px, float py) const noexcept
     {
         return Image2D::sampleNearest(px, py, 0);
     }
@@ -51,7 +51,7 @@ public:
     ///
     /// \param pos Position in image.
     /// \return Sampled value.
-    constexpr float sampleNearest(const vec2& pos) const noexcept
+    VGL_MATH_CONSTEXPR float sampleNearest(const vec2& pos) const noexcept
     {
         return sampleNearest(pos.x(), pos.y());
     }
