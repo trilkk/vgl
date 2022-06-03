@@ -23,19 +23,6 @@ using std::abs;
 namespace detail
 {
 
-/// Floor wrapper for double.
-///
-/// \param val Value to round.
-/// \return Rounded integer value.
-constexpr double compile_time_floor(double val) noexcept
-{
-    if(val < 0.0)
-    {
-        return static_cast<double>(static_cast<int>(val) - 1);
-    }
-    return static_cast<double>(static_cast<int>(val));
-}
-
 /// Remainder function.
 ///
 /// \param val Value to divide.
@@ -63,6 +50,42 @@ constexpr double compile_time_congr(double val, double divisor) noexcept
 }
 
 #if defined(VGL_IS_CONSTANT_EVALUATED)
+
+/// Floor wrapper for double.
+///
+/// \param val Value.
+/// \return Floating point value rounded towards negative infinity.
+constexpr double compile_time_floor(double val) noexcept
+{
+    if(val < 0.0)
+    {
+        int cast_value = static_cast<int>(val);
+        if(static_cast<double>(cast_value) == val)
+        {
+            return val;
+        }
+        return static_cast<double>(cast_value - 1);
+    }
+    return static_cast<double>(static_cast<int>(val));
+}
+
+/// Floor wrapper for double.
+///
+/// \param val Value.
+/// \return Floating point value rounded towards positive infinity.
+constexpr double compile_time_ceil(double val) noexcept
+{
+    if(val < 0.0)
+    {
+        return static_cast<double>(static_cast<int>(val));
+    }
+    int cast_value = static_cast<int>(val);
+    if(static_cast<double>(cast_value) == val)
+    {
+        return val;
+    }
+    return static_cast<double>(cast_value + 1);
+}
 
 /// Calculate power (compile-time).
 ///
@@ -437,19 +460,6 @@ constexpr uint8_t modulate(uint8_t lhs, uint8_t rhs) noexcept
     return static_cast<uint8_t>(iround(ret * 255.0f));
 }
 
-/// Floor wrapper.
-///
-/// \param val Value to round.
-/// \return Rounded integer value.
-constexpr float floor(float val) noexcept
-{
-    if(val < 0.0f)
-    {
-        return static_cast<float>(static_cast<int>(val) - 1);
-    }
-    return static_cast<float>(static_cast<int>(val));
-}
-
 /// Remainder function.
 ///
 /// \param val Value to divide.
@@ -458,16 +468,6 @@ constexpr float floor(float val) noexcept
 constexpr int remainder(int val, int divisor) noexcept
 {
     return val % divisor;
-}
-
-/// Remainder function.
-///
-/// \param val Value to divide.
-/// \param divisor Divisor to the value.
-/// \return Remainder of val / divisor.
-constexpr float remainder(float val, float divisor) noexcept
-{
-    return val - (floor(val / divisor) * divisor);
 }
 
 /// Congruence function.
@@ -484,22 +484,6 @@ constexpr int congr(int val, int divisor) noexcept
     }
     int ret = divisor - remainder(-val, divisor);
     return (ret < divisor) ? ret : 0;
-}
-
-/// Congruence function.
-///
-/// \param val Value to divide.
-/// \param divisor Divisor, must be positive.
-/// \return Value in [0, divisor[.
-constexpr float congr(float val, float divisor) noexcept
-{
-    VGL_ASSERT(divisor > 0.0f);
-    if(0.0f <= val)
-    {
-        return remainder(val, divisor);
-    }
-    float ret = divisor - remainder(-val, divisor);
-    return (ret < divisor) ? ret : 0.0f;
 }
 
 /// Convert RGB values to luma.
@@ -532,63 +516,119 @@ template <typename T> constexpr T lerp(float x, float y, const T& x1y1, const T&
 }
 #endif
 
-/// Cosine wrapper.
+/// Floor wrapper.
 ///
-/// \param op Value in radians.
-/// \return Cosine of value.
-VGL_MATH_CONSTEXPR float cos(float op) noexcept
+/// \param val Value.
+/// \return Floating point value rounded towards negative infinity.
+VGL_MATH_CONSTEXPR float floor(float val) noexcept
 {
 #if defined(VGL_IS_CONSTANT_EVALUATED)
     if(is_constant_evaluated())
     {
-        double val = detail::compile_time_congr(static_cast<double>(op), M_PI * 2.0);
-        if(val >= M_PI)
-        {
-            val -= 2.0 * M_PI;
-        }
-        return static_cast<float>(detail::compile_time_cos(val));
+        return static_cast<float>(detail::compile_time_floor(static_cast<double>(val)));
     }
 #endif
-    return dnload_cosf(op);
+    return dnload_floorf(val);
+}
+
+/// Ceil wrapper.
+///
+/// \param val Value.
+/// \return Floating point value rounded towards positive infinity.
+VGL_MATH_CONSTEXPR float ceil(float val) noexcept
+{
+#if defined(VGL_IS_CONSTANT_EVALUATED)
+    if(is_constant_evaluated())
+    {
+        return static_cast<float>(detail::compile_time_ceil(static_cast<double>(val)));
+    }
+#endif
+    return dnload_ceilf(val);
+}
+
+/// Remainder function.
+///
+/// \param val Value to divide.
+/// \param divisor Divisor to the value.
+/// \return Remainder of val / divisor.
+VGL_MATH_CONSTEXPR float remainder(float val, float divisor) noexcept
+{
+    return val - (floor(val / divisor) * divisor);
+}
+
+/// Congruence function.
+///
+/// \param val Value to divide.
+/// \param divisor Divisor, must be positive.
+/// \return Value in [0, divisor[.
+VGL_MATH_CONSTEXPR float congr(float val, float divisor) noexcept
+{
+    VGL_ASSERT(divisor > 0.0f);
+    if(0.0f <= val)
+    {
+        return remainder(val, divisor);
+    }
+    float ret = divisor - remainder(-val, divisor);
+    return (ret < divisor) ? ret : 0.0f;
+}
+
+/// Cosine wrapper.
+///
+/// \param val Value in radians.
+/// \return Cosine of value.
+VGL_MATH_CONSTEXPR float cos(float val) noexcept
+{
+#if defined(VGL_IS_CONSTANT_EVALUATED)
+    if(is_constant_evaluated())
+    {
+        double congr_value = detail::compile_time_congr(static_cast<double>(val), M_PI * 2.0);
+        if(congr_value >= M_PI)
+        {
+            congr_value -= 2.0 * M_PI;
+        }
+        return static_cast<float>(detail::compile_time_cos(congr_value));
+    }
+#endif
+    return dnload_cosf(val);
 }
 
 /// Sine wrapper.
 ///
-/// \param op Value in radians.
+/// \param val Value in radians.
 /// \return Sine of value.
-VGL_MATH_CONSTEXPR float sin(float op) noexcept
+VGL_MATH_CONSTEXPR float sin(float val) noexcept
 {
 #if defined(VGL_IS_CONSTANT_EVALUATED)
     if(is_constant_evaluated())
     {
-        double val = detail::compile_time_congr(static_cast<double>(op), M_PI * 2.0);
-        if(val >= M_PI)
+        double congr_value = detail::compile_time_congr(static_cast<double>(val), M_PI * 2.0);
+        if(congr_value >= M_PI)
         {
-            val -= 2.0 * M_PI;
+            congr_value -= 2.0 * M_PI;
         }
-        return static_cast<float>(detail::compile_time_sin(val));
+        return static_cast<float>(detail::compile_time_sin(congr_value));
     }
 #endif
-    return dnload_sinf(op);
+    return dnload_sinf(val);
 }
 
 /// Square root wrapper.
 ///
-/// \param op Value.
+/// \param val Value.
 /// \return Square root of value.
-VGL_MATH_CONSTEXPR float sqrt(float op) noexcept
+VGL_MATH_CONSTEXPR float sqrt(float val) noexcept
 {
 #if defined(VGL_IS_CONSTANT_EVALUATED)
     if(is_constant_evaluated())
     {
-        if((op <= 0.0f) || (op >= std::numeric_limits<float>::infinity()))
+        if((val <= 0.0f) || (val >= std::numeric_limits<float>::infinity()))
         {
             return 0.0f;
         }
-        return static_cast<float>(detail::compile_time_sqrt(static_cast<double>(op), static_cast<double>(op / 2.0f)));
+        return static_cast<float>(detail::compile_time_sqrt(static_cast<double>(val), static_cast<double>(val / 2.0f)));
     }
 #endif
-    return dnload_sqrtf(op);
+    return dnload_sqrtf(val);
 }
 
 /// Power wrapper.
