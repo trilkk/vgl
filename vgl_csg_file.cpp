@@ -73,12 +73,13 @@ std::string CsgFile::generate_contents(std::string_view filename, const int16_t*
     std::string fname = headerify(filename);
     std::string_view indent = "    ";
 
-    sstr << "#ifndef __" << fname << "__\n#define __" << fname << "__\n\nconst int16_t g_" << fname << "[] =\n{\n";
+    sstr << "#ifndef __" << fname << "__\n#define __" << fname << "__\n\nconst unsigned g_" << fname <<
+        "_size = " << count << ";\n\nconst int16_t g_" << fname << "[] =\n{\n";
 
     std::string cumulative;
     for(unsigned ii = 0; (ii < count); ++ii)
     {
-    std::string increment = std::to_string(data[ii]) + ",";
+        std::string increment = std::to_string(data[ii]) + ",";
         std::string prospective = cumulative;
         if(prospective.length() > 0)
         {
@@ -99,6 +100,12 @@ std::string CsgFile::generate_contents(std::string_view filename, const int16_t*
     if(cumulative.length() > 0)
     {
         sstr << indent << cumulative;
+    }
+
+    // Some platforms require the array size to be aligned to 4 bytes.
+    if(count & 1)
+    {
+        sstr << "\n#if !defined(__x86_64__) && !defined(__i386__)\n" << indent << "0,\n#endif";
     }
 
     sstr << "\n};\n\n#endif";
