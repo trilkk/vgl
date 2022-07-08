@@ -28,14 +28,14 @@ public:
     ///
     /// \param data Animation data.
     /// \param bone_amount Amount of bone elements.
-    /// \param animation_amount Amount of animation elements.
+    /// \param animation_data_size Animation data size.
     /// \param scale Model scale.
     /// \param hierarchical Is the animation hierarchical?
-    explicit Animation(const int16_t *data, unsigned bone_amount, unsigned animation_amount, float scale,
+    explicit Animation(const int16_t *data, unsigned bone_amount, unsigned animation_data_size, float scale,
             bool hierarchical = false) :
         m_hierarchical(hierarchical)
     {
-        readRaw(data, bone_amount, animation_amount, scale);
+        readRaw(data, bone_amount, animation_data_size, scale);
     }
 
 private:
@@ -43,21 +43,21 @@ private:
     ///
     /// \param data Animation data.
     /// \param bone_amount Amount of bone elements.
-    /// \param animation_amount Amount of animation elements.
-    void readRaw(const int16_t *data, unsigned bone_amount, unsigned animation_amount, float scale)
+    /// \param animation_data_size Animation data array size.
+    void readRaw(const int16_t *data, unsigned bone_amount, unsigned animation_data_size, float scale)
     {
-        unsigned frame_amount = bone_amount / 3 * 7;
+        unsigned frame_amount = bone_amount * 7;
 
 #if defined(USE_LD)
-        if(animation_amount % (frame_amount + 1) != 0)
+        if(animation_data_size % (frame_amount + 1) != 0)
         {
             std::ostringstream sstr;
-            sstr << "incompatible bone (" << bone_amount << ") and animation (" << animation_amount << ") amounts";
+            sstr << "incompatible bone (" << bone_amount << ") and animation (" << animation_data_size << ") amounts";
             BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
         }
 #endif
 
-        for(unsigned ii = 0; (ii < animation_amount); ii += frame_amount + 1)
+        for(unsigned ii = 0; (ii < animation_data_size); ii += frame_amount + 1)
         {
             m_frames.emplace_back(data + ii, frame_amount, scale);
         }
@@ -115,13 +115,13 @@ public:
     ///
     /// \param data Animation data.
     /// \param bone_amount Amount of bone elements.
-    /// \param animation_amount Amount of animation elements.
+    /// \param animation_data_size Animation data array size.
     /// \param scale Scale to multiply with.
     /// \param hierarchical Is the animation hierarchical?
-    static unique_ptr<Animation> create(const int16_t *data, unsigned bone_amount, unsigned animation_amount, float scale,
+    static unique_ptr<Animation> create(const int16_t *data, unsigned bone_amount, unsigned animation_data_size, float scale,
             bool hierarchical = false)
     {
-        return unique_ptr<Animation>(new Animation(data, bone_amount, animation_amount, scale, hierarchical));
+        return unique_ptr<Animation>(new Animation(data, bone_amount, animation_data_size, scale, hierarchical));
     }
 
 public:

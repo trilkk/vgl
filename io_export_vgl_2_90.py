@@ -93,21 +93,35 @@ g_template_mesh = Template("""int16_t g_vertices_[[MODEL_NAME]][] =
 [[INDEX_DATA]]
 };""")
 
-g_template_weights = Template("""uint8_t g_weights_[[MODEL_NAME]][] =
+g_template_mesh = Template("""const unsigned g_vertices_[[MODEL_NAME]]_size = [[VERTEX_DATA_SIZE]];\n
+const [[VERTEX_DATA_TYPE]] g_vertices_[[MODEL_NAME]][] =
+{
+[[VERTEX_DATA]]
+};\n
+const unsigned g_indices_[[MODEL_NAME]]_size = [[INDEX_DATA_SIZE]];\n
+const [[INDEX_DATA_TYPE]] g_indices_[[MODEL_NAME]][] =
+{
+[[INDEX_DATA]]
+};""")
+
+g_template_weights = Template("""const [[WEIGHT_DATA_TYPE]] g_weights_[[MODEL_NAME]][] =
 {
 [[WEIGHT_DATA]]
 };""")
 
-g_template_armature = Template("""int16_t g_bones_[[MODEL_NAME]][] =
+g_template_armature = Template("""const unsigned g_bones_[[MODEL_NAME]]_size = [[BONE_DATA_SIZE]];\n
+const [[BONE_DATA_TYPE]] g_bones_[[MODEL_NAME]][] =
 {
 [[BONE_DATA]]
 };\n
-uint8_t g_armature_[[MODEL_NAME]][] =
+const unsigned g_armature_[[MODEL_NAME]]_size = [[ARMATURE_DATA_SIZE]];\n
+const [[ARMATURE_DATA_TYPE]] g_armature_[[MODEL_NAME]][] =
 {
 [[ARMATURE_DATA]]
 };""")
 
-g_template_anim = Template("""int16_t g_animation_[[MODEL_NAME]]_[[ANIM_NAME]][] =
+g_template_anim = Template("""const unsigned g_animation_[[MODEL_NAME]]_[[ANIM_NAME]]_size = [[ANIM_DATA_SIZE]];\n
+const [[ANIM_DATA_TYPE]] g_animation_[[MODEL_NAME]]_[[ANIM_NAME]][] =
 {
 [[ANIM_DATA]]
 };""")
@@ -179,6 +193,33 @@ def toExportU8(op):
     """Converts number to exportable unsigned 8-bit number."""
     return max(min(int(round(op)), 255), 0)
 
+def toExportString(lst, data_type):
+    """Converts input data to exported string."""
+    ret = ""
+    total_count = 0
+    if not isinstance(lst, list):
+        raise RuntimeError("input is not list: %s" % (str(lst)))
+    for ii in lst:
+        if not isinstance(ii, list):
+            raise RuntimeError("input element is not list: %s" % (str(ii)))
+        if ret:
+            ret += "\n"
+        ret += g_indent + ", ".join(map(lambda x: str(x), ii)) + ","
+        total_count += len(ii)
+    if data_type in ["uint8_t", "int8_t"]:
+        remainder = 4 - (total_count % 4)
+        if remainder == 4:
+            remainder = 0
+    elif data_type in ["uint16_t", "int16_t"]:
+        remainder = (total_count % 2)
+    elif data_type in ["uint32_t", "int32_t", "uint64_t", "int64_t", "float", "double"]:
+        remainder = 0
+    else:
+        raise RuntimeError("unknown data type: %s" % (data_type))
+    if remainder != 0:
+        ret += "\n#if defined(__x86_64__) || defined(__i386__)\n" + g_indent + ", ".join(["0"] * remainder) + ",\n#endif"
+    return ret
+
 def findRootBone(bone):
     """Find bone root."""
     if not bone.parent:
@@ -208,35 +249,35 @@ def meshFindMaxVertexValue(msh, mesh_scale):
         ret = max(max(max(px, py), pz), ret)
     return ret
 
-def meshVertexDataToString(msh, mesh_scale, export_scale):
-    """Converts mesh vertex data to string."""
+def meshGetVertexData(msh, mesh_scale, export_scale):
+    """Gets vertex data from a mesh."""
     ret = []
     for ii in msh.vertices:
         px = toExportS16(ii.co[0] * mesh_scale[0] * export_scale)
         py = toExportS16(ii.co[1] * mesh_scale[1] * export_scale)
         pz = toExportS16(ii.co[2] * mesh_scale[2] * export_scale)
-        ret += ["%s%i, %i, %i," % (g_indent, px, py, pz)]
-    return "\n".join(ret)
+        ret += [[px, py, pz]]
+    return ret
 
-def meshTriangleToString(context, msh, face, idx1, idx2, idx3):
+def meshIndexDataToTriangle(msh, face, idx1, idx2, idx3):
     """Create string for one triangle with given vertices."""
     vv = face.vertices
-    if (len(msh.materials) > 0) and msh.materials[face.material_index] and context.scene.vgl_export_color:
+    if (len(msh.materials) > 0) and msh.materials[face.material_index] and bpy.context.scene.vgl_export_color:
         color = msh.materials[face.material_index].diffuse_color
         cr = toExportU8(color[0] * 255.0)
         cg = toExportU8(color[1] * 255.0)
         cb = toExportU8(color[2] * 255.0)
-        return "%s%i, %i, %i, %i, %i, %i," % (g_indent, vv[idx1], vv[idx2], vv[idx3], cr, cg, cb)
-    return "%s%i, %i, %i," % (g_indent, vv[idx1], vv[idx2], vv[idx3])
+        return [vv[idx1], vv[idx2], vv[idx3], cr, cg, cb]
+    return [vv[idx1], vv[idx2], vv[idx3]]
 
-def meshIndexDataToString(context, msh):
-    """Converts mesh index data to string."""
+def meshGetTriangleData(msh):
+    """Gets index data as triangle list from a mesh."""
     ret = []
     for ii in msh.polygons:
         # Fan out all higher-order polygons.
         for jj in range(2, len(ii.vertices)):
-            ret += [meshTriangleToString(context, msh, ii, 0, jj - 1, jj)]
-    return "\n".join(ret)
+            ret += [meshIndexDataToTriangle(msh, ii, 0, jj - 1, jj)]
+    return ret
 
 def normalizedWeightData(data, vmap):
     """Turns sorted weight data block into a normalized mode."""
@@ -255,10 +296,10 @@ def normalizedWeightData(data, vmap):
     w1 = toExportU8(data[0][0] * 255.0 / total_weight)
     w2 = toExportU8(data[1][0] * 255.0 / total_weight)
     w3 = toExportU8(data[2][0] * 255.0 / total_weight)
-    return "%s%i, %i, %i, %i, %i, %i," % (g_indent, w1, w2, w3, data[0][1], data[1][1], data[2][1])
+    return [w1, w2, w3, data[0][1], data[1][1], data[2][1]]
 
-def meshWeightDataToString(msh, vmap):
-    """Convert mesh group and weight data to strings."""
+def meshGetWeightData(msh, vmap):
+    """Gets weight data from a mesh."""
     ret = []
     for ii in msh.vertices:
         grp = []
@@ -268,37 +309,51 @@ def meshWeightDataToString(msh, vmap):
                 raise RuntimeError("invalid vertex weight: %f" % (jj.weight))
             grp += [[jj.weight, jj.group]]
         ret += [normalizedWeightData(grp, vmap)]
-    return "\n".join(ret)
+    return ret
 
 def meshToString(context, msh, vmap, name, mesh_scale, export_scale):
     """Returns C++ code string from a mesh."""
+    vdata = meshGetVertexData(msh, mesh_scale, export_scale)
+    idata = meshGetTriangleData(msh)
     subst = {
             "MODEL_NAME" : name,
-            "VERTEX_DATA" : meshVertexDataToString(msh, mesh_scale, export_scale),
-            "INDEX_TYPE" : "uint16_t",
-            "INDEX_DATA" : meshIndexDataToString(context, msh)
+            "VERTEX_DATA" : toExportString(vdata, "int16_t"),
+            "VERTEX_DATA_TYPE" : "int16_t",
+            "VERTEX_DATA_SIZE" : str(len(vdata)),
+            "INDEX_DATA_SIZE" : str(len(idata)),
             }
-    # May need larger index type.
+    # Index type depends on the number of indices.
     if len(msh.vertices) >= 65536:
-        subst["INDEX_TYPE"] = "uint32_t"
+        subst["INDEX_DATA"] = toExportString(idata, "uint32_t")
+        subst["INDEX_DATA_TYPE"] = "uint32_t"
+    else:
+        subst["INDEX_DATA"] = toExportString(idata, "uint16_t")
+        subst["INDEX_DATA_TYPE"] = "uint16_t"
     ret = g_template_mesh.format(subst)
     # May need to add weight data data for meshes with armatures.
     if vmap:
-        wdata = meshWeightDataToString(msh, vmap)
+        wdata = meshGetWeightData(msh, vmap)
         if wdata:
-            return ret + "\n\n" + g_template_weights.format({"MODEL_NAME" : name, "WEIGHT_DATA" : wdata})
+            if len(wdata) != len(vdata):
+                raise RuntimeError("weight data size (%i) does not match vertex data size (%i)" % (len(wdata), len(vdata)))
+            subst = {
+                    "MODEL_NAME" : name,
+                    "WEIGHT_DATA" : toExportString(wdata, "uint8_t"),
+                    "WEIGHT_DATA_TYPE" : "uint8_t",
+                    }
+            ret += "\n\n" + g_template_weights.format(subst)
     return ret
 
-def armatureBoneDataToString(arm, mat, armature_scale, export_scale):
-    """Converts armature bone data to string."""
+def armatureGetBoneData(arm, mat, armature_scale, export_scale):
+    """Gets bone data from an armature."""
     ret = []
     for ii in arm.bones:
         hd = mat @ ii.head_local
-        hd[0] = toExportS16(hd[0] * armature_scale[0] * export_scale)
-        hd[1] = toExportS16(hd[1] * armature_scale[1] * export_scale)
-        hd[2] = toExportS16(hd[2] * armature_scale[2] * export_scale)
-        ret += ["%s%i, %i, %i," % (g_indent, hd[0], hd[1], hd[2])]
-    return "\n".join(ret)
+        hd0 = toExportS16(hd[0] * armature_scale[0] * export_scale)
+        hd1 = toExportS16(hd[1] * armature_scale[1] * export_scale)
+        hd2 = toExportS16(hd[2] * armature_scale[2] * export_scale)
+        ret += [[hd0, hd1, hd2]]
+    return ret
 
 def findBoneIndex(arm, bone):
     """Find index of given bone in an armature."""
@@ -307,26 +362,30 @@ def findBoneIndex(arm, bone):
             return ii
     return -1
 
-def armatureBoneHierarchyToString(arm):
-    """Converts armature relation data to string."""
-    ret = []
+def armatureToString(arm, name, mat, armature_scale, export_scale):
+    """Returns C++ code string from an armature."""
+    bdata = armatureGetBoneData(arm, mat, armature_scale, export_scale)
+    # Armature data.
+    adata = []
+    armature_data_size = 0
     for ii in arm.bones:
-        child_list = "%s%i," % (g_indent, len(ii.children))
+        child_list = [len(ii.children)]
+        armature_data_size += 1
         for jj in ii.children:
             idx = findBoneIndex(arm, jj)
             if 0 > idx:
                 raise RuntimeError("could not locate bone '%s' index" % (jj.name))
-            child_list += " %i," % (idx)
-        ret += [child_list]
-    return "\n".join(ret)
-
-def armatureToString(arm, name, mat, armature_scale, export_scale):
-    """Returns C++ code string from an armature."""
-    tmpl = copy.deepcopy(g_template_armature)
+            child_list += [idx]
+        adata += [child_list]
+        armature_data_size += len(child_list)
     subst = {
             "MODEL_NAME" : name,
-            "BONE_DATA" : armatureBoneDataToString(arm, mat, armature_scale, export_scale),
-            "ARMATURE_DATA" : armatureBoneHierarchyToString(arm),
+            "BONE_DATA" : toExportString(bdata, "int16_t"),
+            "BONE_DATA_SIZE" : str(len(bdata)),
+            "BONE_DATA_TYPE" : "int16_t",
+            "ARMATURE_DATA" : toExportString(adata, "uint8_t"),
+            "ARMATURE_DATA_SIZE" : str(armature_data_size),
+            "ARMATURE_DATA_TYPE" : "uint8_t",
             }
     return g_template_armature.format(subst)
 
@@ -356,12 +415,13 @@ def findArmature(context):
 
 def findMesh(context):
     """Finds the first mesh in a context."""
+    ret = None
     for ii in context.selectable_objects:
         if (ii.type == "MESH"):
-            # Original as opposed to instance.
-            if ii.users > 1:
-                return ii
-    return None
+            # No idea how to select original as opposed to instance :(
+            if ii.users >= 1:
+                ret = ii
+    return ret
 
 def collectPoses(pl):
     """Collects poses from a pose library."""
@@ -379,6 +439,7 @@ def collectPoses(pl):
 def animToString(context, amap, arm, action, model_name, mat, armature_scale, export_scale):
     """Exports singular animation to string."""
     ret = []
+    anim_data_size = 0
     # Assign action, iterate to first frame.
     arm.animation_data.action = action
     while True:
@@ -390,7 +451,9 @@ def animToString(context, amap, arm, action, model_name, mat, armature_scale, ex
         # Action must be reassigned or the pose won't update.
         arm.animation_data.action = action
         current_frame = context.scene.frame_current
-        ret += ["%s%i," % (g_indent, toExport8F8(float(current_frame) / 24.0))]
+        elem = [toExport8F8(float(current_frame) / 24.0)]
+        anim_data_size += len(elem)
+        ret += [elem]
         # Iterate using armature order.
         for jj in amap:
             bone_orig = arm.data.bones[jj]
@@ -406,7 +469,9 @@ def animToString(context, amap, arm, action, model_name, mat, armature_scale, ex
             px = toExportS16(hd[0] * armature_scale[0] * export_scale)
             py = toExportS16(hd[1] * armature_scale[1] * export_scale)
             pz = toExportS16(hd[2] * armature_scale[2] * export_scale)
-            ret += ["%s%i, %i, %i, %i, %i, %i, %i," % (g_indent, px, py, pz, qw, qx, qy, qz)]
+            elem = [px, py, pz, qw, qx, qy, qz]
+            anim_data_size += len(elem)
+            ret += [elem]
         # Advance to next frame, abort if not possible.
         if bpy.ops.screen.keyframe_jump(next=True) != {"FINISHED"}:
             break
@@ -414,9 +479,11 @@ def animToString(context, amap, arm, action, model_name, mat, armature_scale, ex
     # Create export string.
     anim_name = toExportName(action.name)
     subst = {
-            "ANIM_DATA" : "\n".join(ret),
             "MODEL_NAME" : model_name,
             "ANIM_NAME" : anim_name,
+            "ANIM_DATA" : toExportString(ret, "int16_t"),
+            "ANIM_DATA_SIZE" : str(anim_data_size),
+            "ANIM_DATA_TYPE" : "int16_t",
             }
     return g_template_anim.format(subst)
 
@@ -430,8 +497,9 @@ def exportAllMeshesToHeader(filename, context):
     vgl_log("selected mesh for export: '%s' => '%s'" % (msh.name, export_name))
     # Evaluate dependency graph for the mesh, it probably has some decimate or something.
     msh = msh.evaluated_get(context.evaluated_depsgraph_get())
-    # Everything needs to be exported in the same scale, discard three bits of accuracy and fit in int16_t.
-    export_scale = 32767.0 / (meshFindMaxVertexValue(msh.data, msh.scale) * 8.0)
+    # Everything needs to be exported in the same scale, discard accuracy and fit in int16_t.
+    discard_mul = pow(2.0, float(bpy.context.scene.vgl_export_discard_bits))
+    export_scale = 32767.0 / (meshFindMaxVertexValue(msh.data, msh.scale) * discard_mul)
     # Find armatures.
     arm = findArmature(context)
     # Export armature.
@@ -467,6 +535,11 @@ bpy.types.Scene.vgl_export_color = bpy.props.BoolProperty(
     name = "vgl_export_color",
     description = "Enable or disable exporting color values for faces",
     default = False)
+
+bpy.types.Scene.vgl_export_discard_bits = bpy.props.IntProperty(
+    name = "vgl_export_discard_bits",
+    description = "Number of bits to discard before export",
+    default = 3)
 
 class VglOperatorExport(Operator, ExportHelper):
     bl_idname = "export.vgl_hpp"
