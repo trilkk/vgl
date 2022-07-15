@@ -1,5 +1,6 @@
 #include "vgl_path.hpp"
 
+#include <fstream>
 #include <sstream>
 
 #include <boost/throw_exception.hpp>
