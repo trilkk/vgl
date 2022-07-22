@@ -43,7 +43,12 @@ public:
     ///
     /// \param pos Position.
     /// \param rot Rotation.
-    VGL_MATH_CONSTEXPR explicit BoneState(const vec3& pos, const quat& rot) noexcept :
+#if defined(VGL_USE_BONE_STATE_FULL_TRANSFORM)
+    VGL_MATH_CONSTEXPR
+#else
+    constexpr
+#endif
+    explicit BoneState(const vec3& pos, const quat& rot) noexcept :
 #if defined(VGL_USE_BONE_STATE_FULL_TRANSFORM)
         m_transform(mat3::rotation(rot), pos)
 #else
@@ -59,11 +64,11 @@ public:
     /// \return Position.
     constexpr
 #if defined(VGL_USE_BONE_STATE_FULL_TRANSFORM)
-        vec3
+    vec3
 #else
-        const vec3&
+    const vec3&
 #endif
-        getPosition() const
+    getPosition() const
     {
 #if defined(VGL_USE_BONE_STATE_FULL_TRANSFORM)
         return m_transform.getTranslation();
@@ -85,13 +90,12 @@ public:
     /// Accessor.
     ///
     /// \return Transformation.
-    constexpr
 #if defined(VGL_USE_BONE_STATE_FULL_TRANSFORM)
-        const mat4&
+    constexpr const mat4&
 #else
-        mat4
+    VGL_MATH_CONSTEXPR mat4
 #endif
-        getTransform() const
+    getTransform() const
     {
 #if defined(VGL_USE_BONE_STATE_FULL_TRANSFORM)
         return m_transform;
