@@ -12,39 +12,44 @@ namespace vgl
 class BoneState
 {
 private:
+#if defined(VGL_USE_BONE_STATE_FULL_TRANSFORM)
+    /// Matrix representation of the orientation.
+    mat4 m_transform;
+#else
     /// Position data.
     vec3 m_pos;
 
     /// Rotation data.
     quat m_rot;
-
-    /// Matrix representation of the orientation.
-    mat4 m_transform;
+#endif
 
 public:
     /// Empty constructor.
-    explicit BoneState() noexcept = default;
+    constexpr explicit BoneState() noexcept = default;
 
-    /// Constructor.
-    ///
-    /// \param pos Position.
-    /// \param rot Rotation.
-    explicit BoneState(const vec3& pos, const quat& rot) noexcept :
-        m_pos(pos),
-        m_rot(rot),
-        m_transform(mat3::rotation(rot), pos)
-    {
-    }
-
+#if defined(VGL_USE_BONE_STATE_FULL_TRANSFORM)
     /// Constructor.
     ///
     /// \param pos Position.
     /// \param rot Rotation.
     /// \param trns Transform.
-    explicit BoneState(const vec3& pos, const quat& rot, const mat4& trns) noexcept :
-        m_pos(pos),
-        m_rot(rot),
+    constexpr explicit BoneState(const mat4& trns) noexcept :
         m_transform(trns)
+    {
+    }
+#endif
+
+    /// Constructor.
+    ///
+    /// \param pos Position.
+    /// \param rot Rotation.
+    constexpr explicit BoneState(const vec3& pos, const quat& rot) noexcept :
+#if defined(VGL_USE_BONE_STATE_FULL_TRANSFORM)
+        m_transform(mat3::rotation(rot), pos)
+#else
+        m_pos(pos),
+        m_rot(rot)
+#endif
     {
     }
 
@@ -52,28 +57,51 @@ public:
     /// Accessor.
     ///
     /// \return Position.
-    const vec3& getPosition() const
+    constexpr
+#if defined(VGL_USE_BONE_STATE_FULL_TRANSFORM)
+        vec3
+#else
+        const vec3&
+#endif
+        getPosition() const
     {
+#if defined(VGL_USE_BONE_STATE_FULL_TRANSFORM)
+        return m_transform.getTranslation();
+#else
         return m_pos;
+#endif
     }
 
+#if !defined(VGL_USE_BONE_STATE_FULL_TRANSFORM)
     /// Accessor.
     ///
     /// \return Rotation.
-    const quat& getRotation() const
+    constexpr const quat& getRotation() const
     {
         return m_rot;
     }
+#endif
 
     /// Accessor.
     ///
     /// \return Transformation.
-    const mat4& getTransform() const
+    constexpr
+#if defined(VGL_USE_BONE_STATE_FULL_TRANSFORM)
+        const mat4&
+#else
+        mat4
+#endif
+        getTransform() const
     {
+#if defined(VGL_USE_BONE_STATE_FULL_TRANSFORM)
         return m_transform;
+#else
+        return mat4(mat3::rotation(m_rot), m_pos);
+#endif
     }
 
 public:
+
 #if defined(USE_LD)
     /// Output to stream.
     ///
@@ -81,10 +109,29 @@ public:
     /// \return Output stream.
     friend std::ostream& operator<<(std::ostream &lhs, const BoneState& rhs)
     {
+#if defined(VGL_USE_BONE_STATE_FULL_TRANSFORM)
+        return lhs << rhs.m_transform;
+#else
         return lhs << rhs.m_pos << " ; " << rhs.m_rot;
+#endif
     }
 #endif
 };
+
+/// Mix for BoneState.
+///
+/// \param lhs Left-hand-side operand.
+/// \param rhs Right-hand-side operand.
+/// \param ratio Mixing ratio.
+/// \return Mix result.
+constexpr BoneState mix(const BoneState& lhs, const BoneState& rhs, float ratio)
+{
+#if defined(VGL_USE_BONE_STATE_FULL_TRANSFORM)
+    return BoneState(mix(lhs.getTransform(), rhs.getTransform(), ratio));
+#else
+    return BoneState(mix(lhs.getPosition(), rhs.getPosition(), ratio), mix(lhs.getRotation(), rhs.getRotation(), ratio));
+#endif
+}
 
 }
 

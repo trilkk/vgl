@@ -366,10 +366,12 @@ constexpr float smooth_step(float edge0, float edge1, float value) noexcept
 
 /// Mix two floats.
 ///
+/// Overflows if ratio is not within [0, 1].
+///
 /// \param lhs Left-hand-side operand.
 /// \param rhs Right-hand-side operand.
 /// \param ratio Ratio.
-/// \return Value mixed from lhs and rhs. Overflows if ratio is outside [0, 1].
+/// \return Mixing result.
 constexpr float mix(float lhs, float rhs, float ratio) noexcept
 {
     return lhs + (rhs - lhs) * ratio;
@@ -380,7 +382,7 @@ constexpr float mix(float lhs, float rhs, float ratio) noexcept
 /// \param lhs Left-hand-side operand.
 /// \param rhs Right-hand-side operand.
 /// \param ratio Mixing ratio.
-/// \return Mixing value.
+/// \return Mixing result.
 constexpr int8_t mix(int8_t lhs, int8_t rhs, float ratio) noexcept
 {
     float c1 = static_cast<float>(lhs);
@@ -394,7 +396,7 @@ constexpr int8_t mix(int8_t lhs, int8_t rhs, float ratio) noexcept
 /// \param lhs Left-hand-side operand.
 /// \param rhs Right-hand-side operand.
 /// \param ratio Mixing ratio.
-/// \return Mixing value.
+/// \return Mixing result.
 constexpr int16_t mix(int16_t lhs, int16_t rhs, float ratio) noexcept
 {
     float c1 = static_cast<float>(lhs);
@@ -408,7 +410,7 @@ constexpr int16_t mix(int16_t lhs, int16_t rhs, float ratio) noexcept
 /// \param lhs Left-hand-side operand.
 /// \param rhs Right-hand-side operand.
 /// \param ratio Mixing ratio.
-/// \return Mixing value.
+/// \return Mixing result.
 constexpr uint8_t mix(uint8_t lhs, uint8_t rhs, float ratio) noexcept
 {
     float c1 = static_cast<float>(lhs);
@@ -422,6 +424,7 @@ constexpr uint8_t mix(uint8_t lhs, uint8_t rhs, float ratio) noexcept
 /// \param lhs Left-hand-side operand.
 /// \param rhs Right-hand-side operand.
 /// \param ratio Mixing ratio.
+/// \return Mixing result.
 template<typename T> constexpr typename T::CrtpType mix(const T& lhs, const T& rhs, float ratio) noexcept
 {
     return lhs + (rhs - lhs) * ratio;
