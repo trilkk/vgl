@@ -43,7 +43,7 @@ public:
     ///
     /// \param pos Position.
     /// \param rot Rotation.
-    constexpr explicit BoneState(const vec3& pos, const quat& rot) noexcept :
+    VGL_MATH_CONSTEXPR explicit BoneState(const vec3& pos, const quat& rot) noexcept :
 #if defined(VGL_USE_BONE_STATE_FULL_TRANSFORM)
         m_transform(mat3::rotation(rot), pos)
 #else
