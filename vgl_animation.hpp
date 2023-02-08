@@ -118,6 +118,7 @@ public:
     /// \param animation_data_size Animation data array size.
     /// \param scale Scale to multiply with.
     /// \param hierarchical Is the animation hierarchical?
+    /// \return New Animation.
     static unique_ptr<Animation> create(const int16_t *data, unsigned bone_amount, unsigned animation_data_size, float scale,
             bool hierarchical = false)
     {

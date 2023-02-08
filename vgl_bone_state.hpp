@@ -105,7 +105,6 @@ public:
     }
 
 public:
-
 #if defined(USE_LD)
     /// Output to stream.
     ///

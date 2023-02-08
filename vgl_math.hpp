@@ -3,16 +3,15 @@
 
 #include "vgl_algorithm.hpp"
 #include "vgl_assert.hpp"
+#include "vgl_extern_math.hpp"
 #include "vgl_type_traits.hpp"
-
-#include <cmath>
 
 #if defined(VGL_IS_CONSTANT_EVALUATED)
 /// Math functions have constexpr path.
 #define VGL_MATH_CONSTEXPR constexpr
 #else
-/// No constexpr path for math functions.
-#define VGL_MATH_CONSTEXPR
+/// No constexpr path for math functions. Inline for consistency.
+#define VGL_MATH_CONSTEXPR inline
 #endif
 
 namespace vgl
@@ -168,7 +167,7 @@ constexpr long double compile_time_sin(double op)
 /// \param tgt Target value.
 /// \param curr Current guess.
 /// \return Square root of target value.
-double constexpr compile_time_sqrt(double tgt, double curr)
+constexpr double compile_time_sqrt(double tgt, double curr)
 {
     double next = curr - (((curr * curr) - tgt) / (2 * curr));
 
@@ -641,7 +640,7 @@ VGL_MATH_CONSTEXPR float sqrt(float val) noexcept
 /// \param val Value.
 /// \param power Power to raise the value to.
 /// \return Power of value.
-float pow(float val, float power)
+inline float pow(float val, float power)
 {
     return dnload_powf(val, power);
 }

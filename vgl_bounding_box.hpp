@@ -6,6 +6,7 @@
 namespace vgl
 {
 
+/// Bounding box abstraction.
 class BoundingBox
 {
 private:

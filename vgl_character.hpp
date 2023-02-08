@@ -49,7 +49,7 @@ public:
     /// \param advy Advance value (y).
     /// \param base_size Base font size.
     /// \param buf Geometry buffer to insert to.
-    Character(unsigned idx, const FT_Bitmap *bitmap, float left, float top, float advx, float base_size) :
+    explicit Character(unsigned idx, const FT_Bitmap *bitmap, float left, float top, float advx, float base_size) :
         m_font_index(idx),
         m_left(left),
         m_top(top),

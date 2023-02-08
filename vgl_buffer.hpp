@@ -1,6 +1,7 @@
 #ifndef VGL_BUFFER_HPP
 #define VGL_BUFFER_HPP
 
+#include "vgl_extern_opengl.hpp"
 #include "vgl_packed_data.hpp"
 
 namespace vgl

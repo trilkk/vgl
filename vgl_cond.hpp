@@ -1,32 +1,11 @@
 #ifndef VGL_COND_HPP
 #define VGL_COND_HPP
 
+#include "vgl_extern_sdl.hpp"
 #include "vgl_scoped_lock.hpp"
 
 namespace vgl
 {
-
-namespace detail
-{
-
-/// Internal wait on condition variable.
-///
-/// \param cond Condition variable.
-/// \param mutex Mutex.
-void internal_cond_wait(SDL_cond* cond, SDL_mutex* mutex)
-{
-    int err = dnload_SDL_CondWait(cond, mutex);
-#if defined(USE_LD) && defined(DEBUG)
-    if(err)
-    {
-        BOOST_THROW_EXCEPTION(std::runtime_error(std::string("internal_cond_wait(): ") + SDL_GetError()));
-    }
-#else
-    (void)err;
-#endif
-}
-
-}
 
 /// Condition variable.
 class Cond
@@ -106,14 +85,32 @@ public:
     /// \param op Mutex (already locked).
     void wait(Mutex& op)
     {
-        detail::internal_cond_wait(m_cond, op.getMutexImpl());
+        wait(op.getMutexImpl());
     }
     /// Wait on scoped lock.
     ///
     /// \param op Scoped lock (already held).
     void wait(ScopedLock& op)
     {
-        detail::internal_cond_wait(m_cond, op.getMutexImpl());
+        wait(op.getMutexImpl());
+    }
+
+private:
+    /// Internal wait on condition variable.
+    ///
+    /// \param cond Condition variable.
+    /// \param mutex Mutex.
+    void wait(SDL_mutex* mutex)
+    {
+        int err = dnload_SDL_CondWait(m_cond, mutex);
+#if defined(USE_LD) && defined(DEBUG)
+        if(err)
+        {
+            BOOST_THROW_EXCEPTION(std::runtime_error(std::string("internal_cond_wait(): ") + SDL_GetError()));
+        }
+#else
+        (void)err;
+#endif
     }
 
 public:
