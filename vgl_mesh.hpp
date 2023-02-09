@@ -9,14 +9,6 @@
 namespace vgl
 {
 
-namespace detail
-{
-
-/// Geometry buffers used for uploading meshes to the GPU.
-vector<GeometryBufferUptr> g_geometry_buffers;
-
-}
-
 /// Renderable mesh.
 class Mesh
 {
@@ -37,6 +29,10 @@ private:
     /// Name of the mesh, for debugging.
     string m_name;
 #endif
+
+private:
+    /// Geometry buffers used for uploading meshes to the GPU.
+    static vector<GeometryBufferUptr> g_geometry_buffers;
 
 public:
     /// Default constructor.
@@ -171,7 +167,7 @@ public:
             return;
         }
 
-        for(auto& vv : detail::g_geometry_buffers)
+        for(auto& vv : g_geometry_buffers)
         {
             optional<GeometryHandle> handle = vv->append(m_data);
             if(handle)
@@ -182,8 +178,8 @@ public:
         }
 
         // No matches, must create a new geometry buffer.
-        detail::g_geometry_buffers.emplace_back(new GeometryBuffer(m_data));
-        m_handle = GeometryHandle(*(detail::g_geometry_buffers.back()), 0, 0);
+        g_geometry_buffers.emplace_back(new GeometryBuffer(m_data));
+        m_handle = GeometryHandle(*(g_geometry_buffers.back()), 0, 0);
     }
 
 #if defined(USE_LD)
@@ -202,11 +198,30 @@ public:
         m_name = op;
     }
 #endif
+
+public:
+    /// Get a reference to geometry buffer array.
+    /// \return Reference to geometry buffers.
+    static constexpr vector<GeometryBufferUptr>& get_geometry_buffers()
+    {
+        return g_geometry_buffers;
+    }
 };
 
 /// Smart pointer type.
 using MeshUptr = unique_ptr<Mesh>;
 
+/// Get the number of geometry_buffers.
+/// \return Geometry buffer count.
+constexpr unsigned get_num_geometry_buffers()
+{
+    return Mesh::get_geometry_buffers().size();
 }
+
+}
+
+#if !defined(USE_LD)
+#include "vgl_mesh.cpp"
+#endif
 
 #endif

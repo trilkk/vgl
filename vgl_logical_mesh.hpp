@@ -165,6 +165,7 @@ private:
     /// Logical face data.
     vector<LogicalFace> m_faces;
 
+private:
 #if defined(USE_LD)
     /// Number of vertices erased during logical mesh generation.
     static unsigned int g_vertices_erased;
