@@ -1,6 +1,8 @@
 #ifndef VGL_QUEUE_HPP
 #define VGL_QUEUE_HPP
 
+#include "vgl_algorithm.hpp"
+#include "vgl_assert.hpp"
 #include "vgl_realloc.hpp"
 #include "vgl_utility.hpp"
 
@@ -72,7 +74,7 @@ private:
     {
         if(m_size >= m_capacity)
         {
-            const unsigned DEFAULT_CAPACITY = 4;
+            const unsigned DEFAULT_CAPACITY = 4u;
             resizeInternal(max(m_capacity * 2u, DEFAULT_CAPACITY));
         }
 

@@ -3,6 +3,7 @@
 
 #include "vgl_cond.hpp"
 #include "vgl_scoped_lock.hpp"
+#include "vgl_unique_ptr.hpp"
 
 namespace vgl
 {

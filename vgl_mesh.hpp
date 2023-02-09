@@ -31,7 +31,7 @@ private:
 #endif
 
 private:
-    /// Geometry buffers used for uploading meshes to the GPU.
+    /// Global geometry buffers storage for uploading meshes to the GPU.
     static vector<GeometryBufferUptr> g_geometry_buffers;
 
 public:

@@ -8,9 +8,6 @@
 namespace vgl
 {
 
-namespace detail
-{
-
 /// Task queue class.
 class TaskDispatcher
 {
@@ -44,6 +41,10 @@ private:
 
     /// Flag signifying the task queue is being destroyed.
     bool m_quitting = false;
+
+public:
+    /// Global queue for tasks.
+    static TaskDispatcher g_task_dispatcher;
 
 private:
     /// Deleted copy constructor.
@@ -341,23 +342,23 @@ private:
     }
 };
 
-/// Queue for tasks.
-TaskDispatcher g_task_dispatcher;
+namespace detail
+{
 
 /// Internal signal of fence data.
 ///
 /// \param op Fence data.
-void internal_fence_data_signal(detail::FenceData& op)
+inline void internal_fence_data_signal(detail::FenceData& op)
 {
-    g_task_dispatcher.signalFence(op);
+    TaskDispatcher::g_task_dispatcher.signalFence(op);
 }
 
 /// Internal wait for fence data on the task dispatcher.
 ///
 /// \param op Fence data.
-void* internal_fence_data_wait(detail::FenceData* op)
+inline void* internal_fence_data_wait(detail::FenceData* op)
 {
-    return g_task_dispatcher.waitFence(op);
+    return TaskDispatcher::g_task_dispatcher.waitFence(op);
 }
 
 }
@@ -365,9 +366,9 @@ void* internal_fence_data_wait(detail::FenceData* op)
 /// Initialize task system.
 ///
 /// \param op Concurrency level.
-void tasks_initialize(unsigned op)
+inline void tasks_initialize(unsigned op)
 {
-    detail::g_task_dispatcher.initialize(op);
+    TaskDispatcher::g_task_dispatcher.initialize(op);
 }
 
 /// Get a main loop task.
@@ -375,26 +376,27 @@ void tasks_initialize(unsigned op)
 /// This function blocks if main loop tasks are not available.
 ///
 /// \return New main loop task.
-Task task_acquire_main()
+inline Task task_acquire_main()
 {
-    return detail::g_task_dispatcher.acquireMainTask();
+    return TaskDispatcher::g_task_dispatcher.acquireMainTask();
 }
 
 /// Dispatch task (any thread).
 ///
 /// \param func Function to dispatch.
 /// \param params Function parameters.
-void task_dispatch(TaskFunc func, void* params)
+inline void task_dispatch(TaskFunc func, void* params)
 {
-    detail::g_task_dispatcher.dispatch(func, params);
+    TaskDispatcher::g_task_dispatcher.dispatch(func, params);
 }
+
 /// Dispatch task (main thread).
 ///
 /// \param func Function to dispatch.
 /// \param params Function parameters.
-void task_dispatch_main(TaskFunc func, void* params)
+inline void task_dispatch_main(TaskFunc func, void* params)
 {
-    detail::g_task_dispatcher.dispatchMain(func, params);
+    TaskDispatcher::g_task_dispatcher.dispatchMain(func, params);
 }
 
 /// Wait on a task (any thread).
@@ -402,20 +404,25 @@ void task_dispatch_main(TaskFunc func, void* params)
 /// \param func Function to dispatch.
 /// \param params Function parameters.
 /// \return Fence.
-Fence task_wait(TaskFunc func, void* params)
+inline Fence task_wait(TaskFunc func, void* params)
 {
-    return detail::g_task_dispatcher.wait(func, params);
+    return TaskDispatcher::g_task_dispatcher.wait(func, params);
 }
+
 /// Wait on a task (main thread).
 ///
 /// \param func Function to dispatch.
 /// \param params Function parameters.
 /// \return Fence.
-Fence task_wait_main(TaskFunc func, void* params)
+inline Fence task_wait_main(TaskFunc func, void* params)
 {
-    return detail::g_task_dispatcher.waitMain(func, params);
+    return TaskDispatcher::g_task_dispatcher.waitMain(func, params);
 }
 
 }
+
+#if !defined(USE_LD)
+#include "vgl_task_dispatcher.cpp"
+#endif
 
 #endif
