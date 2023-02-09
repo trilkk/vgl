@@ -1,6 +1,8 @@
 #ifndef VGL_REALLOC_HPP
 #define VGL_REALLOC_HPP
 
+#include "vgl_extern_stdlib.hpp"
+
 #include <new>
 
 #if defined(USE_LD)

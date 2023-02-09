@@ -1,7 +1,6 @@
 #ifndef VGL_COND_HPP
 #define VGL_COND_HPP
 
-#include "vgl_extern_sdl.hpp"
 #include "vgl_scoped_lock.hpp"
 
 namespace vgl

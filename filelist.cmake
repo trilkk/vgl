@@ -17,12 +17,13 @@ set(VGL_HEADERS
     "${VGL_ROOT}/vgl_buffer.hpp"
     "${VGL_ROOT}/vgl_character.hpp"
     "${VGL_ROOT}/vgl_cond.hpp"
-    "${VGL_ROOT}/vgl_csg.hpp"
     "${VGL_ROOT}/vgl_csg_file.hpp"
     "${VGL_ROOT}/vgl_cstddef.hpp"
+    "${VGL_ROOT}/vgl_extern_boost_filesystem.hpp"
     "${VGL_ROOT}/vgl_extern_math.hpp"
     "${VGL_ROOT}/vgl_extern_opengl.hpp"
     "${VGL_ROOT}/vgl_extern_sdl.hpp"
+    "${VGL_ROOT}/vgl_extern_stdlib.hpp"
     "${VGL_ROOT}/vgl_fence.hpp"
     "${VGL_ROOT}/vgl_font.hpp"
     "${VGL_ROOT}/vgl_frame_buffer.hpp"
@@ -55,7 +56,6 @@ set(VGL_HEADERS
     "${VGL_ROOT}/vgl_opus.hpp"
     "${VGL_ROOT}/vgl_packed_data.hpp"
     "${VGL_ROOT}/vgl_packed_data_reader.hpp"
-    "${VGL_ROOT}/vgl_path.hpp"
     "${VGL_ROOT}/vgl_quat.hpp"
     "${VGL_ROOT}/vgl_queue.hpp"
     "${VGL_ROOT}/vgl_realloc.hpp"
@@ -84,5 +84,6 @@ set(VGL_HEADERS
     "${VGL_ROOT}/vgl_wave.hpp")
 set(VGL_SOURCES
     "${VGL_ROOT}/vgl_csg_file.cpp"
-    "${VGL_ROOT}/vgl_path.cpp"
+    "${VGL_ROOT}/vgl_extern_boost_filesystem.cpp"
+    "${VGL_ROOT}/vgl_logical_mesh.cpp"
     "${VGL_ROOT}/vgl_wave.cpp")

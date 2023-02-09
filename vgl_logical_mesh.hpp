@@ -8,27 +8,150 @@
 namespace vgl
 {
 
-/// \cond
-class LogicalMesh;
-/// \endcond
+#if !defined(VGL_DISABLE_CSG)
+/// CSG bit.
+static const unsigned CSG_FLAG_NO_LEFT = 0;
+/// CSG flag.
+static const unsigned CSG_NO_LEFT = 1 << CSG_FLAG_NO_LEFT;
 
-namespace detail
+/// CSG bit.
+static const unsigned CSG_FLAG_NO_RIGHT = 1;
+/// CSG flag.
+static const unsigned CSG_NO_RIGHT = 1 << CSG_FLAG_NO_RIGHT;
+
+/// CSG bit.
+static const unsigned CSG_FLAG_NO_BOTTOM = 2;
+/// CSG flag.
+static const unsigned CSG_NO_BOTTOM = 1 << CSG_FLAG_NO_BOTTOM;
+
+/// CSG bit.
+static const unsigned CSG_FLAG_NO_TOP = 3;
+/// CSG flag.
+static const unsigned CSG_NO_TOP = 1 << CSG_FLAG_NO_TOP;
+
+/// CSG bit.
+static const unsigned CSG_FLAG_NO_BACK = 4;
+/// CSG flag.
+static const unsigned CSG_NO_BACK = 1 << CSG_FLAG_NO_BACK;
+
+/// CSG bit.
+static const unsigned CSG_FLAG_NO_FRONT = 5;
+/// CSG flag.
+static const unsigned CSG_NO_FRONT = 1 << CSG_FLAG_NO_FRONT;
+
+/// CSG bit: flat shading (as opposed to smooth.
+static const unsigned CSG_FLAG_FLAT = 6;
+/// CSG flag.
+static const unsigned CSG_FLAT = 1 << CSG_FLAG_FLAT;
+
+/// CSG flag count.
+static const unsigned CSG_FLAG_COUNT = 7;
+
+/// CSG flag set type.
+using CsgFlags = bitset<CSG_FLAG_COUNT>;
+
+/// CSG command enumeration.
+///
+/// In base cgl namespace so it's easier to use.
+///
+/// Unless specifically mentioned, the coordinate values are multiplied by 100.
+/// Other multipliers are signified by the multiplier in parenthesis.
+///
+/// "Up vector (1/4)" signifies either:
+/// One value, 1, 2 or 3, or the same values negative - unit vector on given axis, negative for negative direction.
+/// Or 0, followed by direction vector verbatim.
+enum class CsgCommand : int16_t
 {
+    /// Stop reading.
+    NONE = 0,
 
-/// \cond
-void csg_read_data(LogicalMesh&, const int16_t*);
-void csg_read_raw(LogicalMesh&, const int16_t*, const uint8_t*, const uint16_t*, unsigned, unsigned, float);
-void csg_read_raw(LogicalMesh&, const int16_t*, const uint16_t*, unsigned, unsigned, float);
-/// \endcond
+    /// Vertex (position only).
+    /// - Position (3).
+    VERTEX,
 
-#if defined(USE_LD)
+    /// Triangle face.
+    /// - Corner indices (3).
+    TRIANGLE,
 
-/// Number of vertices erased during logical mesh generation.
-unsigned int g_vertices_erased = 0;
+    /// Triangle face (with texcoord).
+    /// - Corner index.
+    /// - Texcoords (2).
+    /// - Corner index.
+    /// - Texcoords (2).
+    /// - Corner index.
+    /// - Texcoords (2).
+    TRIANGLE_TC,
 
-#endif
+    /// Quad face.
+    /// - Corner indices (4).
+    QUAD,
 
+    /// Quad face (with texcoord).
+    /// - Corner index.
+    /// - Texcoords (2).
+    /// - Corner index.
+    /// - Texcoords (2).
+    /// - Corner index.
+    /// - Texcoords (2).
+    /// - Corner index.
+    /// - Texcoords (2).
+    QUAD_TC,
+
+    /// Box.
+    /// - Start position (3).
+    /// - End position (3).
+    /// - Up vector (1/4).
+    /// - Width.
+    /// - Height.
+    /// - CSG flags.
+    BOX,
+
+    /// Trapezoid (chain).
+    /// - Number of points.
+    /// - Points / sizes (3 + 2 each).
+    /// - Forward vector (1/4).
+    /// - Up vector (1/4).
+    /// - CSG flags.
+    TRAPEZOID,
+
+    /// Cone.
+    /// - Start position (3).
+    /// - End position (3).
+    /// - Forward vector (1/4).
+    /// - Up vector (1/4).
+    /// - Fidelity.
+    /// - Radius start.
+    /// - Radius end.
+    /// - CSG flags.
+    CONE,
+
+    /// Cylinder.
+    /// - Start position (3).
+    /// - End position (3).
+    /// - Up vector (1/4).
+    /// - Fidelity.
+    /// - Radius.
+    /// - CSG flags.
+    CYLINDER,
+
+    /// Pipe.
+    /// - Number of points.
+    /// - Points (3 each).
+    /// - Fidelity.
+    /// - Radius.
+    /// - CSG flags.
+    PIPE,
+
+    /// Number of commands.
+    COUNT,
+};
+
+/// conversion operator.
+constexpr int16_t to_int16(CsgCommand op)
+{
+    return static_cast<int16_t>(op);
 }
+#endif
 
 /// Logical mesh.
 ///
@@ -42,18 +165,24 @@ private:
     /// Logical face data.
     vector<LogicalFace> m_faces;
 
+#if defined(USE_LD)
+    /// Number of vertices erased during logical mesh generation.
+    static unsigned int g_vertices_erased;
+#endif
+
 public:
     /// Constructor.
     ///
     /// \param paint_color Face paint color (default: white).
     constexpr explicit LogicalMesh() = default;
 
+#if !defined(VGL_DISABLE_CSG)
     /// Constructor using CSG elements.
     ///
     /// \param op Input data for CSG construction.
     explicit LogicalMesh(const int16_t* op)
     {
-        detail::csg_read_data(*this, op);
+        csgReadData(op);
     }
 
     /// Constructor using raw data.
@@ -67,7 +196,7 @@ public:
     explicit LogicalMesh(const int16_t *vertices, const uint8_t *bones, const uint16_t* faces,
             unsigned vertices_amount, unsigned faces_amount, float scale)
     {
-        detail::csg_read_raw(*this, vertices, bones, faces, vertices_amount, faces_amount, scale);
+        csgReadRaw(vertices, bones, faces, vertices_amount, faces_amount, scale);
     }
     /// Constructor using raw data.
     ///
@@ -81,8 +210,9 @@ public:
     explicit LogicalMesh(const int16_t *vertices, const uint16_t* faces,
             unsigned vertices_amount, unsigned faces_amount, float scale)
     {
-        detail::csg_read_raw(*this, vertices, nullptr, faces, vertices_amount, faces_amount, scale);
+        csgReadRaw(vertices, nullptr, faces, vertices_amount, faces_amount, scale);
     }
+#endif
 
 private:
     /// Add face (internal).
@@ -158,7 +288,7 @@ private:
         {
             BOOST_THROW_EXCEPTION(std::runtime_error("cannot erase non-orphaned vertex " + std::to_string(op)));
         }
-        ++detail::g_vertices_erased;
+        ++g_vertices_erased;
 #endif
         if((op + 1) < m_vertices.size())
         {
@@ -446,6 +576,127 @@ public:
         return ret;
     }
 
+#if !defined(VGL_DISABLE_CSG)
+    /// Create a trapezoid (chain) shape.
+    ///
+    /// \param lmesh Target logical mesh.
+    /// \param points Point array.
+    /// \param sizes Size array.
+    /// \param count Number of points, should be at least 3.
+    /// \param dir Face direction.
+    /// \param up Up direction.
+    /// \param width1 Width of back face.
+    /// \param height1 Height of back face.
+    /// \param width2 Width of front face.
+    /// \param height2 Height of front face.
+    /// \param flags CSG flags.
+    void csgTrapezoid(const vec3* points, const vec2* sizes, unsigned count, const vec3& param_dir, const vec3& param_up,
+            CsgFlags flags = CsgFlags(0));
+    /// Create a box shape.
+    ///
+    /// Box is a specialization of trapezoid.
+    ///
+    /// \param lmesh Target logical mesh.
+    /// \param p1 Center of front face.
+    /// \param p2 Center of back face.
+    /// \param param_up Up direction.
+    /// \param width Width.
+    /// \param height Height.
+    /// \param flags CSG flags.
+    void csgBox(const vec3& p1, const vec3& p2, const vec3& param_up, float width, float height, CsgFlags flags = CsgFlags(0))
+    {
+        // Data arrays for trapezoid.
+        vec3 points[2] = { p1, p2 };
+        vec2 bsize(width, height);
+        vec2 sizes[2] = { bsize, bsize };
+        // Ensure up is actually perpendicular to fw.
+        // Do not normalize to prevent degradation of precision.
+        vec3 fw = p2 - p1;
+        vec3 rt = cross(fw, param_up);
+        vec3 up = cross(rt, fw);
+        // Pass to trapezoid.
+        csgTrapezoid(points, sizes, 2, fw, up, flags);
+    }
+
+    /// Create a cone shape.
+    ///
+    /// \param lmesh Target logical mesh.
+    /// \param p1 Starting point.
+    /// \param p2 End point.
+    /// \param param_fw Forward direction.
+    /// \param param_up Up direction.
+    /// \param fidelity Fidelity of the cylinder, should be at least 3.
+    /// \param radius1 Radius of cone front.
+    /// \param radius2 Radius of cone back.
+    /// \param flags CSG flags.
+    void csgCone(const vec3& p1, const vec3& p2, const vec3 param_fw, const vec3& param_up, unsigned fidelity, float radius1,
+            float radius2, CsgFlags flags = CsgFlags(0));
+    /// Create a cylinder shape.
+    ///
+    /// Cylinder is an specialization of cone.
+    ///
+    /// \param lmesh Target logical mesh.
+    /// \param p1 Starting point.
+    /// \param p2 End point.
+    /// \param param_up Up direction.
+    /// \param fidelity Fidelity of the cylinder, should be at least 3.
+    /// \param radius Radius of the cylinder.
+    /// \param flags CSG flags.
+    void csgCylinder(const vec3& p1, const vec3& p2, const vec3& param_up, unsigned fidelity, float radius,
+            CsgFlags flags = CsgFlags(0))
+    {
+        // Pass to cone.
+        vec3 fw = p2 - p1;
+        csgCone(p1, p2, fw, param_up, fidelity, radius, radius, flags);
+    }
+
+    /// Create a pipe shape.
+    ///
+    /// Very sharp angles and spirals generate degenerate geometry.
+    ///
+    /// \param lmesh Target logical mesh.
+    /// \param points Point array.
+    /// \param count Number of points, should be at least 3.
+    /// \param fidelity Fidelity of the cylinder, should be at least 3.
+    /// \param radius Radius of the cylinder.
+    /// \param flags CSG flags.
+    void csgPipe(const vec3* points, unsigned count, unsigned fidelity, float radius, CsgFlags flags = CsgFlags(0));
+
+    /// Read packed data.
+    ///
+    /// \param msh Mesh to store forms to.
+    /// \param data Data to read.
+    void csgReadData(const int16_t* data);
+
+    /// Add raw model data.
+    ///
+    /// Bone input is arranged as 3 weights and 3 references.
+    /// The 3 weights should add up to 255.
+    ///
+    /// \param vertices Vertex input.
+    /// \param bones Bone weight and reference input.
+    /// \param faces Face input.
+    /// \param vertices_amount Vertex data element count.
+    /// \param faces_amount Face data element count.
+    /// \param scale Scale to multiply with.
+    void csgReadRaw(const int16_t *vertices, const uint8_t *bones, const uint16_t* faces, unsigned vertices_amount,
+            unsigned faces_amount, float scale);
+    /// Add raw model data.
+    ///
+    /// Bone data is not added.
+    ///
+    /// \param vertices Vertex input.
+    /// \param faces Face input.
+    /// \param vertices_amount Vertex data element count.
+    /// \param faces_amount Face data element count.
+    /// \param scale Scale to multiply with.
+    void csgReadRaw(const int16_t *vertices, const uint16_t* faces, unsigned vertices_amount, unsigned faces_amount,
+            float scale)
+    {
+        csgReadRaw(vertices, nullptr, faces, vertices_amount, faces_amount, scale);
+    }
+#endif
+
     /// Accessor.
     ///
     /// \param idx Index.
@@ -528,5 +779,9 @@ public:
 };
 
 }
+
+#if !defined(USE_LD)
+#include "vgl_logical_mesh.cpp"
+#endif
 
 #endif

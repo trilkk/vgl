@@ -6,7 +6,7 @@
 
 #if defined(USE_LD)
 
-#include "vgl_path.hpp"
+#include "vgl_extern_boost_filesystem.hpp"
 
 namespace vgl
 {

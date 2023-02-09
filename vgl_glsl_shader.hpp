@@ -1,6 +1,7 @@
 #ifndef VGL_GLSL_SHADER_HPP
 #define VGL_GLSL_SHADER_HPP
 
+#include "vgl_extern_opengl.hpp"
 #include "vgl_string_view.hpp"
 
 #if defined(USE_LD)

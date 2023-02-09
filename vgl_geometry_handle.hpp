@@ -1,6 +1,8 @@
 #ifndef VGL_GEOMETRY_HANDLE_HPP
 #define VGL_GEOMETRY_HANDLE_HPP
 
+#include "vgl_extern_opengl.hpp"
+
 namespace vgl
 {
 

@@ -1,6 +1,8 @@
 #ifndef VGL_THREAD_HPP
 #define VGL_THREAD_HPP
 
+#include "vgl_extern_sdl.hpp"
+
 namespace vgl
 {
 

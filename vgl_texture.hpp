@@ -1,6 +1,8 @@
 #ifndef VGL_TEXTURE_HPP
 #define VGL_TEXTURE_HPP
 
+#include "vgl_extern_opengl.hpp"
+
 namespace vgl
 {
 

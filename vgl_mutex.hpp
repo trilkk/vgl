@@ -1,6 +1,8 @@
 #ifndef VGL_MUTEX_HPP
 #define VGL_MUTEX_HPP
 
+#include "vgl_extern_sdl.hpp"
+
 namespace vgl
 {
 

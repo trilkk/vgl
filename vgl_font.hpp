@@ -2,8 +2,7 @@
 #define VGL_FONT_HPP
 
 #include "vgl_character.hpp"
-
-//#define VGL_FONT_ENABLE_KERNING
+#include "vgl_extern_boost_filesystem.hpp"
 
 namespace vgl
 {
