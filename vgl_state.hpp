@@ -1,5 +1,5 @@
-#ifndef VGL_HPP
-#define VGL_HPP
+#ifndef VGL_STATE_HPP
+#define VGL_STATE_HPP
 
 #include "vgl_extern_opengl.hpp"
 #include "vgl_optional.hpp"
@@ -64,391 +64,658 @@ std::string to_string(OperationMode op)
 
 #endif
 
-namespace detail
+/// OpenGL attribute array state abstraction.
+class OpenGlAttribState
 {
- 
-/// Maximum number of attribute arrays.
-const GLint MAX_ATTRIB_ARRAYS = 6;
+public:
+    /// Maximum number of attribute arrays.
+    static const unsigned MAX_ATTRIB_ARRAYS = 6u;
 
-/// Attribute array enabled statuses.
-bool g_attrib_arrays_enabled[MAX_ATTRIB_ARRAYS] =
-{
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-};
+private:
+    /// Attribute array enabled statuses.
+    bool m_attrib_arrays_enabled[MAX_ATTRIB_ARRAYS] =
+    {
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+    };
 
-/// Is blending enabled?
-bool g_blend_enabled = false;
-/// Current blend mode.
-OperationMode g_blend_mode = DISABLED;
-/// Current clear color.
-uvec4 g_clear_color(0, 0, 0, 0);
-/// Current clear depth.
-float g_clear_depth = 1.0f;
+public:
+    /// Global state.
+    static OpenGlAttribState g_opengl_attrib_state;
 
-/// Current color write state.
-bool g_color_write = true;
-/// Is face culling enabled.
-bool g_cull_face_enabled = false;
-/// Current face cull mode.
-GLenum g_cull_face = GL_BACK;
-/// Is depth test enabled?
-bool g_depth_test = false;
-/// Current depth test function.
-GLenum g_depth_func = GL_LESS;
-/// Is depth write enabled?
-bool g_depth_write = true;
-/// Is polygon offset enabled?
-bool g_polygon_offset = false;
-/// Current polygon offset in units.
-int g_polygon_offset_units = 0;
-
-#if !defined(VGL_DISABLE_STENCIL)
-
-/// Current clear stencil.
-uint8_t g_clear_stencil = 0u;
-/// Current stencil function.
-GLenum g_stencil_func = GL_FALSE;
-/// Current stencil operation mode.
-OperationMode g_stencil_operation = DISABLED;
-/// Is stencil test enabled?
-bool g_stencil_test = false;
-
-#endif
-
+public:
+    /// Enable one vertex attribute.
+    ///
+    /// \param op Index of array to enable.
+    void enableAttribArray(unsigned op)
+    {
 #if defined(USE_LD)
-
-#if !defined(VGL_DISABLE_EDGE)
-
-/// Total GPU data size spent on edges.
-static unsigned g_data_size_edge = 0;
-
+        if((MAX_ATTRIB_ARRAYS <= op))
+        {
+            std::ostringstream sstr;
+            sstr << "enabling attribute index " << op << " (" << MAX_ATTRIB_ARRAYS << " supported)";
+            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+        }
 #endif
+        if(!m_attrib_arrays_enabled[op])
+        {
+            dnload_glEnableVertexAttribArray(op);
+            m_attrib_arrays_enabled[op] = true;
+        }
+    }
 
-/// Total GPU data size spent on indices.
-static unsigned g_data_size_index = 0;
-/// Total GPU data size spent on textures.
-static unsigned g_data_size_texture = 0;
-/// Total GPU data size spent on vertices.
-unsigned g_data_size_vertex = 0;
-
-#endif
-
-}
+    /// Disable extra vertex attribute arrays.
+    ///
+    /// \param op Index of first array to disable.
+    void disableAttribArraysFrom(unsigned op)
+    {
+        for(unsigned ii = op; (ii < MAX_ATTRIB_ARRAYS); ++ii)
+        {
+            if(m_attrib_arrays_enabled[ii])
+            {
+                dnload_glDisableVertexAttribArray(ii);
+                m_attrib_arrays_enabled[ii] = false;
+            }
+        }
+    }
+};
 
 /// Enable one vertex attribute.
 ///
 /// \param op Index of array to enable.
-void attrib_array_enable(unsigned op)
+inline void attrib_array_enable(unsigned op)
 {
-#if defined(USE_LD)
-    if((detail::MAX_ATTRIB_ARRAYS <= op))
-    {
-        std::ostringstream sstr;
-        sstr << "enabling attribute index " << op << " (" << detail::MAX_ATTRIB_ARRAYS << " supported)";
-        BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
-    }
-#endif
-    if(!detail::g_attrib_arrays_enabled[op])
-    {
-        dnload_glEnableVertexAttribArray(op);
-        detail::g_attrib_arrays_enabled[op] = true;
-    }
+    OpenGlAttribState::g_opengl_attrib_state.enableAttribArray(op);
 }
 
 /// Disable extra vertex attribute arrays.
 ///
 /// \param op Index of first array to disable.
-void disable_excess_attrib_arrays(unsigned op)
+inline void attrib_array_disable_from(unsigned op)
 {
-    for(unsigned ii = op; (ii < detail::MAX_ATTRIB_ARRAYS); ++ii)
+    OpenGlAttribState::g_opengl_attrib_state.disableAttribArraysFrom(op);
+}
+
+/// OpenGL blend state abstraction.
+class OpenGlBlendState
+{
+private:
+    /// Is blending enabled?
+    bool m_blend_enabled = false;
+    /// Current blend mode.
+    OperationMode m_blend_mode = DISABLED;
+
+public:
+    /// Global state.
+    static OpenGlBlendState g_opengl_blend_state;
+
+public:
+    /// Set blending mode.
+    ///
+    /// \param op New blending mode.
+    void setBlendMode(OperationMode op)
     {
-        if(detail::g_attrib_arrays_enabled[ii])
+        if(DISABLED == op)
         {
-            dnload_glDisableVertexAttribArray(ii);
-            detail::g_attrib_arrays_enabled[ii] = false;
+            if(m_blend_enabled)
+            {
+                dnload_glDisable(GL_BLEND);
+                m_blend_enabled = false;
+            }
+        }
+        else
+        {
+            if(!m_blend_enabled)
+            {
+                dnload_glEnable(GL_BLEND);
+                m_blend_enabled = true;
+            }
+
+            if(m_blend_mode != op)
+            {
+                if(op == ADDITIVE)
+                {
+                    dnload_glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
+                }
+                else // Default is premultiplied.
+                {
+#if defined(USE_LD)
+                    if(op != PREMULTIPLIED)
+                    {
+                        BOOST_THROW_EXCEPTION(std::runtime_error("invalid blend mode: '" + to_string(op) + "'"));
+                    }
+#endif
+                    dnload_glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+                }
+                m_blend_mode = op;
+            }
         }
     }
-}
+};
 
 /// Set blending mode.
 ///
 /// \param op New blending mode.
-void blend_mode(OperationMode op)
+inline void blend_mode(OperationMode op)
 {
-    if(DISABLED == op)
+    OpenGlBlendState::g_opengl_blend_state.setBlendMode(op);
+}
+
+/// OpenGL clear state abstraction.
+class OpenGlClearState
+{
+private:
+    /// Current clear color.
+    uvec4 m_clear_color = uvec4(0u, 0u, 0u, 0u);
+    /// Current clear depth.
+    float m_clear_depth = 1.0f;
+#if !defined(VGL_DISABLE_STENCIL)
+    /// Current clear stencil.
+    uint8_t m_clear_stencil = 0u;
+#endif
+
+public:
+    /// Global state.
+    static OpenGlClearState g_opengl_clear_state;
+
+public:
+    /// Clear current framebuffer.
+    ///
+    /// \param color Optional color clear.
+    /// \param depth Optional depth clear.
+#if !defined(VGL_DISABLE_STENCIL)
+    /// \param stencil Optional stencil clear.
+#endif
+    void clearBuffers(optional<uvec4> color, optional<float> depth
+#if !defined(VGL_DISABLE_STENCIL)
+            , optional<uint8_t> stencil
+#endif
+            )
     {
-        if(detail::g_blend_enabled)
+        GLbitfield clear_mask = 0;
+
+        if(color)
         {
-            dnload_glDisable(GL_BLEND);
-            detail::g_blend_enabled = false;
-        }
-    }
-    else
-    {
-        if(!detail::g_blend_enabled)
-        {
-            dnload_glEnable(GL_BLEND);
-            detail::g_blend_enabled = true;
+            if(*color != m_clear_color)
+            {
+                vec4 norm_color = color->toNormVec4();
+                dnload_glClearColor(norm_color.x(), norm_color.y(), norm_color.z(), norm_color.w());
+                m_clear_color = *color;
+            }
+            clear_mask |= GL_COLOR_BUFFER_BIT;
         }
 
-        if(detail::g_blend_mode != op)
+        if(depth)
         {
-            if(op == ADDITIVE)
+            if(*depth != m_clear_depth)
             {
-                dnload_glBlendFuncSeparate(GL_ONE, GL_ONE, GL_ONE, GL_ONE);
+                dnload_glClearDepthf(*depth);
+                m_clear_depth = *depth;
             }
-            else // Default is premultiplied.
-            {
-#if defined(USE_LD)
-                if(op != PREMULTIPLIED)
-                {
-                    BOOST_THROW_EXCEPTION(std::runtime_error("invalid blend mode: '" + to_string(op) + "'"));
-                }
-#endif
-                dnload_glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-            }
-            detail::g_blend_mode = op;
+            clear_mask |= GL_DEPTH_BUFFER_BIT;
         }
+
+#if !defined(VGL_DISABLE_STENCIL)
+        if(stencil)
+        {
+            if(*stencil != m_clear_stencil)
+            {
+                dnload_glClearStencil(*stencil);
+                m_clear_stencil = *stencil;
+            }
+            clear_mask |= GL_STENCIL_BUFFER_BIT;
+        }
+#endif
+
+        dnload_glClear(clear_mask);
     }
-}
+};
 
 /// Clear current framebuffer.
 ///
-/// \param op Bit mask of buffers to clear.
-void clear_buffers(optional<uvec4> color, optional<float> depth, optional<uint8_t> stencil = nullopt)
-{
-    GLbitfield clear_mask = 0;
-
-    if(color)
-    {
-        if(*color != detail::g_clear_color)
-        {
-            vec4 norm_color = color->toNormVec4();
-            dnload_glClearColor(norm_color.x(), norm_color.y(), norm_color.z(), norm_color.w());
-            detail::g_clear_color = *color;
-        }
-        clear_mask |= GL_COLOR_BUFFER_BIT;
-    }
-
-    if(depth)
-    {
-        if(*depth != detail::g_clear_depth)
-        {
-            dnload_glClearDepthf(*depth);
-            detail::g_clear_depth = *depth;
-        }
-        clear_mask |= GL_DEPTH_BUFFER_BIT;
-    }
-
-#if defined(VGL_DISABLE_STENCIL)
-    (void)stencil;
-#else
-    if(stencil)
-    {
-        if(*stencil != detail::g_clear_stencil)
-        {
-            dnload_glClearStencil(*stencil);
-            detail::g_clear_stencil = *stencil;
-        }
-        clear_mask |= GL_STENCIL_BUFFER_BIT;
-    }
+/// \param color Optional color clear.
+/// \param depth Optional depth clear.
+#if !defined(VGL_DISABLE_STENCIL)
+/// \param stencil Optional stencil clear.
 #endif
-
-    dnload_glClear(clear_mask);
+inline void clear_buffers(optional<uvec4> color, optional<float> depth
+#if !defined(VGL_DISABLE_STENCIL)
+        , optional<uint8_t> stencil = nullopt
+#endif
+        )
+{
+    OpenGlClearState::g_opengl_clear_state.clearBuffers(color, depth
+#if !defined(VGL_DISABLE_STENCIL)
+            , stencil
+#endif
+            );
 }
+
+/// OpenGL color write state abstraction.
+class OpenGlColorWriteState
+{
+private:
+    /// Current color write state.
+    bool m_color_write = true;
+
+public:
+    /// Global state.
+    static OpenGlColorWriteState g_opengl_color_write_state;
+
+public:
+    /// Set color writing mode.
+    ///
+    /// \param op True to enable, false to disable.
+    void setColorWrite(bool op)
+    {
+        if(op != m_color_write)
+        {
+            GLboolean mask_value = op ? GL_TRUE : GL_FALSE;
+            dnload_glColorMask(mask_value, mask_value, mask_value, mask_value);
+            m_color_write = op;
+        }
+    }
+};
 
 /// Set color writing mode.
 ///
 /// \param op True to enable, false to disable.
-void color_write(bool op)
+inline void color_write(bool op)
 {
-    if(op != detail::g_color_write)
-    {
-        GLboolean mask_value = op ? GL_TRUE : GL_FALSE;
-        dnload_glColorMask(mask_value, mask_value, mask_value, mask_value);
-        detail::g_color_write = op;
-    }
+    OpenGlColorWriteState::g_opengl_color_write_state.setColorWrite(op);
 }
+
+/// OpenGL cull face state abstraction.
+class OpenGlCullFaceState
+{
+private:
+    /// Is face culling enabled.
+    bool m_cull_face_enabled = false;
+    /// Current face cull mode.
+    GLenum m_cull_face = GL_BACK;
+
+public:
+    /// Global state.
+    static OpenGlCullFaceState g_opengl_cull_face_state;
+
+public:
+    /// Set culling mode.
+    ///
+    /// \param op Mode, GL_FALSE to disable.
+    void setCullFace(GLenum op)
+    {
+        if(GL_FALSE == op)
+        {
+            if(m_cull_face_enabled)
+            {
+                dnload_glDisable(GL_CULL_FACE);
+                m_cull_face_enabled = false;
+            }
+        }
+        else
+        {
+            if(!m_cull_face_enabled)
+            {
+                dnload_glEnable(GL_CULL_FACE);
+                m_cull_face_enabled = true;
+            }
+
+            if(m_cull_face != op)
+            {
+                dnload_glCullFace(op);
+                m_cull_face = op;
+            }
+        }
+    }
+};
 
 /// Set culling mode.
 ///
 /// \param op Mode, GL_FALSE to disable.
-void cull_face(GLenum op)
+inline void cull_face(GLenum op)
 {
-    if(GL_FALSE == op)
-    {
-        if(detail::g_cull_face_enabled)
-        {
-            dnload_glDisable(GL_CULL_FACE);
-            detail::g_cull_face_enabled = false;
-        }
-    }
-    else
-    {
-        if(!detail::g_cull_face_enabled)
-        {
-            dnload_glEnable(GL_CULL_FACE);
-            detail::g_cull_face_enabled = true;
-        }
-
-        if(detail::g_cull_face != op)
-        {
-            dnload_glCullFace(op);
-            detail::g_cull_face = op;
-        }
-    }
+    OpenGlCullFaceState::g_opengl_cull_face_state.setCullFace(op);
 }
+
+/// OpenGL depth state abstraction.
+class OpenGlDepthState
+{
+private:
+    /// Is depth test enabled?
+    bool m_depth_test = false;
+    /// Current depth test function.
+    GLenum m_depth_func = GL_LESS;
+#if !defined(VGL_DISABLE_DEPTH_WRITE)
+    /// Is depth write enabled?
+    bool m_depth_write = true;
+#endif
+
+public:
+    /// Global state.
+    static OpenGlDepthState g_opengl_depth_state;
+
+public:
+    /// Set depth testing mode.
+    ///
+    /// \param op Depth testing mode, GL_FALSE to disable.
+    void setDepthTest(GLenum op)
+    {
+        if(GL_FALSE == op)
+        {
+            if(m_depth_test)
+            {
+                dnload_glDisable(GL_DEPTH_TEST);
+                m_depth_test = false;
+            }
+        }
+        else
+        {
+            if(!m_depth_test)
+            {
+                dnload_glEnable(GL_DEPTH_TEST);
+                m_depth_test = true;
+            }
+
+            if(m_depth_func != op)
+            {
+                dnload_glDepthFunc(op);
+                m_depth_func = op;
+            }
+        }
+    }
+
+#if !defined(VGL_DISABLE_DEPTH_WRITE)
+
+    /// Set depth writing mode.
+    ///
+    /// \param op True to enable, false to disable.
+    void setDepthWrite(bool op)
+    {
+        if(op != m_depth_write)
+        {
+            GLboolean mask_value = op ? GL_TRUE : GL_FALSE;
+            dnload_glDepthMask(mask_value);
+            m_depth_write = op;
+        }
+    }
+
+#endif
+};
 
 /// Set depth testing mode.
 ///
 /// \param op Depth testing mode, GL_FALSE to disable.
-void depth_test(GLenum op)
+inline void depth_test(GLenum op)
 {
-    if(GL_FALSE == op)
-    {
-        if(detail::g_depth_test)
-        {
-            dnload_glDisable(GL_DEPTH_TEST);
-            detail::g_depth_test = false;
-        }
-    }
-    else
-    {
-        if(!detail::g_depth_test)
-        {
-            dnload_glEnable(GL_DEPTH_TEST);
-            detail::g_depth_test = true;
-        }
-
-        if(detail::g_depth_func != op)
-        {
-            dnload_glDepthFunc(op);
-            detail::g_depth_func = op;
-        }
-    }
+    OpenGlDepthState::g_opengl_depth_state.setDepthTest(op);
 }
+
+#if !defined(VGL_DISABLE_DEPTH_WRITE)
 
 /// Set depth writing mode.
 ///
 /// \param op True to enable, false to disable.
-void depth_write(bool op)
+inline void depth_write(bool op)
 {
-    if(op != detail::g_depth_write)
-    {
-        GLboolean mask_value = op ? GL_TRUE : GL_FALSE;
-        dnload_glDepthMask(mask_value);
-        detail::g_depth_write = op;
-    }
+    OpenGlDepthState::g_opengl_depth_state.setDepthWrite(op);
 }
+
+#endif
+
+#if !defined(VGL_DISABLE_POLYGON_OFFSET)
+
+/// OpenGL polygon offset state.
+class OpenGlPolygonOffsetState
+{
+private:
+    /// Is polygon offset enabled?
+    bool m_polygon_offset = false;
+    /// Current polygon offset in units.
+    int m_polygon_offset_units = 0;
+
+public:
+    /// Global state.
+    static OpenGlPolygonOffsetState g_opengl_polygon_offset_state;
+
+public:
+    /// Set polygon offset.
+    ///
+    /// \param op Units to offset.
+    void setPolygonOffset(int op)
+    {
+        if(!op)
+        {
+            if(m_polygon_offset)
+            {
+                dnload_glDisable(GL_POLYGON_OFFSET_FILL);
+                m_polygon_offset = false;
+            }
+        }
+        else
+        {
+            if(!m_polygon_offset)
+            {
+                dnload_glEnable(GL_POLYGON_OFFSET_FILL);
+                m_polygon_offset = true;
+            }
+            if(m_polygon_offset_units != op)
+            {
+                dnload_glPolygonOffset(1.0f, static_cast<float>(op));
+                m_polygon_offset_units = op;
+            }
+        }
+    }
+};
 
 /// Set polygon offset.
 ///
 /// \param op Units to offset.
-void polygon_offset(int op)
+inline void polygon_offset(int op)
 {
-    if(!op)
-    {
-        if(detail::g_polygon_offset)
-        {
-            dnload_glDisable(GL_POLYGON_OFFSET_FILL);
-            detail::g_polygon_offset = false;
-        }
-    }
-    else
-    {
-        if(!detail::g_polygon_offset)
-        {
-            dnload_glEnable(GL_POLYGON_OFFSET_FILL);
-            detail::g_polygon_offset = true;
-        }
-        if(detail::g_polygon_offset_units != op)
-        {
-            dnload_glPolygonOffset(1.0f, static_cast<float>(op));
-            detail::g_polygon_offset_units = op;
-        }
-    }
+    OpenGlPolygonOffsetState::g_opengl_polygon_offset_state.setPolygonOffset(op);
 }
 
+#endif
+
 #if !defined(VGL_DISABLE_STENCIL)
+/// OpenGl stencil state abstraction.
+class OpenGlStencilState
+{
+private:
+    /// Current clear stencil.
+    uint8_t m_clear_stencil = 0u;
+    /// Current stencil function.
+    GLenum m_stencil_func = GL_FALSE;
+    /// Current stencil operation mode.
+    OperationMode m_stencil_operation = DISABLED;
+    /// Is stencil test enabled?
+    bool m_stencil_test = false;
+
+public:
+    /// Global state.
+    static OpenGlStencilState g_opengl_stencil_state;
+
+public:
+    /// Set stencil mode.
+    ///
+    /// \param op New mode.
+    void setStencilMode(GLenum op)
+    {
+        if(GL_FALSE == op)
+        {
+            if(m_stencil_test)
+            {
+                dnload_glDisable(GL_STENCIL_TEST);
+                m_stencil_test = false;
+            }
+        }
+        else
+        {
+            if(!m_stencil_test)
+            {
+                dnload_glEnable(GL_STENCIL_TEST);
+                m_stencil_test = true;
+            }
+            if(m_stencil_func != op)
+            {
+                dnload_glStencilFunc(op, 0, 0xFFFFFFFFu);
+                m_stencil_func = op;
+            }
+        }
+    }
+
+    /// Set stencil operation.
+    ///
+    /// \param op New mode.
+    void setStencilOperation(OperationMode op)
+    {
+        if(m_stencil_operation != op)
+        {
+            if(op == CARMACK)
+            {
+                dnload_glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+                dnload_glStencilOpSeparate(GL_BACK, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+            }
+            else // Default is nothing.
+            {
+#if defined(USE_LD)
+                if(op != DISABLED)
+                {
+                    BOOST_THROW_EXCEPTION(std::runtime_error("invalid stencil operation: '" + to_string(op) + "'"));
+                }
+#endif
+                dnload_glStencilOpSeparate(GL_FRONT_AND_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
+            }
+            m_stencil_operation = op;
+        }
+    }
+};
 
 /// Set stencil mode.
 ///
 /// \param op New mode.
-static void stencil_mode(GLenum op)
+inline void stencil_mode(GLenum op)
 {
-    if(GL_FALSE == op)
-    {
-        if(detail::g_stencil_test)
-        {
-            dnload_glDisable(GL_STENCIL_TEST);
-            detail::g_stencil_test = false;
-        }
-    }
-    else
-    {
-        if(!detail::g_stencil_test)
-        {
-            dnload_glEnable(GL_STENCIL_TEST);
-            detail::g_stencil_test = true;
-        }
-        if(detail::g_stencil_func != op)
-        {
-            dnload_glStencilFunc(op, 0, 0xFFFFFFFFU);
-            detail::g_stencil_func = op;
-        }
-    }
+    OpenGlStencilState::g_opengl_stencil_state.setStencilMode(op);
 }
 
 /// Set stencil operation.
 ///
 /// \param op New mode.
-static void stencil_operation(OperationMode op)
+inline void stencil_operation(OperationMode op)
 {
-    if(detail::g_stencil_operation != op)
-    {
-        if(op == CARMACK)
-        {
-            dnload_glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
-            dnload_glStencilOpSeparate(GL_BACK, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
-        }
-        else // Default is nothing.
-        {
-#if defined(USE_LD)
-            if(op != DISABLED)
-            {
-                BOOST_THROW_EXCEPTION(std::runtime_error("invalid stencil operation: '" + to_string(op) + "'"));
-            }
-#endif
-            dnload_glStencilOpSeparate(GL_FRONT_AND_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
-        }
-        detail::g_stencil_operation = op;
-    }
+    OpenGlStencilState::g_opengl_stencil_state.setStencilOperation(op);
 }
 
 #endif
 
 #if defined(USE_LD)
+
+/// OpenGL state abstraction.
+class OpenGlDiagnosticsState
+{
+private:
+#if !defined(VGL_DISABLE_EDGE)
+    /// Total GPU data size spent on edges.
+    unsigned m_data_size_edge = 0u;
+#endif
+    /// Total GPU data size spent on indices.
+    unsigned m_data_size_index = 0u;
+    /// Total GPU data size spent on textures.
+    unsigned m_data_size_texture = 0u;
+    /// Total GPU data size spent on vertices.
+    unsigned m_data_size_vertex = 0u;
+
+public:
+    /// Global state.
+    static OpenGlDiagnosticsState g_opengl_diagnostics_state;
+
+public:
+
+#if !defined(VGL_DISABLE_EDGE)
+
+    /// Accessor.
+    ///
+    /// \return Total edge data size used.
+    constexpr unsigned getDataSizeEdge() const
+    {
+        return m_data_size_edge;
+    }
+    /// Increment data size.
+    ///
+    /// \param op Edge data size used.
+    constexpr unsigned incrementDataSizeEdge(unsigned op)
+    {
+        return m_data_size_edge += op;
+    }
+
+#endif
+
+    /// Accessor.
+    ///
+    /// \return Total index data size used.
+    constexpr unsigned getDataSizeIndex() const
+    {
+        return m_data_size_index;
+    }
+    /// Increment data size.
+    ///
+    /// \param op Index data size used.
+    constexpr unsigned incrementDataSizeIndex(unsigned op)
+    {
+        return m_data_size_index += op;
+    }
+
+    /// Accessor.
+    ///
+    /// \return Total index data size used.
+    constexpr unsigned getDataSizeTexture() const
+    {
+        return m_data_size_texture;
+    }
+    /// Increment data size.
+    ///
+    /// \param op Texture data size used.
+    constexpr unsigned incrementDataSizeTexture(unsigned op)
+    {
+        return m_data_size_texture += op;
+    }
+
+    /// Accessor.
+    ///
+    /// \return Total vertex data size used.
+    constexpr unsigned getDataSizeVertex() const
+    {
+        return m_data_size_vertex;
+    }
+    /// Increment data size.
+    ///
+    /// \param op Edge data size used.
+    constexpr unsigned incrementDataSizeVertex(unsigned op)
+    {
+        return m_data_size_vertex += op;
+    }
+};
 
 #if !defined(VGL_DISABLE_EDGE)
 
 /// Accessor.
 ///
 /// \return Total edge data size used.
-static unsigned get_data_size_edge()
+constexpr unsigned get_data_size_edge()
 {
-    return detail::g_data_size_edge;
+    return OpenGlDiagnosticsState::g_opengl_diagnostics_state.getDataSizeEdge();
 }
 /// Increment data size.
 ///
 /// \param op Edge data size used.
-static unsigned increment_data_size_edge(unsigned op)
+constexpr unsigned increment_data_size_edge(unsigned op)
 {
-    return detail::g_data_size_edge += op;
+    return OpenGlDiagnosticsState::g_opengl_diagnostics_state.incrementDataSizeEdge(op);
 }
 
 #endif
@@ -456,53 +723,53 @@ static unsigned increment_data_size_edge(unsigned op)
 /// Accessor.
 ///
 /// \return Total index data size used.
-static unsigned get_data_size_index()
+constexpr unsigned get_data_size_index()
 {
-    return detail::g_data_size_index;
+    return OpenGlDiagnosticsState::g_opengl_diagnostics_state.getDataSizeIndex();
 }
 /// Increment data size.
 ///
 /// \param op Index data size used.
-static unsigned increment_data_size_index(unsigned op)
+constexpr unsigned increment_data_size_index(unsigned op)
 {
-    return detail::g_data_size_index += op;
+    return OpenGlDiagnosticsState::g_opengl_diagnostics_state.incrementDataSizeIndex(op);
 }
 
 /// Accessor.
 ///
 /// \return Total index data size used.
-static unsigned get_data_size_texture()
+constexpr unsigned get_data_size_texture()
 {
-    return detail::g_data_size_texture;
+    return OpenGlDiagnosticsState::g_opengl_diagnostics_state.getDataSizeTexture();
 }
 /// Increment data size.
 ///
 /// \param op Texture data size used.
-static unsigned increment_data_size_texture(unsigned op)
+constexpr unsigned increment_data_size_texture(unsigned op)
 {
-    return detail::g_data_size_texture += op;
+    return OpenGlDiagnosticsState::g_opengl_diagnostics_state.incrementDataSizeTexture(op);
 }
 
 /// Accessor.
 ///
 /// \return Total vertex data size used.
-unsigned get_data_size_vertex()
+constexpr unsigned get_data_size_vertex()
 {
-    return detail::g_data_size_vertex;
+    return OpenGlDiagnosticsState::g_opengl_diagnostics_state.getDataSizeVertex();
 }
 /// Increment data size.
 ///
 /// \param op Edge data size used.
-unsigned increment_data_size_vertex(unsigned op)
+constexpr unsigned increment_data_size_vertex(unsigned op)
 {
-    return detail::g_data_size_vertex += op;
+    return OpenGlDiagnosticsState::g_opengl_diagnostics_state.incrementDataSizeVertex(op);
 }
 
 /// Get an error string corresponding to a GL error.
 ///
 /// \param op GL error.
 /// \return Error string.
-const char* gl_error_string(GLenum err)
+constexpr const char* gl_error_string(GLenum err)
 {
     switch(err)
     {
@@ -536,121 +803,29 @@ const char* gl_error_string(GLenum err)
 /// \param align Lines are at most this long (0: infinite).
 /// \param indent Lines after the first one have this many spaces as indentation.
 /// \return Result string.
-static std::string gl_extension_string(unsigned align = 78, unsigned indent = 0)
-{
-    std::string extension_string(reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS)));
-    std::vector<std::string> extensions;
-    for(unsigned ii = 0; (ii < extension_string.length());)
-    {
-        int cc = extension_string[ii];
-        if(!cc || (cc == ' ') || (cc == '\t') || (cc == '\r') || (cc == '\n'))
-        {
-            if(ii != 0)
-            {
-                extensions.push_back(extension_string.substr(0, ii));
-            }
-            extension_string = extension_string.substr(ii + 1);
-            ii = 0;
-            continue;
-        }
-        ++ii;
-    }
-    if(!extension_string.empty())
-    {
-        extensions.push_back(extension_string);
-    }
-
-    std::string istr;
-    for(unsigned ii = 0; (ii < indent); ++ii)
-    {
-        istr += " ";
-    }
-
-    std::string ret;
-    std::string line;
-    for(const auto& vv : extensions)
-    {
-        // If line would exceed length, append it to return value.
-        if(!line.empty() && align && ((istr.length() + line.length() + 1 + vv.length()) > align))
-        {
-            if(!ret.empty())
-            {
-                ret += "\n";
-            }
-            ret += line;
-            line.clear();
-        }
-
-        // May need to add indent to line.
-        if(line.empty())
-        {
-            if(ret.empty())
-            {
-                line += vv;
-            }
-            else
-            {
-                line += istr + vv;
-            }
-        }
-        else
-        {
-            line += " " + vv;
-        }
-    }
-
-    // Add last line.
-    if(!line.empty())
-    {
-        if(!ret.empty())
-        {
-            ret += "\n";
-        }
-        ret += line;
-    }
-
-    return ret;
-}
+std::string gl_extension_string(unsigned align = 78, unsigned indent = 0);
 
 /// Gets OpenGL vendor string.
 ///
 /// \return OpenGL vendor.
-static std::string gl_vendor_string()
-{
-    return reinterpret_cast<const char*>(glGetString(GL_VENDOR)) + std::string(" ") +
-        reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-}
+std::string gl_vendor_string();
 
 /// Gets OpenGL version string.
 ///
 /// \return OpenGL version.
-static std::string gl_version_string()
-{
-    return reinterpret_cast<const char*>(glGetString(GL_VERSION)) + std::string(" GLSL ") +
-        reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
-}
+std::string gl_version_string();
 
 /// Perform error check.
 ///
 /// Throws an error on failure.
-static void error_check(const char* str = NULL)
-{
-    GLenum err = glGetError();
-    if(GL_NO_ERROR != err)
-    {
-        std::ostringstream sstr;
-        sstr << "GL error " << gl_error_string(err);
-        if(str)
-        {
-            sstr << " at '" << str << "'";
-        }
-        sstr << ": " << gl_error_string(err);
-        BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
-    }
-}
+void error_check(const char* str = NULL);
 
 #endif
 
 }
+
+#if !defined(USE_LD)
+#include "vgl_state.cpp"
+#endif
 
 #endif

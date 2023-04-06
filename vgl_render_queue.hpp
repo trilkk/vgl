@@ -366,12 +366,18 @@ private:
                         {
                             depth = iter.read<float>();
                         }
+#if !defined(VGL_DISABLE_STENCIL)
                         optional<uint8_t> stencil;
                         if(iter.read<int>())
                         {
                             stencil = static_cast<uint8_t>(iter.read<int>());
                         }
-                        clear_buffers(color, depth, stencil);
+#endif
+                        clear_buffers(color, depth
+#if !defined(VGL_DISABLE_STENCIL)
+                                , stencil
+#endif
+                                );
                     }
                     break;
 
@@ -588,7 +594,11 @@ public:
     /// \param color Optional clear color.
     /// \param depth Optional clear depth.
     /// \param stencil Optional clear stencil.
-    void pushClear(optional<uvec4> color, optional<float> depth, optional<uint8_t> stencil = nullopt)
+    void pushClear(optional<uvec4> color, optional<float> depth
+#if !defined(VGL_DISABLE_STENCIL)
+            , optional<uint8_t> stencil = nullopt
+#endif
+            )
     {
         m_data.push(static_cast<int>(detail::RenderCommand::CLEAR));
         {
@@ -607,6 +617,7 @@ public:
                 m_data.push(*depth);
             }
         }
+#if !defined(VGL_DISABLE_STENCIL)
         {
             int stencil_enable = static_cast<int>(static_cast<bool>(stencil));
             m_data.push(stencil_enable);
@@ -615,6 +626,7 @@ public:
                 m_data.push(static_cast<int>(*stencil));
             }
         }
+#endif
     }
 
     /// Push view settings switch.
@@ -749,11 +761,17 @@ public:
     ///
     /// \param mode Depth test mode.
     /// \param write Depth write enabled.
-    void pushDepth(GLenum mode, bool write)
+    void pushDepth(GLenum mode
+#if !defined(VGL_DISABLE_DEPTH_WRITE)
+            , bool write = true
+#endif
+            )
     {
         m_data.push(static_cast<int>(detail::RenderCommand::DEPTH_TEST));
         m_data.push(static_cast<int>(mode));
+#if !defined(VGL_DISABLE_DEPTH_WRITE)
         m_data.push(static_cast<int>(write));
+#endif
     }
 
     /// Render the contents in the queue.

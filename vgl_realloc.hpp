@@ -13,23 +13,17 @@
 /// A global delete operator using free().
 ///
 /// \param ptr Pointer to free.
-void operator delete(void *ptr) noexcept
+inline void operator delete(void *ptr) noexcept
 {
-    if(ptr)
-    {
-        dnload_free(ptr);
-    }
+    dnload_free(ptr);
 }
 /// Aligned global delete operator using free().
 ///
 /// \param ptr Pointer to free.
 /// \param align Ignored alignment.
-void operator delete(void *ptr, size_t align) noexcept
+inline void operator delete(void *ptr, size_t align) noexcept
 {
-    if(ptr)
-    {
-        dnload_free(ptr);
-    }
+    dnload_free(ptr);
     (void)align;
 }
 
@@ -37,9 +31,9 @@ void operator delete(void *ptr, size_t align) noexcept
 ///
 /// \param sz Size to allocate.
 /// \return Allocated pointer.
-void* operator new(size_t sz)
+inline void* operator new(size_t sz)
 {
-#if defined(USE_LD)
+#if defined(USE_LD) && defined(DEBUG)
     if(!sz)
     {
         std::cerr << "WARNING: call to new() with size 0" << std::endl;
@@ -121,10 +115,7 @@ inline void* array_new_internal(void* ptr, size_t new_size)
 /// \param ptr Pointer to free.
 inline void array_delete(void *ptr)
 {
-    if(ptr)
-    {
-        dnload_free(ptr);
-    }
+    dnload_free(ptr);
 }
 
 /// Array new.

@@ -374,7 +374,7 @@ public:
             }
         }
 #endif
-        disable_excess_attrib_arrays(disable_attribs);
+        attrib_array_disable_from(disable_attribs);
     }
 
     /// Update to GPU.

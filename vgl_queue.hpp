@@ -35,8 +35,6 @@ public:
     /// Default constructor.
     constexpr explicit queue() = default;
 
-    /// Move constructor.
-
     /// Destructor.
     ~queue()
     {
