@@ -3,6 +3,9 @@
 namespace vgl
 {
 
+namespace detail
+{
+
 OpenGlAttribState OpenGlAttribState::g_opengl_attrib_state;
 OpenGlBlendState OpenGlBlendState::g_opengl_blend_state;
 OpenGlClearState OpenGlClearState::g_opengl_clear_state;
@@ -17,6 +20,36 @@ OpenGlStencilState OpenGlStencilState::g_opengl_stencil_state;
 #endif
 #if defined(USE_LD)
 OpenGlDiagnosticsState OpenGlDiagnosticsState::g_opengl_diagnostics_state;
+#endif
+
+}
+
+#if defined(USE_LD)
+
+std::string to_string(OperationMode op)
+{
+    switch(op)
+    {
+    case DISABLED:
+        return std::string("DISABLED");
+
+    case ADDITIVE:
+        return std::string("ADDITIVE");
+
+    case PREMULTIPLIED:
+        return std::string("PREMULTIPLIED");
+
+    case CARMACK:
+        return std::string("CARMACK");
+
+    default:
+        break;
+    }
+
+    std::ostringstream sstr;
+    sstr << "invalid OperationMode value: '" << static_cast<int>(op) << "'";
+    BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+}
 
 std::string gl_extension_string(unsigned align, unsigned indent)
 {

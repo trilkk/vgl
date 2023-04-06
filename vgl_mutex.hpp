@@ -12,7 +12,7 @@ namespace detail
 /// Acquire mutex implementation.
 ///
 /// \param op Mutex implementation.
-void internal_mutex_acquire(SDL_mutex* op)
+inline void internal_mutex_acquire(SDL_mutex* op)
 {
     int err = dnload_SDL_LockMutex(op);
 #if defined(USE_LD) && defined(DEBUG)
@@ -28,7 +28,7 @@ void internal_mutex_acquire(SDL_mutex* op)
 /// Release mutex implementation.
 ///
 /// \param op Mutex implementation.
-void internal_mutex_release(SDL_mutex* op)
+inline void internal_mutex_release(SDL_mutex* op)
 {
     int err = dnload_SDL_UnlockMutex(op);
 #if defined(USE_LD) && defined(DEBUG)

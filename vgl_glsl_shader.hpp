@@ -17,36 +17,19 @@ namespace detail
 {
 
 #if defined(USE_LD)
+
 /// Get shader info log.
 ///
 /// \param op Shader ID.
 /// \return Info string.
-string get_shader_info_log(GLuint op)
-{
-    GLint len;
-    glGetShaderiv(op, GL_INFO_LOG_LENGTH, &len);
-    if(!len)
-    {
-        return string();
-    }
-
-    GLsizei acquired;
-    string ret;
-    ret.resize(static_cast<unsigned>(len));
-    glGetShaderInfoLog(op, len, &acquired, const_cast<GLchar*>(ret.data()));
-    return ret;
-}
+string get_shader_info_log(GLuint op);
 
 /// Get compile status for a shader.
 ///
 /// \param op Shader ID.
 /// \return True if compilation was successful, false otherwise.
-bool get_shader_compile_status(GLuint op)
-{
-    GLint ret;
-    glGetShaderiv(op, GL_COMPILE_STATUS, &ret);
-    return (GL_FALSE != ret);
-}
+bool get_shader_compile_status(GLuint op);
+
 #endif
 
 }

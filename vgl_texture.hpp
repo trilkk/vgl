@@ -3,6 +3,11 @@
 
 #include "vgl_extern_opengl.hpp"
 
+#if defined(USE_LD)
+#include <sstream>
+#include <boost/throw_exception.hpp>
+#endif
+
 namespace vgl
 {
 
@@ -262,20 +267,10 @@ private:
     }
 };
 
-const Texture* Texture::g_current_texture[Texture::MAX_TEXTURE_UNITS] =
-{
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-};
-
-unsigned Texture::g_active_texture_unit = 0;
-
 }
+
+#if !defined(USE_LD)
+#include "vgl_texture.cpp"
+#endif
 
 #endif

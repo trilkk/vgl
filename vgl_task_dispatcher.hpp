@@ -8,6 +8,9 @@
 namespace vgl
 {
 
+namespace detail
+{
+
 /// Task queue class.
 class TaskDispatcher
 {
@@ -342,9 +345,6 @@ private:
     }
 };
 
-namespace detail
-{
-
 /// Internal signal of fence data.
 ///
 /// \param op Fence data.
@@ -368,7 +368,7 @@ inline void* internal_fence_data_wait(detail::FenceData* op)
 /// \param op Concurrency level.
 inline void tasks_initialize(unsigned op)
 {
-    TaskDispatcher::g_task_dispatcher.initialize(op);
+    detail::TaskDispatcher::g_task_dispatcher.initialize(op);
 }
 
 /// Get a main loop task.
@@ -378,7 +378,7 @@ inline void tasks_initialize(unsigned op)
 /// \return New main loop task.
 inline Task task_acquire_main()
 {
-    return TaskDispatcher::g_task_dispatcher.acquireMainTask();
+    return detail::TaskDispatcher::g_task_dispatcher.acquireMainTask();
 }
 
 /// Dispatch task (any thread).
@@ -387,7 +387,7 @@ inline Task task_acquire_main()
 /// \param params Function parameters.
 inline void task_dispatch(TaskFunc func, void* params)
 {
-    TaskDispatcher::g_task_dispatcher.dispatch(func, params);
+    detail::TaskDispatcher::g_task_dispatcher.dispatch(func, params);
 }
 
 /// Dispatch task (main thread).
@@ -396,7 +396,7 @@ inline void task_dispatch(TaskFunc func, void* params)
 /// \param params Function parameters.
 inline void task_dispatch_main(TaskFunc func, void* params)
 {
-    TaskDispatcher::g_task_dispatcher.dispatchMain(func, params);
+    detail::TaskDispatcher::g_task_dispatcher.dispatchMain(func, params);
 }
 
 /// Wait on a task (any thread).
@@ -406,7 +406,7 @@ inline void task_dispatch_main(TaskFunc func, void* params)
 /// \return Fence.
 inline Fence task_wait(TaskFunc func, void* params)
 {
-    return TaskDispatcher::g_task_dispatcher.wait(func, params);
+    return detail::TaskDispatcher::g_task_dispatcher.wait(func, params);
 }
 
 /// Wait on a task (main thread).
@@ -416,7 +416,7 @@ inline Fence task_wait(TaskFunc func, void* params)
 /// \return Fence.
 inline Fence task_wait_main(TaskFunc func, void* params)
 {
-    return TaskDispatcher::g_task_dispatcher.waitMain(func, params);
+    return detail::TaskDispatcher::g_task_dispatcher.waitMain(func, params);
 }
 
 }

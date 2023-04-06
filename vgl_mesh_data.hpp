@@ -113,6 +113,7 @@ public:
         }
 
 #if defined(USE_LD)
+
         /// Stream output operator.
         ///
         /// \param lhs Left-hand-side operand.
@@ -123,6 +124,7 @@ public:
             return lhs << to_string(rhs.m_semantic) << ": " << rhs.m_element_count << ", " << rhs.m_type << ", " <<
                 rhs.m_offset;
         }
+
 #endif
     };
 
@@ -403,6 +405,24 @@ public:
         detail::geometry_handle_update_mesh_data(op, *this);
     }
 };
+
+namespace detail
+{
+
+#if defined(USE_LD)
+
+/// Increment data sizes by given mesh data size.
+///
+/// \param op Mesh data being uploaded.
+constexpr void increment_buffer_data_sizes(const MeshData& op)
+{
+    increment_data_size_vertex(op.getVertexOffset());
+    increment_data_size_index(op.getIndexOffset());
+}
+
+#endif
+
+}
 
 }
 

@@ -80,38 +80,7 @@ enum class UniformSemantic
 ///
 /// \param op Channel ID.
 /// \return String representation for channel.
-std::string to_string(UniformSemantic op)
-{
-    switch(op)
-    {
-    case UniformSemantic::PROJECTION_MATRIX:
-        return std::string("PROJECTION_MATRIX");
-
-    case UniformSemantic::CAMERA_MATRIX:
-        return std::string("CAMERA_MATRIX");
-
-    case UniformSemantic::MODELVIEW_MATRIX:
-        return std::string("MODELVIEW_MATRIXC");
-
-    case UniformSemantic::NORMAL_MATRIX:
-        return std::string("NORMAL_MATRIX");
-
-    case UniformSemantic::PROJECTION_CAMERA_MATRIX:
-        return std::string("PROJECTION_CAMERA_MATRIX");
-
-    case UniformSemantic::CAMERA_MODELVIEW_MATRIX:
-        return std::string("CAMERA_MODELVIEW_MATRIX");
-    
-    case UniformSemantic::PROJECTION_CAMERA_MODELVIEW_MATRIX:
-        return std::string("PROJECTION_CAMERA_MODELVIEW_MATRIX");
-
-    case UniformSemantic::CAMERA_POSITION:
-        return std::string("CAMERA_POSITION");
-
-    default:
-        return std::string("NONE");
-    }
-}
+std::string to_string(UniformSemantic op);
 
 #endif
 
@@ -264,44 +233,20 @@ public:
 };
 
 #if defined(USE_LD)
+
 /// Get program info log.
 ///
 /// \param op Program ID.
 /// \return Info string.
-string get_program_info_log(GLuint op)
-{
-    GLint len;
-
-    glGetProgramiv(op, GL_INFO_LOG_LENGTH, &len);
-    if(!len)
-    {
-        return string();
-    }
-
-    GLsizei acquired;
-    string ret;
-    ret.resize(static_cast<unsigned>(len));
-    glGetProgramInfoLog(op, len, &acquired, const_cast<GLchar*>(ret.data()));
-    return ret;
-}
+string get_program_info_log(GLuint op);
 
 /// Get link status for a program.
 ///
 /// \param op Program ID.
 /// \return True if link successful, false otherwise.
-bool get_program_link_status(GLuint op)
-{
-    GLint ret;
-    glGetProgramiv(op, GL_LINK_STATUS, &ret);
-    return (GL_FALSE != ret);
-}
+bool get_program_link_status(GLuint op);
+
 #endif
-
-/// Currently bound geometry buffer.
-const GeometryBuffer* g_current_geometry_buffer = nullptr;
-
-/// Currently active program.
-const GlslProgram* g_current_program = nullptr;
 
 }
 
@@ -323,6 +268,13 @@ private:
 
     /// Program ID.
     GLuint m_id = 0;
+
+public:
+    /// Currently bound geometry buffer.
+    static const GeometryBuffer* g_current_geometry_buffer;
+
+    /// Currently active program.
+    static const GlslProgram* g_current_program;
 
 public:
     /// Default constructor.
@@ -555,13 +507,13 @@ public:
     /// Bind for use.
     void bind() const
     {
-        if(detail::g_current_program != this)
+        if(g_current_program != this)
         {
             dnload_glUseProgram(m_id);
-            detail::g_current_program = this;
+            g_current_program = this;
 
             // Must also clear current geometry buffer.
-            detail::g_current_geometry_buffer = nullptr;
+            g_current_geometry_buffer = nullptr;
         }
     }
 
@@ -815,5 +767,9 @@ public:
 };
 
 }
+
+#if !defined(USE_LD)
+#include "vgl_glsl_program.cpp"
+#endif
 
 #endif

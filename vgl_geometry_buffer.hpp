@@ -8,24 +8,6 @@
 namespace vgl
 {
 
-namespace detail
-{
-
-#if defined(USE_LD)
-
-/// Increment data sizes by given mesh data size.
-///
-/// \param op Mesh data being uploaded.
-void increment_buffer_data_sizes(const MeshData& op)
-{
-    increment_data_size_vertex(op.getVertexOffset());
-    increment_data_size_index(op.getIndexOffset());
-}
-
-#endif
-
-}
-
 /// Geometry buffer.
 ///
 /// Collection attribute data.
@@ -62,9 +44,9 @@ public:
     ~GeometryBuffer()
     {
 #if defined(USE_LD)
-        if(detail::g_current_geometry_buffer == this)
+        if(GlslProgram::g_current_geometry_buffer == this)
         {
-            detail::g_current_geometry_buffer = nullptr;
+            GlslProgram::g_current_geometry_buffer = nullptr;
         }
 #endif
     }
@@ -121,12 +103,12 @@ public:
     /// \param op Program to bind with.
     void bind(const GlslProgram& op) const
     {
-        if(detail::g_current_geometry_buffer != this)
+        if(GlslProgram::g_current_geometry_buffer != this)
         {
             m_vertex_buffer.bind();
             m_index_buffer.bind();
             m_data.bindAttributes(op);
-            detail::g_current_geometry_buffer = this;
+            GlslProgram::g_current_geometry_buffer = this;
         }
     }
 
@@ -154,7 +136,7 @@ namespace detail
 ///
 /// \param geometry_buffer Geometry buffer to bind.
 /// \param prog Program to bind with.
-void geometry_buffer_bind(const GeometryBuffer& geometry_buffer, const GlslProgram& prog)
+inline void geometry_buffer_bind(const GeometryBuffer& geometry_buffer, const GlslProgram& prog)
 {
     geometry_buffer.bind(prog);
 }
@@ -163,7 +145,7 @@ void geometry_buffer_bind(const GeometryBuffer& geometry_buffer, const GlslProgr
 ///
 /// \param handle Handle into GPU data.
 /// \param mesh_data Mesh data being updated.
-void geometry_handle_update_mesh_data(const GeometryHandle& handle, const MeshData& mesh_data)
+inline void geometry_handle_update_mesh_data(const GeometryHandle& handle, const MeshData& mesh_data)
 {
     mesh_data.update(handle.getBuffer().getVertexBuffer(), handle.getVertexOffset());
 }

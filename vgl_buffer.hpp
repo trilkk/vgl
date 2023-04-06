@@ -10,39 +10,68 @@ namespace vgl
 namespace detail
 {
 
-/// Currently bound vertex buffer ID.
-GLuint g_current_vertex_buffer = 0;
+/// OpenGL buffer state.
+class OpenGlBufferState
+{
+private:
+    /// Currently bound vertex buffer ID.
+    GLuint g_current_vertex_buffer = 0;
 
-/// Currently bound index buffer ID.
-GLuint g_current_index_buffer = 0;
+    /// Currently bound index buffer ID.
+    GLuint g_current_index_buffer = 0;
 
-/// Updates bound buffer ID.
-///
-/// \param op Buffer ID.
-/// \return True if ID was changed.
-template<GLenum BufferType> bool update_bound_buffer(GLuint op);
+public:
+    /// Global state.
+    static OpenGlBufferState g_opengl_buffer_state;
+
+public:
+    /// Updates bound vertex buffer ID.
+    ///
+    /// \param op Buffer ID.
+    /// \return True if ID was changed.
+    constexpr bool updateBoundVertexBuffer(GLuint op)
+    {
+        if(g_current_vertex_buffer == op)
+        {
+            return false;
+        }
+        g_current_vertex_buffer = op;
+        return true;
+    }
+
+    /// Updates bound index buffer ID.
+    ///
+    /// \param op Buffer ID.
+    /// \return True if ID was changed.
+    constexpr bool updateBoundIndexBuffer(GLuint op)
+    {
+        if(g_current_index_buffer == op)
+        {
+            return false;
+        }
+        g_current_index_buffer = op;
+        return true;
+    }
+
+public:
+    /// Updates bound buffer ID.
+    ///
+    /// \param op Buffer ID.
+    /// \return True if ID was changed.
+    template<GLenum BufferType> static constexpr bool update_bound_buffer(GLuint op);
+};
 
 /// \cond
-template<> bool update_bound_buffer<GL_ARRAY_BUFFER>(GLuint op)
+template<> constexpr bool OpenGlBufferState::update_bound_buffer<GL_ARRAY_BUFFER>(GLuint op)
 {
-    if(g_current_vertex_buffer == op)
-    {
-        return false;
-    }
-    g_current_vertex_buffer = op;
-    return true;
+    return g_opengl_buffer_state.updateBoundVertexBuffer(op);
 }
 /// \endcond
 
 /// \cond
-template<> bool update_bound_buffer<GL_ELEMENT_ARRAY_BUFFER>(GLuint op)
+template<> constexpr bool OpenGlBufferState::update_bound_buffer<GL_ELEMENT_ARRAY_BUFFER>(GLuint op)
 {
-    if(g_current_index_buffer == op)
-    {
-        return false;
-    }
-    g_current_index_buffer = op;
-    return true;
+    return g_opengl_buffer_state.updateBoundIndexBuffer(op);
 }
 /// \endcond
 
@@ -112,7 +141,7 @@ public:
     /// \return True if the buffer was bound, false if no action was necessary.
     bool bind() const
     {
-        if(detail::update_bound_buffer<BufferType>(m_id))
+        if(detail::OpenGlBufferState::update_bound_buffer<BufferType>(m_id))
         {
             dnload_glBindBuffer(BufferType, m_id);
             return true;
@@ -160,5 +189,9 @@ using VertexBuffer = Buffer<GL_ARRAY_BUFFER>;
 using IndexBuffer = Buffer<GL_ELEMENT_ARRAY_BUFFER>;
 
 }
+
+#if !defined(USE_LD)
+#include "vgl_buffer.cpp"
+#endif
 
 #endif

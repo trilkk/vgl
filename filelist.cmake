@@ -83,10 +83,15 @@ set(VGL_HEADERS
     "${VGL_ROOT}/vgl_vector.hpp"
     "${VGL_ROOT}/vgl_wave.hpp")
 set(VGL_SOURCES
+    "${VGL_ROOT}/vgl_buffer.cpp"
     "${VGL_ROOT}/vgl_csg_file.cpp"
     "${VGL_ROOT}/vgl_extern_boost_filesystem.cpp"
+    "${VGL_ROOT}/vgl_geometry_channel.cpp"
+    "${VGL_ROOT}/vgl_glsl_program.cpp"
+    "${VGL_ROOT}/vgl_glsl_shader.cpp"
     "${VGL_ROOT}/vgl_logical_mesh.cpp"
     "${VGL_ROOT}/vgl_mesh.cpp"
     "${VGL_ROOT}/vgl_state.cpp"
+    "${VGL_ROOT}/vgl_texture.cpp"
     "${VGL_ROOT}/vgl_task_dispatcher.cpp"
     "${VGL_ROOT}/vgl_wave.cpp")

@@ -37,32 +37,12 @@ enum OperationMode
 ///
 /// \param op Mode.
 /// \return String representation.
-std::string to_string(OperationMode op)
-{
-    switch(op)
-    {
-    case DISABLED:
-        return std::string("DISABLED");
-
-    case ADDITIVE:
-        return std::string("ADDITIVE");
-
-    case PREMULTIPLIED:
-        return std::string("PREMULTIPLIED");
-
-    case CARMACK:
-        return std::string("CARMACK");
-
-    default:
-        break;
-    }
-
-    std::ostringstream sstr;
-    sstr << "invalid OperationMode value: '" << static_cast<int>(op) << "'";
-    BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
-}
+std::string to_string(OperationMode op);
 
 #endif
+
+namespace detail
+{
 
 /// OpenGL attribute array state abstraction.
 class OpenGlAttribState
@@ -124,22 +104,6 @@ public:
     }
 };
 
-/// Enable one vertex attribute.
-///
-/// \param op Index of array to enable.
-inline void attrib_array_enable(unsigned op)
-{
-    OpenGlAttribState::g_opengl_attrib_state.enableAttribArray(op);
-}
-
-/// Disable extra vertex attribute arrays.
-///
-/// \param op Index of first array to disable.
-inline void attrib_array_disable_from(unsigned op)
-{
-    OpenGlAttribState::g_opengl_attrib_state.disableAttribArraysFrom(op);
-}
-
 /// OpenGL blend state abstraction.
 class OpenGlBlendState
 {
@@ -196,14 +160,6 @@ public:
         }
     }
 };
-
-/// Set blending mode.
-///
-/// \param op New blending mode.
-inline void blend_mode(OperationMode op)
-{
-    OpenGlBlendState::g_opengl_blend_state.setBlendMode(op);
-}
 
 /// OpenGL clear state abstraction.
 class OpenGlClearState
@@ -275,26 +231,6 @@ public:
     }
 };
 
-/// Clear current framebuffer.
-///
-/// \param color Optional color clear.
-/// \param depth Optional depth clear.
-#if !defined(VGL_DISABLE_STENCIL)
-/// \param stencil Optional stencil clear.
-#endif
-inline void clear_buffers(optional<uvec4> color, optional<float> depth
-#if !defined(VGL_DISABLE_STENCIL)
-        , optional<uint8_t> stencil = nullopt
-#endif
-        )
-{
-    OpenGlClearState::g_opengl_clear_state.clearBuffers(color, depth
-#if !defined(VGL_DISABLE_STENCIL)
-            , stencil
-#endif
-            );
-}
-
 /// OpenGL color write state abstraction.
 class OpenGlColorWriteState
 {
@@ -320,14 +256,6 @@ public:
         }
     }
 };
-
-/// Set color writing mode.
-///
-/// \param op True to enable, false to disable.
-inline void color_write(bool op)
-{
-    OpenGlColorWriteState::g_opengl_color_write_state.setColorWrite(op);
-}
 
 /// OpenGL cull face state abstraction.
 class OpenGlCullFaceState
@@ -372,14 +300,6 @@ public:
         }
     }
 };
-
-/// Set culling mode.
-///
-/// \param op Mode, GL_FALSE to disable.
-inline void cull_face(GLenum op)
-{
-    OpenGlCullFaceState::g_opengl_cull_face_state.setCullFace(op);
-}
 
 /// OpenGL depth state abstraction.
 class OpenGlDepthState
@@ -446,26 +366,6 @@ public:
 #endif
 };
 
-/// Set depth testing mode.
-///
-/// \param op Depth testing mode, GL_FALSE to disable.
-inline void depth_test(GLenum op)
-{
-    OpenGlDepthState::g_opengl_depth_state.setDepthTest(op);
-}
-
-#if !defined(VGL_DISABLE_DEPTH_WRITE)
-
-/// Set depth writing mode.
-///
-/// \param op True to enable, false to disable.
-inline void depth_write(bool op)
-{
-    OpenGlDepthState::g_opengl_depth_state.setDepthWrite(op);
-}
-
-#endif
-
 #if !defined(VGL_DISABLE_POLYGON_OFFSET)
 
 /// OpenGL polygon offset state.
@@ -511,17 +411,10 @@ public:
     }
 };
 
-/// Set polygon offset.
-///
-/// \param op Units to offset.
-inline void polygon_offset(int op)
-{
-    OpenGlPolygonOffsetState::g_opengl_polygon_offset_state.setPolygonOffset(op);
-}
-
 #endif
 
 #if !defined(VGL_DISABLE_STENCIL)
+
 /// OpenGl stencil state abstraction.
 class OpenGlStencilState
 {
@@ -594,22 +487,6 @@ public:
         }
     }
 };
-
-/// Set stencil mode.
-///
-/// \param op New mode.
-inline void stencil_mode(GLenum op)
-{
-    OpenGlStencilState::g_opengl_stencil_state.setStencilMode(op);
-}
-
-/// Set stencil operation.
-///
-/// \param op New mode.
-inline void stencil_operation(OperationMode op)
-{
-    OpenGlStencilState::g_opengl_stencil_state.setStencilOperation(op);
-}
 
 #endif
 
@@ -701,6 +578,124 @@ public:
     }
 };
 
+#endif
+
+}
+
+/// Enable one vertex attribute.
+///
+/// \param op Index of array to enable.
+inline void attrib_array_enable(unsigned op)
+{
+    detail::OpenGlAttribState::g_opengl_attrib_state.enableAttribArray(op);
+}
+
+/// Disable extra vertex attribute arrays.
+///
+/// \param op Index of first array to disable.
+inline void attrib_array_disable_from(unsigned op)
+{
+    detail::OpenGlAttribState::g_opengl_attrib_state.disableAttribArraysFrom(op);
+}
+
+/// Set blending mode.
+///
+/// \param op New blending mode.
+inline void blend_mode(OperationMode op)
+{
+    detail::OpenGlBlendState::g_opengl_blend_state.setBlendMode(op);
+}
+
+/// Clear current framebuffer.
+///
+/// \param color Optional color clear.
+/// \param depth Optional depth clear.
+#if !defined(VGL_DISABLE_STENCIL)
+/// \param stencil Optional stencil clear.
+#endif
+inline void clear_buffers(optional<uvec4> color, optional<float> depth
+#if !defined(VGL_DISABLE_STENCIL)
+        , optional<uint8_t> stencil = nullopt
+#endif
+        )
+{
+    detail::OpenGlClearState::g_opengl_clear_state.clearBuffers(color, depth
+#if !defined(VGL_DISABLE_STENCIL)
+            , stencil
+#endif
+            );
+}
+
+/// Set color writing mode.
+///
+/// \param op True to enable, false to disable.
+inline void color_write(bool op)
+{
+    detail::OpenGlColorWriteState::g_opengl_color_write_state.setColorWrite(op);
+}
+
+/// Set culling mode.
+///
+/// \param op Mode, GL_FALSE to disable.
+inline void cull_face(GLenum op)
+{
+    detail::OpenGlCullFaceState::g_opengl_cull_face_state.setCullFace(op);
+}
+
+/// Set depth testing mode.
+///
+/// \param op Depth testing mode, GL_FALSE to disable.
+inline void depth_test(GLenum op)
+{
+    detail::OpenGlDepthState::g_opengl_depth_state.setDepthTest(op);
+}
+
+#if !defined(VGL_DISABLE_DEPTH_WRITE)
+
+/// Set depth writing mode.
+///
+/// \param op True to enable, false to disable.
+inline void depth_write(bool op)
+{
+    detail::OpenGlDepthState::g_opengl_depth_state.setDepthWrite(op);
+}
+
+#endif
+
+#if !defined(VGL_DISABLE_POLYGON_OFFSET)
+
+/// Set polygon offset.
+///
+/// \param op Units to offset.
+inline void polygon_offset(int op)
+{
+    detail::OpenGlPolygonOffsetState::g_opengl_polygon_offset_state.setPolygonOffset(op);
+}
+
+#endif
+
+#if !defined(VGL_DISABLE_STENCIL)
+
+/// Set stencil mode.
+///
+/// \param op New mode.
+inline void stencil_mode(GLenum op)
+{
+    detail::OpenGlStencilState::g_opengl_stencil_state.setStencilMode(op);
+}
+
+/// Set stencil operation.
+///
+/// \param op New mode.
+inline void stencil_operation(OperationMode op)
+{
+    detail::OpenGlStencilState::g_opengl_stencil_state.setStencilOperation(op);
+}
+
+#endif
+
+#if defined(USE_LD)
+
 #if !defined(VGL_DISABLE_EDGE)
 
 /// Accessor.
@@ -708,14 +703,14 @@ public:
 /// \return Total edge data size used.
 constexpr unsigned get_data_size_edge()
 {
-    return OpenGlDiagnosticsState::g_opengl_diagnostics_state.getDataSizeEdge();
+    return detail::OpenGlDiagnosticsState::g_opengl_diagnostics_state.getDataSizeEdge();
 }
 /// Increment data size.
 ///
 /// \param op Edge data size used.
 constexpr unsigned increment_data_size_edge(unsigned op)
 {
-    return OpenGlDiagnosticsState::g_opengl_diagnostics_state.incrementDataSizeEdge(op);
+    return detail::OpenGlDiagnosticsState::g_opengl_diagnostics_state.incrementDataSizeEdge(op);
 }
 
 #endif
@@ -725,14 +720,14 @@ constexpr unsigned increment_data_size_edge(unsigned op)
 /// \return Total index data size used.
 constexpr unsigned get_data_size_index()
 {
-    return OpenGlDiagnosticsState::g_opengl_diagnostics_state.getDataSizeIndex();
+    return detail::OpenGlDiagnosticsState::g_opengl_diagnostics_state.getDataSizeIndex();
 }
 /// Increment data size.
 ///
 /// \param op Index data size used.
 constexpr unsigned increment_data_size_index(unsigned op)
 {
-    return OpenGlDiagnosticsState::g_opengl_diagnostics_state.incrementDataSizeIndex(op);
+    return detail::OpenGlDiagnosticsState::g_opengl_diagnostics_state.incrementDataSizeIndex(op);
 }
 
 /// Accessor.
@@ -740,14 +735,14 @@ constexpr unsigned increment_data_size_index(unsigned op)
 /// \return Total index data size used.
 constexpr unsigned get_data_size_texture()
 {
-    return OpenGlDiagnosticsState::g_opengl_diagnostics_state.getDataSizeTexture();
+    return detail::OpenGlDiagnosticsState::g_opengl_diagnostics_state.getDataSizeTexture();
 }
 /// Increment data size.
 ///
 /// \param op Texture data size used.
 constexpr unsigned increment_data_size_texture(unsigned op)
 {
-    return OpenGlDiagnosticsState::g_opengl_diagnostics_state.incrementDataSizeTexture(op);
+    return detail::OpenGlDiagnosticsState::g_opengl_diagnostics_state.incrementDataSizeTexture(op);
 }
 
 /// Accessor.
@@ -755,14 +750,14 @@ constexpr unsigned increment_data_size_texture(unsigned op)
 /// \return Total vertex data size used.
 constexpr unsigned get_data_size_vertex()
 {
-    return OpenGlDiagnosticsState::g_opengl_diagnostics_state.getDataSizeVertex();
+    return detail::OpenGlDiagnosticsState::g_opengl_diagnostics_state.getDataSizeVertex();
 }
 /// Increment data size.
 ///
 /// \param op Edge data size used.
 constexpr unsigned increment_data_size_vertex(unsigned op)
 {
-    return OpenGlDiagnosticsState::g_opengl_diagnostics_state.incrementDataSizeVertex(op);
+    return detail::OpenGlDiagnosticsState::g_opengl_diagnostics_state.incrementDataSizeVertex(op);
 }
 
 /// Get an error string corresponding to a GL error.
