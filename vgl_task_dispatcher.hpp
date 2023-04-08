@@ -65,18 +65,28 @@ public:
 #if defined(USE_LD) && defined(DEBUG)
         if(!m_mutex)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("task queue never initialized"));
+            if((m_main_thread_id != 0) ||
+                    !m_tasks_any.empty() ||
+                    !m_tasks_main.empty() ||
+                    !m_threads.empty() ||
+                    !m_fence_pool.empty())
+            {
+                BOOST_THROW_EXCEPTION(std::runtime_error("task queue was never initialized but is not at initial state"));
+            }
         }
+        else
 #endif
         {
-            ScopedLock sl(*m_mutex);
-            m_quitting = true;
-            m_tasks_any.uninitialize();
-            m_tasks_main.uninitialize();
-        }
+            {
+                ScopedLock sl(*m_mutex);
+                m_quitting = true;
+                m_tasks_any.uninitialize();
+                m_tasks_main.uninitialize();
+            }
 
-        // Threads must be joined before destroying anything else.
-        m_threads.clear();
+            // Threads must be joined before destroying anything else.
+            m_threads.clear();
+        }
     }
 
 private:

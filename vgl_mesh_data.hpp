@@ -338,7 +338,7 @@ public:
     void bindAttributes(const GlslProgram& op) const
     {
 #if defined(USE_LD) && defined(DEBUG)
-        bitset<detail::MAX_ATTRIB_ARRAYS> bound_attributes;
+        bitset<detail::OpenGlAttribState::MAX_ATTRIB_ARRAYS> bound_attributes;
 #else
         unsigned disable_attribs = 0;
 #endif
@@ -359,7 +359,7 @@ public:
 #if defined(USE_LD) && defined(DEBUG)
         unsigned disable_attribs = 0;
         optional<unsigned> disabled_location;
-        for(unsigned ii = 0; (ii < detail::MAX_ATTRIB_ARRAYS); ++ii)
+        for(unsigned ii = 0; (ii < detail::OpenGlAttribState::MAX_ATTRIB_ARRAYS); ++ii)
         {
             if(bound_attributes[ii])
             {

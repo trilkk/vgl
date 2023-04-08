@@ -5,7 +5,13 @@
 #include "vgl_utility.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
+
+#if defined(USE_LD)
+#include <stdexcept>
+#include <boost/throw_exception.hpp>
+#endif
 
 namespace vgl
 {
