@@ -1,66 +1,56 @@
 #ifndef VGL_MUTEX_HPP
 #define VGL_MUTEX_HPP
 
+#if defined(VGL_ENABLE_GTK)
+#include "vgl_extern_gtk.hpp"
+#else
 #include "vgl_extern_sdl.hpp"
+#endif
 
 namespace vgl
 {
 
-namespace detail
-{
-
-/// Acquire mutex implementation.
-///
-/// \param op Mutex implementation.
-inline void internal_mutex_acquire(SDL_mutex* op)
-{
-    int err = dnload_SDL_LockMutex(op);
-#if defined(USE_LD) && defined(DEBUG)
-    if(err)
-    {
-        BOOST_THROW_EXCEPTION(std::runtime_error(std::string("internal_mutex_acquire(): ") + SDL_GetError()));
-    }
-#else
-    (void)err;
-#endif
-}
-
-/// Release mutex implementation.
-///
-/// \param op Mutex implementation.
-inline void internal_mutex_release(SDL_mutex* op)
-{
-    int err = dnload_SDL_UnlockMutex(op);
-#if defined(USE_LD) && defined(DEBUG)
-    if(err)
-    {
-        BOOST_THROW_EXCEPTION(std::runtime_error(std::string("internal_mutex_release(): ") + SDL_GetError()));
-    }
-#else
-    (void)err;
-#endif
-}
-
-}
-
 /// Mutex class.
 class Mutex
 {
+public:
+    /// Internal mutex implementation.
+    using mutex_type =
+#if defined(VGL_ENABLE_GTK)
+        GMutex
+#else
+        SDL_mutex
+#endif
+        ;
+
 private:
     /// Actual mutex.
-    SDL_mutex *m_mutex;
+    mutex_type
+#if !defined(VGL_ENABLE_GTK)
+        *
+#endif
+        m_mutex;
 
 private:
     /// Deleted copy constructor.
     Mutex(const Mutex&) = delete;
+    /// Deleted move constructor.
+    Mutex(Mutex&&) = delete;
     /// Deleted assignment.
     Mutex& operator=(const Mutex&) = delete;
+    /// Deleted move.
+    Mutex& operator=(Mutex&&) = delete;
 
 public:
     /// Constructor.
-    explicit Mutex() :
-        m_mutex(dnload_SDL_CreateMutex())
+    explicit Mutex()
+#if !defined(VGL_ENABLE_GTK)
+        : m_mutex(dnload_SDL_CreateMutex())
+#endif
     {
+#if defined(VGL_ENABLE_GTK)
+        dnload_g_mutex_init(&m_mutex);
+#endif
 #if defined(USE_LD) && defined(DEBUG)
         if(!m_mutex)
         {
@@ -69,55 +59,84 @@ public:
 #endif
     }
 
-    /// Move constructor.
-    ///
-    /// \param op Source.
-    constexpr Mutex(Mutex&& op) noexcept :
-        m_mutex(op.m_mutex)
-    {
-        op.m_mutex = nullptr;
-    }
-
     /// Destructor.
     ~Mutex()
     {
-        if(m_mutex)
-        {
-            dnload_SDL_DestroyMutex(m_mutex);
-        }
+#if defined(VGL_ENABLE_GTK)
+        dnload_g_mutex_clear(&m_mutex);
+#else
+        VGL_ASSERT(m_mutex);
+        dnload_SDL_DestroyMutex(m_mutex);
+#endif
     }
 
 public:
     /// Accessor.
     ///
     /// \return Inner mutex.
-    constexpr SDL_mutex* getMutexImpl() const
+    constexpr mutex_type* getMutexImpl()
+#if !defined(VGL_ENABLE_GTK)
+        const
+#endif
     {
-        return m_mutex;
+        return
+#if defined(VGL_ENABLE_GTK)
+            &
+#endif
+            m_mutex;
     }
 
     /// Lock.
     void acquire()
     {
-        detail::internal_mutex_acquire(m_mutex);
+        internal_mutex_acquire(getMutexImpl());
     }
 
     /// Unlock.
     void release()
     {
-        detail::internal_mutex_release(m_mutex);
+        internal_mutex_release(getMutexImpl());
     }
 
 public:
-    /// Move operator.
+    /// Acquire mutex implementation.
     ///
-    /// \param op Source.
-    /// \return This object.
-    constexpr Mutex& operator=(Mutex&& op) noexcept
+    /// \param op Mutex implementation.
+    static inline void internal_mutex_acquire(mutex_type* op)
     {
-        m_mutex = op.m_mutex;
-        op.m_mutex = nullptr;
-        return *this;
+#if defined(VGL_ENABLE_GTK)
+        dnload_g_mutex_lock(op);
+#else
+        int err = dnload_SDL_LockMutex(op);
+#if defined(USE_LD) && defined(DEBUG)
+        if(err)
+        {
+            BOOST_THROW_EXCEPTION(std::runtime_error(std::string("internal_mutex_acquire(): ") + SDL_GetError()));
+        }
+#else
+        (void)err;
+#endif
+#endif
+    }
+
+    /// Release mutex implementation.
+    ///
+    /// \param op Mutex implementation.
+    static inline void internal_mutex_release(mutex_type* op)
+    {
+#if defined(VGL_ENABLE_GTK)
+        dnload_g_mutex_unlock(op);
+#else
+        int err = dnload_SDL_UnlockMutex(op);
+#if defined(USE_LD) && defined(DEBUG)
+        if(err)
+        {
+            BOOST_THROW_EXCEPTION(std::runtime_error(std::string("internal_mutex_release(): ") + SDL_GetError()));
+        }
+#else
+        (void)err;
+#endif
+#endif
     }
 };
 

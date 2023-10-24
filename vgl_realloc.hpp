@@ -39,7 +39,7 @@ inline void* operator new(size_t sz)
         std::cerr << "WARNING: call to new() with size 0" << std::endl;
     }
 #endif
-    return dnload_realloc(NULL, sz);
+    return dnload_realloc(nullptr, sz);
 }
 
 namespace vgl

@@ -31,7 +31,7 @@ private:
     unique_ptr<Mutex> m_mutex;
 
     /// Main thread ID.
-    SDL_threadID m_main_thread_id = 0;
+    Thread::id_type m_main_thread_id = 0;
 
     /// Target concurrency level.
     unsigned m_concurrency = 0;
@@ -148,13 +148,13 @@ private:
     /// \return True if yes, false if no.
     bool isMainThread() const
     {
-        return (m_main_thread_id == dnload_SDL_ThreadID());
+        return (m_main_thread_id == Thread::get_current_thread_id());
     }
 
     /// Is this a spawned thread?
     bool isSpawnedThread()
     {
-        SDL_threadID current_thread_id = dnload_SDL_ThreadID();
+        Thread::id_type current_thread_id = Thread::get_current_thread_id();
         for(const auto& vv : m_threads)
         {
             if(vv.getId() == current_thread_id)
@@ -172,7 +172,8 @@ private:
     }
 
     /// Thread function.
-    int threadFunc()
+    /// \return Thread return value.
+    Thread::return_type threadFunc()
     {
         ScopedLock sl(*m_mutex);
 
@@ -210,7 +211,7 @@ public:
     void initialize(unsigned op)
     {
         m_concurrency = op;
-        m_main_thread_id = dnload_SDL_ThreadID();
+        m_main_thread_id = Thread::get_current_thread_id();
 
         m_tasks_any.initialize();
         m_tasks_main.initialize();
@@ -349,7 +350,7 @@ private:
     /// Task dispatcher thread.
     ///
     /// \param op Pointer to task queue.
-    static int task_thread_func(void* op)
+    static Thread::return_type task_thread_func(void* op)
     {
         return static_cast<TaskDispatcher*>(op)->threadFunc();
     }
