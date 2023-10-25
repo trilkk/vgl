@@ -45,8 +45,7 @@ public:
     {
 #if defined(VGL_ENABLE_GTK)
         dnload_g_cond_init(&m_cond);
-#endif
-#if defined(USE_LD) && defined(DEBUG)
+#elif defined(USE_LD) && defined(DEBUG)
         if(!m_cond)
         {
             BOOST_THROW_EXCEPTION(std::runtime_error(std::string("Cond::Cond(): ") + SDL_GetError()));

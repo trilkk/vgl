@@ -50,8 +50,7 @@ public:
     {
 #if defined(VGL_ENABLE_GTK)
         dnload_g_mutex_init(&m_mutex);
-#endif
-#if defined(USE_LD) && defined(DEBUG)
+#elif defined(USE_LD) && defined(DEBUG)
         if(!m_mutex)
         {
             BOOST_THROW_EXCEPTION(std::runtime_error(std::string("Mutex::Mutex(): ") + SDL_GetError()));
