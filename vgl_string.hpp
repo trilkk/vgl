@@ -88,14 +88,14 @@ public:
     /// Iterator to the beginning.
     ///
     /// \return Iterator.
-    constexpr iterator begin() const
+    constexpr iterator begin() const noexcept
     {
         return m_data;
     }
     /// Iterator to the beginning.
     ///
     /// \return Iterator.
-    constexpr const_iterator cbegin() const
+    constexpr const_iterator cbegin() const noexcept
     {
         return m_data;
     }
@@ -103,14 +103,14 @@ public:
     /// Iterator to the end.
     ///
     /// \return Iterator.
-    constexpr iterator end() const
+    constexpr iterator end() const noexcept
     {
         return m_data + m_length;
     }
     /// Iterator to the end.
     ///
     /// \return Iterator.
-    constexpr const_iterator cend() const
+    constexpr const_iterator cend() const noexcept
     {
         return m_data + m_length;
     }
@@ -118,7 +118,7 @@ public:
     /// Is the string empty?
     ///
     /// \return True if empty, false otherwise.
-    constexpr bool empty() const
+    constexpr bool empty() const noexcept
     {
         return (m_length <= 0);
     }
@@ -126,30 +126,21 @@ public:
     /// Accessor.
     ///
     /// \return String length (without terminating zero).
-    constexpr unsigned length() const
+    constexpr unsigned length() const noexcept
     {
         return m_length;
     }
 
     /// Returns the internal data pointer.
     ///
-    /// Unlike with std::string, this is guaranteed to be null-terminated.
-    ///
     /// \return Data pointer.
-    constexpr const T* data() const
+    constexpr const T* data() const noexcept
     {
         if(m_data)
         {
             return m_data;
         }
         return reinterpret_cast<const T*>("");
-    }
-    /// Return C string representing the string.
-    ///
-    /// \return C string pointer.
-    constexpr const T* c_str() const
-    {
-        return data();
     }
 
     /// Tells if the string starts with given substring.
@@ -251,7 +242,11 @@ public:
     /// \return Output stream.
     friend std::ostream& operator<<(std::ostream& lhs, const string_data<T>& rhs)
     {
-        return lhs << rhs.c_str();
+        for(const T& cc : rhs)
+        {
+            lhs << cc;
+        }
+        return lhs;
     }
 #endif
 };
@@ -366,6 +361,14 @@ public:
         return assign(reinterpret_cast<const char*>(op.data(), op.length()));
     }
 
+    /// Return C string representing the string.
+    ///
+    /// \return C string pointer.
+    constexpr const char* c_str() const noexcept
+    {
+        return data();
+    }
+
     /// Clear the string data.
     void clear()
     {
@@ -444,6 +447,19 @@ public:
 #endif
         return *this;
     }
+
+public:
+#if defined(USE_LD)
+    /// Stream output operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Output stream.
+    friend std::ostream& operator<<(std::ostream& lhs, const string& rhs)
+    {
+        return lhs << rhs.c_str();
+    }
+#endif
 };
 
 }

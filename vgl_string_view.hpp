@@ -84,19 +84,6 @@ public:
         base_type::m_length = op.m_length;
         return *this;
     }
-
-public:
-#if defined(USE_LD)
-    /// Stream output operator.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return Output stream.
-    friend std::ostream& operator<<(std::ostream& lhs, const string_view& rhs)
-    {
-        return lhs << rhs.c_str();
-    }
-#endif
 };
 
 }
