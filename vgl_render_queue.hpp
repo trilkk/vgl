@@ -8,195 +8,6 @@
 namespace vgl
 {
 
-namespace detail
-{
-
-/// Semantic for elements in render queue.
-///
-/// All uniform data follows the following data order:
-/// - Enumeration value (type).
-/// - Semantic.
-/// - Name.
-/// - Value.
-///
-/// Other commands have specific formats.
-enum class RenderCommand
-{
-    /// Framebuffer switch.
-    /// - Framebuffer reference.
-    FBO,
-
-    /// Clear.
-    /// - Color is optional uvec4.
-    /// - Depth is optional float.
-    /// - Stencil is optional integer.
-    CLEAR,
-
-    /// Blend mode setting.
-    /// - Blending mode.
-    BLEND_MODE,
-
-    /// Cull face setting.
-    /// - Culling mode.
-    CULL_FACE,
-
-    /// Depth test setting.
-    /// - Testing mode.
-    /// - Write enable.
-    DEPTH_TEST,
-
-    /// View switch.
-    /// - Projection matrix.
-    /// - Camera matrix.
-    /// - Projection camera matrix.
-    VIEW,
-
-    /// Program switch.
-    /// - Program reference.
-    PROGRAM,
-
-    /// Mesh render.
-    /// - Mesh reference.
-    /// - Modelview matrix.
-    /// - Camera modelview matrix.
-    /// - Projection camera modelview matrix.
-    MESH,
-
-    /// Uniform data (int).
-    UNIFORM_INT,
-
-    /// Uniform data (float).
-    UNIFORM_FLOAT,
-
-    /// Uniform data (vec2).
-    UNIFORM_VEC2,
-
-    /// Uniform data (vec3).
-    UNIFORM_VEC3,
-
-    /// Uniform data (vec4).
-    UNIFORM_VEC4,
-
-    /// Uniform data (mat2).
-    UNIFORM_MAT2,
-
-    /// Uniform data (mat3).
-    UNIFORM_MAT3,
-
-    /// Uniform data (mat4).
-    UNIFORM_MAT4,
-
-    /// Uniform data (texture).
-    UNIFORM_TEXTURE,
-
-    /// Uniform data (texture, persistent).
-    UNIFORM_TEXTURE_PERSISTENT,
-};
-
-/// RenderCommand or operation
-///
-/// \param lhs Left-hand-side operand.
-/// \param rhs Right-hand-side operand.
-/// \return Operation result.
-RenderCommand operator|(const RenderCommand& lhs, const RenderCommand& rhs)
-{
-    return static_cast<RenderCommand>(static_cast<int>(lhs) | static_cast<int>(rhs));
-}
-/// RenderCommand or into operation
-///
-/// \param lhs Left-hand-side operand.
-/// \param rhs Right-hand-side operand.
-/// \return Operation result.
-RenderCommand& operator|=(RenderCommand& lhs, const RenderCommand& rhs)
-{
-    lhs = lhs | rhs;
-    return lhs;
-}
-
-/// Get a render value type for an uniform type.
-///
-/// \return Render value type.
-template<typename T> constexpr RenderCommand get_uniform_render_command_type() noexcept;
-/// \cond
-template<> constexpr RenderCommand get_uniform_render_command_type<int>() noexcept
-{
-    return RenderCommand::UNIFORM_INT;
-}
-template<> constexpr RenderCommand get_uniform_render_command_type<float>() noexcept
-{
-    return RenderCommand::UNIFORM_FLOAT;
-}
-template<> constexpr RenderCommand get_uniform_render_command_type<vec2>() noexcept
-{
-    return RenderCommand::UNIFORM_VEC2;
-}
-template<> constexpr RenderCommand get_uniform_render_command_type<vec3>() noexcept
-{
-    return RenderCommand::UNIFORM_VEC3;
-}
-template<> constexpr RenderCommand get_uniform_render_command_type<vec4>() noexcept
-{
-    return RenderCommand::UNIFORM_VEC4;
-}
-template<> constexpr RenderCommand get_uniform_render_command_type<mat2>() noexcept
-{
-    return RenderCommand::UNIFORM_MAT2;
-}
-template<> constexpr RenderCommand get_uniform_render_command_type<mat3>() noexcept
-{
-    return RenderCommand::UNIFORM_MAT3;
-}
-template<> constexpr RenderCommand get_uniform_render_command_type<mat4>() noexcept
-{
-    return RenderCommand::UNIFORM_MAT4;
-}
-template<> constexpr RenderCommand get_uniform_render_command_type<Texture2D>() noexcept
-{
-    return RenderCommand::UNIFORM_TEXTURE;
-}
-/// \endcond
-
-/// \cond
-const int& get_uniform_push_value_type(const int& op)
-{
-    return op;
-}
-const float& get_uniform_push_value_type(const float& op)
-{
-    return op;
-}
-const vec2& get_uniform_push_value_type(const vec2& op)
-{
-    return op;
-}
-const vec3& get_uniform_push_value_type(const vec3& op)
-{
-    return op;
-}
-const vec4& get_uniform_push_value_type(const vec4& op)
-{
-    return op;
-}
-const mat2& get_uniform_push_value_type(const mat2& op)
-{
-    return op;
-}
-const mat3& get_uniform_push_value_type(const mat3& op)
-{
-    return op;
-}
-const mat4& get_uniform_push_value_type(const mat4& op)
-{
-    return op;
-}
-const Texture* get_uniform_push_value_type(const Texture2D& op)
-{
-    return &op;
-}
-/// \endcond
-
-}
-
 /// Render command queue contains precalculated rendering commands to send meshes to GPU.
 ///
 /// Only objects with no constructors may be added to the rendering queue.
@@ -206,6 +17,10 @@ private:
     /// Internal state for render operation.
     class RenderState
     {
+    private:
+        /// Render command function type.
+        using RenderCommandFunc = void (*)(RenderState&, PackedDataReader&);
+
     private:
         /// Current projection matrix.
         const mat4* VGL_VOLUNTARY_MEMBER_VALUE(m_projection_matrix, nullptr);
@@ -315,17 +130,134 @@ private:
             return m_program->getUniformLocation(name);
         }
 
-        /// Apply uniform.
+    public:
+        /// Blend mode command.
         ///
-        /// \param iter Read iterator.
-        template<typename T> void applyUniform(PackedDataReader& iter)
+        /// \param iter Packed data iterator.
+        void commandBlend(PackedDataReader& iter)
         {
-            GLint location = getUniformLocation(iter);
-            unsigned count = static_cast<unsigned>(iter.read<int>());
-            GlslProgram::applyUniform(location, &(iter.read<T>(count)), count);
+            OperationMode mode = static_cast<OperationMode>(iter.read<int>());
+            blend_mode(mode);
         }
 
-    public:
+        /// Clear command.
+        ///
+        /// \param iter Packed data iterator.
+        void commandClear(PackedDataReader& iter)
+        {
+            optional<uvec4> color;
+            if(iter.read<int>())
+            {
+                color = iter.read<uvec4>();
+            }
+            optional<float> depth;
+            if(iter.read<int>())
+            {
+                depth = iter.read<float>();
+            }
+#if !defined(VGL_DISABLE_STENCIL)
+            optional<uint8_t> stencil;
+            if(iter.read<int>())
+            {
+                stencil = static_cast<uint8_t>(iter.read<int>());
+            }
+#endif
+            clear_buffers(color, depth
+#if !defined(VGL_DISABLE_STENCIL)
+                    , stencil
+#endif
+                    );
+        }
+
+        /// Cull face command.
+        ///
+        /// \param iter Packed data iterator.
+        void commandCullFace(PackedDataReader& iter)
+        {
+            GLenum mode = static_cast<GLenum>(iter.read<int>());
+            cull_face(mode);
+        }
+
+        /// Depth test command.
+        ///
+        /// \param iter Packed data iterator.
+        void commandDepthTest(PackedDataReader& iter)
+        {
+            GLenum mode = static_cast<GLenum>(iter.read<int>());
+            bool write = static_cast<bool>(iter.read<int>());
+            depth_test(mode);
+            depth_write(write);
+        }
+
+        /// FBO command.
+        ///
+        /// \param iter Packed data iterator.
+        void commandFbo(PackedDataReader& iter)
+        {
+            applyMesh();
+            FrameBuffer* fbo = iter.read<FrameBuffer*>();
+            fbo->bind();
+        }
+
+        /// Mesh command.
+        ///
+        /// \param iter Packed data iterator.
+        void commandMesh(PackedDataReader& iter)
+        {
+            applyMesh();
+            m_mesh = iter.read<Mesh*>();
+            m_modelview_matrix = &(iter.read<mat4>());
+            m_normal_matrix = &(iter.read<mat3>());
+            m_camera_modelview_matrix = &(iter.read<mat4>());
+            m_projection_camera_modelview_matrix = &(iter.read<mat4>());
+        }
+
+        /// Program command.
+        ///
+        /// \param iter Packed data iterator.
+        void commandProgram(PackedDataReader& iter)
+        {
+            applyMesh();
+            m_program = iter.read<GlslProgram*>();
+            m_program->bind();
+            m_texture_unit_persistent = 0;
+        }
+
+        /// Uniform (texture) command.
+        ///
+        /// \param iter Packed data iterator.
+        void commandUniformTexture(PackedDataReader& iter)
+        {
+            GLint location = getUniformLocation(iter);
+            Texture* tex = iter.read<Texture*>();
+            GlslProgram::applyUniform(location, *tex, m_texture_unit_persistent + m_texture_unit);
+            ++m_texture_unit;
+        }
+
+        /// Uniform (texture, persistent) command.
+        ///
+        /// \param iter Packed data iterator.
+        void commandUniformTexturePersistent(PackedDataReader& iter)
+        {
+            GLint location = getUniformLocation(iter);
+            Texture* tex = iter.read<Texture*>();
+            GlslProgram::applyUniform(location, *tex, m_texture_unit_persistent);
+            ++m_texture_unit_persistent;
+        }
+
+        /// View command.
+        ///
+        /// \param iter Packed data iterator.
+        void commandView(PackedDataReader& iter)
+        {
+            applyMesh();
+            m_projection_matrix = &(iter.read<mat4>());
+            m_projection_range = &(iter.read<vec2>());
+            m_camera_matrix = &(iter.read<mat4>());
+            m_projection_camera_matrix = &(iter.read<mat4>());
+            m_camera_position = &(iter.read<vec3>());
+        }
+
         /// Render using the packed data reader.
         ///
         /// \param op Render queue to render.
@@ -337,172 +269,29 @@ private:
             for(;;)
             {
                 // Abort if no data remaining.
-                if(iter.remaining() < sizeof(detail::RenderCommand))
+                if(iter.remaining() < sizeof(void*))
                 {
                     break;
                 }
 
                 // Take an action based on value type extracted.
-                detail::RenderCommand command = iter.read<detail::RenderCommand>();
-                switch(command)
-                {
-                case detail::RenderCommand::FBO:
-                    {
-                        applyMesh();
-                        FrameBuffer* fbo = iter.read<FrameBuffer*>();
-                        fbo->bind();
-                    }
-                    break;
-
-                case detail::RenderCommand::CLEAR:
-                    {
-                        optional<uvec4> color;
-                        if(iter.read<int>())
-                        {
-                            color = iter.read<uvec4>();
-                        }
-                        optional<float> depth;
-                        if(iter.read<int>())
-                        {
-                            depth = iter.read<float>();
-                        }
-#if !defined(VGL_DISABLE_STENCIL)
-                        optional<uint8_t> stencil;
-                        if(iter.read<int>())
-                        {
-                            stencil = static_cast<uint8_t>(iter.read<int>());
-                        }
-#endif
-                        clear_buffers(color, depth
-#if !defined(VGL_DISABLE_STENCIL)
-                                , stencil
-#endif
-                                );
-                    }
-                    break;
-
-                case detail::RenderCommand::BLEND_MODE:
-                    {
-                        OperationMode mode = static_cast<OperationMode>(iter.read<int>());
-                        blend_mode(mode);
-                    }
-                    break;
-
-                case detail::RenderCommand::CULL_FACE:
-                    {
-                        GLenum mode = static_cast<GLenum>(iter.read<int>());
-                        cull_face(mode);
-                    }
-                    break;
-
-                case detail::RenderCommand::DEPTH_TEST:
-                    {
-                        GLenum mode = static_cast<GLenum>(iter.read<int>());
-                        bool write = static_cast<bool>(iter.read<int>());
-                        depth_test(mode);
-                        depth_write(write);
-                    }
-                    break;
-
-                case detail::RenderCommand::VIEW:
-                    applyMesh();
-                    m_projection_matrix = &(iter.read<mat4>());
-                    m_projection_range = &(iter.read<vec2>());
-                    m_camera_matrix = &(iter.read<mat4>());
-                    m_projection_camera_matrix = &(iter.read<mat4>());
-                    m_camera_position = &(iter.read<vec3>());
-                    break;
-
-                case detail::RenderCommand::PROGRAM:
-                    applyMesh();
-                    m_program = iter.read<GlslProgram*>();
-                    m_program->bind();
-                    m_texture_unit_persistent = 0;
-                    break;
-
-                case detail::RenderCommand::MESH:
-                    applyMesh();
-                    m_mesh = iter.read<Mesh*>();
-                    m_modelview_matrix = &(iter.read<mat4>());
-                    m_normal_matrix = &(iter.read<mat3>());
-                    m_camera_modelview_matrix = &(iter.read<mat4>());
-                    m_projection_camera_modelview_matrix = &(iter.read<mat4>());
-                    break;
-
-                case detail::RenderCommand::UNIFORM_INT:
-                    applyUniform<int>(iter);
-                    break;
-
-                case detail::RenderCommand::UNIFORM_FLOAT:
-                    applyUniform<float>(iter);
-                    break;
-
-                case detail::RenderCommand::UNIFORM_VEC2:
-                    applyUniform<vec2>(iter);
-                    break;
-
-                case detail::RenderCommand::UNIFORM_VEC3:
-                    applyUniform<vec3>(iter);
-                    break;
-
-                case detail::RenderCommand::UNIFORM_VEC4:
-                    applyUniform<vec4>(iter);
-                    break;
-
-                case detail::RenderCommand::UNIFORM_MAT2:
-                    applyUniform<mat2>(iter);
-                    break;
-
-                case detail::RenderCommand::UNIFORM_MAT3:
-                    applyUniform<mat3>(iter);
-                    break;
-
-                case detail::RenderCommand::UNIFORM_MAT4:
-                    applyUniform<mat4>(iter);
-                    break;
-
-                    // Texture uniforms are stateful and require more work.
-                case detail::RenderCommand::UNIFORM_TEXTURE:
-                    {
-                        GLint location = getUniformLocation(iter);
-                        unsigned count = static_cast<unsigned>(iter.read<int>());
-#if defined(USE_LD)
-                        if(count != 1)
-                        {
-                            BOOST_THROW_EXCEPTION(std::runtime_error("texture uniforms must have count = 1"));
-                        }
-#else
-                        (void)count;
-#endif
-                        Texture* tex = iter.read<Texture*>();
-                        GlslProgram::applyUniform(location, *tex, m_texture_unit_persistent + m_texture_unit);
-                        ++m_texture_unit;
-                    }
-                    break;
-
-                    /// Persistent texture uniform.
-                case detail::RenderCommand::UNIFORM_TEXTURE_PERSISTENT:
-#if !defined(USE_LD)
-                default:
-#endif
-                    {
-                        GLint location = getUniformLocation(iter);
-                        Texture* tex = iter.read<Texture*>();
-                        GlslProgram::applyUniform(location, *tex, m_texture_unit_persistent);
-                        ++m_texture_unit_persistent;
-                    }
-                    break;
-
-#if defined(USE_LD)
-                default:
-                    BOOST_THROW_EXCEPTION(std::runtime_error("unknown render command: " +
-                                std::to_string(static_cast<int>(command))));
-#endif
-                }
+                RenderCommandFunc fptr = reinterpret_cast<RenderCommandFunc>(iter.read<void*>());
+                fptr(*this, iter);
             }
 
             // Apply last mesh that may be remaining.
             applyMesh();
+        }
+
+    public:
+        /// Uniform command.
+        ///
+        /// \param iter Read iterator.
+        template<typename T> void commandUniform(PackedDataReader& iter)
+        {
+            GLint location = getUniformLocation(iter);
+            unsigned count = static_cast<unsigned>(iter.read<int>());
+            GlslProgram::applyUniform(location, &(iter.read<T>(count)), count);
         }
     };
 
@@ -536,6 +325,31 @@ public:
     constexpr explicit RenderQueue() noexcept = default;
 
 private:
+    /// Push texture uniform.
+    ///
+    /// \param name Name of the uniform.
+    /// \param value Texture value.
+    void pushUniformTexture(string_view name, UniformSemantic semantic, const Texture2D& value)
+    {
+        pushCommand<&RenderState::commandUniformTexture>();
+        m_data.push(name);
+        m_data.push(static_cast<int>(semantic));
+        m_data.push(&value);
+    }
+
+    /// Push persistent texture uniform.
+    ///
+    /// \param name Name of the uniform.
+    /// \param value Texture value.
+    void pushUniformTexturePersistent(string_view name, UniformSemantic semantic, const Texture2D& value)
+    {
+        pushCommand<&RenderState::commandUniformTexturePersistent>();
+        m_data.push(name);
+        m_data.push(static_cast<int>(semantic));
+        m_data.push(&value);
+    }
+
+private:
     /// Push uniform.
     ///
     /// \param name Name of the uniform.
@@ -544,26 +358,14 @@ private:
     /// \param count Number of uniforms to push.
     template<typename T> void pushUniform(string_view name, UniformSemantic semantic, const T* ptr, unsigned count)
     {
-        m_data.push(static_cast<int>(detail::get_uniform_render_command_type<T>()));
+        pushCommand<&RenderState::commandUniform<T>>();
         m_data.push(name);
         m_data.push(static_cast<int>(semantic));
         m_data.push(static_cast<int>(count));
         for(unsigned ii = 0; (ii < count); ++ii)
         {
-            m_data.push(detail::get_uniform_push_value_type(ptr[ii]));
+            m_data.push(ptr[ii]);
         }
-    }
-
-    /// Push persistent uniform.
-    ///
-    /// \param name Name of the uniform.
-    /// \param value Texture value.
-    void pushUniformPersistent(string_view name, UniformSemantic semantic, Texture2D& value)
-    {
-        m_data.push(static_cast<int>(detail::RenderCommand::UNIFORM_TEXTURE_PERSISTENT));
-        m_data.push(name);
-        m_data.push(static_cast<int>(semantic));
-        m_data.push(detail::get_uniform_push_value_type(value));
     }
 
 public:
@@ -580,13 +382,87 @@ public:
 #endif
     }
 
+    /// Render the contents in the queue.
+    void draw() const
+    {
+        RenderState state;
+        state.draw(*this);
+    }
+
     /// Push fbo switch.
     ///
     /// \param op Framebuffer ptr.
     void push(const FrameBuffer& op)
     {
-        m_data.push(static_cast<int>(detail::RenderCommand::FBO));
+        pushCommand<&RenderState::commandFbo>();
         m_data.push(&op);
+    }
+
+    /// Push mesh render.
+    ///
+    /// \param msh Mesh to render.
+    /// \param modelview Mesh modelview matrix.
+    void push(const Mesh& msh, const mat4& modelview)
+    {
+        pushCommand<&RenderState::commandMesh>();
+        m_data.push(&msh);
+        m_data.push(modelview);
+        m_data.push(normalify(modelview));
+#if defined(USE_LD)
+        m_data.push((*m_camera_matrix) * modelview);
+        m_data.push((*m_projection_camera_matrix) * modelview);
+#else
+        m_data.push(m_camera_matrix * modelview);
+        m_data.push(m_projection_camera_matrix * modelview);
+#endif
+    }
+
+    /// Push program switch.
+    ///
+    /// \param op Program to use starting from this point.
+    void push(const GlslProgram& op)
+    {
+        pushCommand<&RenderState::commandProgram>();
+        m_data.push(&op);
+    }
+
+    /// Push view settings switch.
+    ///
+    /// \param proj Projection matrix.
+    /// \param range Projection depth range.
+    /// \param cam Camera matrix.
+    void push(const mat4& proj, const vec2 range, const mat4& cam)
+    {
+        mat4 camera = viewify(cam);
+        m_camera_matrix = camera;
+#if defined(USE_LD)
+        m_projection_camera_matrix = proj * (*m_camera_matrix);
+#else
+        m_projection_camera_matrix = proj * m_camera_matrix;
+#endif
+        m_camera_position = cam.getTranslation();
+
+        pushCommand<&RenderState::commandView>();
+        m_data.push(proj);
+        m_data.push(range);
+#if defined(USE_LD)
+        m_data.push(*m_camera_matrix);
+        m_data.push(*m_projection_camera_matrix);
+        m_data.push(*m_camera_position);
+#else
+        m_data.push(m_camera_matrix);
+        m_data.push(m_projection_camera_matrix);
+        m_data.push(m_camera_position);
+#endif
+    }
+
+    /// Push blend mode switch.
+    ///
+    /// \param op Blend mode.
+    void pushBlend(OperationMode op)
+    {
+        pushCommand<&RenderState::commandBlend>();
+        m_data.push(static_cast<int>(op));
     }
 
     /// Push clear.
@@ -600,7 +476,7 @@ public:
 #endif
             )
     {
-        m_data.push(static_cast<int>(detail::RenderCommand::CLEAR));
+        pushCommand<&RenderState::commandClear>();
         {
             int color_enable = static_cast<int>(static_cast<bool>(color));
             if(color_enable)
@@ -629,64 +505,67 @@ public:
 #endif
     }
 
-    /// Push view settings switch.
+    /// Push cull mode switch.
     ///
-    /// \param proj Projection matrix.
-    /// \param range Projection depth range.
-    /// \param cam Camera matrix.
-    void push(const mat4& proj, const vec2 range, const mat4& cam)
+    /// \param op Cull mode.
+    void pushCull(GLenum op)
     {
-        mat4 camera = viewify(cam);
-        m_camera_matrix = camera;
-#if defined(USE_LD)
-        m_projection_camera_matrix = proj * (*m_camera_matrix);
-#else
-        m_projection_camera_matrix = proj * m_camera_matrix;
-#endif
-        m_camera_position = cam.getTranslation();
+        pushCommand<&RenderState::commandCullFace>();
+        m_data.push(static_cast<int>(op));
+    }
 
-        m_data.push(static_cast<int>(detail::RenderCommand::VIEW));
-        m_data.push(proj);
-        m_data.push(range);
-#if defined(USE_LD)
-        m_data.push(*m_camera_matrix);
-        m_data.push(*m_projection_camera_matrix);
-        m_data.push(*m_camera_position);
-#else
-        m_data.push(m_camera_matrix);
-        m_data.push(m_projection_camera_matrix);
-        m_data.push(m_camera_position);
+    /// Push depth test switch.
+    ///
+    /// \param mode Depth test mode.
+    /// \param write Depth write enabled.
+    void pushDepth(GLenum mode
+#if !defined(VGL_DISABLE_DEPTH_WRITE)
+            , bool write = true
+#endif
+            )
+    {
+        pushCommand<&RenderState::commandDepthTest>();
+        m_data.push(static_cast<int>(mode));
+#if !defined(VGL_DISABLE_DEPTH_WRITE)
+        m_data.push(static_cast<int>(write));
 #endif
     }
 
-    /// Push program switch.
+    /// Push texture uniform.
     ///
-    /// \param op Program to use starting from this point.
-    void push(const GlslProgram& op)
+    /// \param name Name of the uniform.
+    /// \param value Texture value.
+    void push(string_view name, const Texture2D& value)
     {
-        m_data.push(static_cast<int>(detail::RenderCommand::PROGRAM));
-        m_data.push(&op);
+        pushUniformTexture(name, UniformSemantic::NONE, value);
+    }
+    /// Push texture uniform.
+    ///
+    /// \param name Name of the uniform.
+    /// \param value Texture value.
+    void push(UniformSemantic semantic, const Texture2D& value)
+    {
+        pushUniformTexture(string_view(), semantic, value);
     }
 
-    /// Push mesh render.
+    /// Push persistent texture uniform.
     ///
-    /// \param msh Mesh to render.
-    /// \param modelview Mesh modelview matrix.
-    void push(const Mesh& msh, const mat4& modelview)
+    /// \param name Name of the uniform.
+    /// \param value Texture value.
+    void pushPersistent(string_view name, const Texture2D& value)
     {
-        m_data.push(static_cast<int>(detail::RenderCommand::MESH));
-        m_data.push(&msh);
-        m_data.push(modelview);
-        m_data.push(normalify(modelview));
-#if defined(USE_LD)
-        m_data.push((*m_camera_matrix) * modelview);
-        m_data.push((*m_projection_camera_matrix) * modelview);
-#else
-        m_data.push(m_camera_matrix * modelview);
-        m_data.push(m_projection_camera_matrix * modelview);
-#endif
+        pushUniformTexturePersistent(name, UniformSemantic::NONE, value);
+    }
+    /// Push persistent texture uniform.
+    ///
+    /// \param name Name of the uniform.
+    /// \param value Texture value.
+    void pushPersistent(UniformSemantic semantic, const Texture2D& value)
+    {
+        pushUniformTexturePersistent(string_view(), semantic, value);
     }
 
+public:
     /// Push uniform.
     ///
     /// \param name Name of the uniform.
@@ -722,63 +601,20 @@ public:
         pushUniform(string_view(), semantic, ptr, count);
     }
 
-    /// Push persistent uniform.
-    ///
-    /// \param name Name of the uniform.
-    /// \param value Texture value.
-    void pushPersistent(string_view name, Texture2D& value)
+    /// Templated push of a command.
+    template<void (RenderState::*F)(PackedDataReader&)> void pushCommand()
     {
-        pushUniformPersistent(name, UniformSemantic::NONE, value);
-    }
-    /// Push persistent uniform.
-    ///
-    /// \param name Name of the uniform.
-    /// \param value Texture value.
-    void pushPersistent(UniformSemantic semantic, Texture2D& value)
-    {
-        pushUniformPersistent(string_view(), semantic, value);
+        m_data.push(reinterpret_cast<void*>(commandFunc<F>));
     }
 
-    /// Push blend mode switch.
+private:
+    /// Command function template.
     ///
-    /// \param op Blend mode.
-    void pushBlend(OperationMode op)
+    /// \param state Render state.
+    /// \param iter Read iterator.
+    template<void (RenderState::*F)(PackedDataReader&)> static void commandFunc(RenderState& state, PackedDataReader& iter)
     {
-        m_data.push(static_cast<int>(detail::RenderCommand::BLEND_MODE));
-        m_data.push(static_cast<int>(op));
-    }
-
-    /// Push cull mode switch.
-    ///
-    /// \param op Cull mode.
-    void pushCull(GLenum op)
-    {
-        m_data.push(static_cast<int>(detail::RenderCommand::CULL_FACE));
-        m_data.push(static_cast<int>(op));
-    }
-
-    /// Push depth test switch.
-    ///
-    /// \param mode Depth test mode.
-    /// \param write Depth write enabled.
-    void pushDepth(GLenum mode
-#if !defined(VGL_DISABLE_DEPTH_WRITE)
-            , bool write = true
-#endif
-            )
-    {
-        m_data.push(static_cast<int>(detail::RenderCommand::DEPTH_TEST));
-        m_data.push(static_cast<int>(mode));
-#if !defined(VGL_DISABLE_DEPTH_WRITE)
-        m_data.push(static_cast<int>(write));
-#endif
-    }
-
-    /// Render the contents in the queue.
-    void draw() const
-    {
-        RenderState state;
-        state.draw(*this);
+        (state.*F)(iter);
     }
 };
 
