@@ -102,7 +102,7 @@ protected:
     /// \param data Data passed Filtering mode.
     /// \param filtering Filtering mode.
     /// \return True if mipmaps in use, false if not.
-    bool setFiltering(void* data, FilteringMode filtering) const
+    bool setFiltering(const void* data, FilteringMode filtering) const
     {
         // 'nearest' -filtering forced.
         if(FilteringMode::NEAREST == filtering)

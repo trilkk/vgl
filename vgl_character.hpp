@@ -12,7 +12,7 @@ class Character
 {
 private:
     /// Texture for the glyph.
-    Texture2D m_texture;
+    Texture2DUptr m_texture;
 
     /// Glyph rectangle offset for this character.
     vec2 m_quad_offset;
@@ -21,16 +21,16 @@ private:
     vec2 m_quad_size;
 
     /// Index in font.
-    unsigned m_font_index;
+    unsigned m_font_index = 0;
 
     /// Typographic left.
-    float m_left;
+    float m_left = 0.0f;
 
     /// Typographic top.
-    float m_top;
+    float m_top = 0.0f;
 
     /// Advance value X.
-    float m_advance_x;
+    float m_advance_x = 0.0f;
 
 private:
     /// Deleted copy constructor.
@@ -39,6 +39,9 @@ private:
     Character& operator=(const Character&) = delete;
 
 public:
+    /// Default constructor.
+    constexpr explicit Character() noexcept = default;
+
     /// Constructor.
     ///
     /// \param idx Index in font.
@@ -72,7 +75,7 @@ public:
             }
         }
 
-        m_texture.update(img);
+        m_texture = Texture2D::create(img);
 
         {
             float fs = static_cast<float>(base_size);
@@ -86,11 +89,25 @@ public:
         }
     }
 
+    /// Move constructor.
+    ///
+    /// \param other Source object.
+    Character(Character&& other) noexcept :
+        m_texture(move(other.m_texture)),
+        m_quad_offset(other.m_quad_offset),
+        m_quad_size(other.m_quad_size),
+        m_font_index(other.m_font_index),
+        m_left(other.m_left),
+        m_top(other.m_top),
+        m_advance_x(other.m_advance_x)
+    {
+    }
+
 public:
     /// Accessor.
     ///
     /// \return X advance.
-    float getAdvanceX() const
+    float getAdvanceX() const noexcept
     {
         return m_advance_x;
     }
@@ -98,7 +115,7 @@ public:
     /// Accessor.
     ///
     /// \return Index in font.
-    unsigned getFontIndex() const
+    unsigned getFontIndex() const noexcept
     {
         return m_font_index;
     }
@@ -106,14 +123,14 @@ public:
     /// Accessor.
     ///
     /// \return Character rectangle offset.
-    const vec2& getQuadOffset() const
+    const vec2& getQuadOffset() const noexcept
     {
         return m_quad_offset;
     }
     /// Accessor.
     ///
     /// \return Character rectangle size.
-    const vec2& getQuadSize() const
+    const vec2& getQuadSize() const noexcept
     {
         return m_quad_size;
     }
@@ -123,7 +140,33 @@ public:
     /// \return Texture.
     const Texture2D& getTexture() const
     {
+        VGL_ASSERT(m_texture);
+        return *(m_texture.get());
+    }
+
+public:
+    /// Bool operator.
+    ///
+    /// \return Flag signifying if the character has been created.
+    constexpr operator bool() const noexcept
+    {
         return m_texture;
+    }
+
+    /// Move operator.
+    ///
+    /// \param other Source object.
+    /// \return This object.
+    Character& operator=(Character&& other) noexcept
+    {
+        m_texture = move(other.m_texture);
+        m_quad_offset = other.m_quad_offset;
+        m_quad_size = other.m_quad_size;
+        m_font_index = other.m_font_index;
+        m_left = other.m_left;
+        m_top = other.m_top;
+        m_advance_x = other.m_advance_x;
+        return *this;
     }
 };
 

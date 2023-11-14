@@ -7,8 +7,6 @@
 namespace vgl
 {
 
-class Mesh;
-
 /// Font.
 class Font
 {
@@ -22,15 +20,11 @@ private:
 #endif
 
 private:
-    /// Let's stay ASCII7 for now.
-    static const unsigned MAX_CHARACTERS = 128;
-
-private:
     /// Font structure.
     FT_Face m_face = nullptr;
 
     /// Characters loaded.
-    CharacterUptr m_characters[MAX_CHARACTERS];
+    vector<Character> m_characters;
 
     /// 'M' size for the face (pixels).
     unsigned m_font_size;
@@ -125,15 +119,6 @@ public:
     /// \param unicode Unicode character id.
     void createCharacter(unsigned unicode)
     {
-#if defined(USE_LD)
-        if(MAX_CHARACTERS <= unicode)
-        {
-            std::ostringstream sstr;
-            sstr << "attempting to create character " << unicode << " with too high unicode index";
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
-        }
-#endif
-
         unsigned idx = dnload_FT_Get_Char_Index(m_face, unicode);
 #if defined(USE_LD)
         if(0 >= idx)
@@ -173,13 +158,16 @@ public:
         float fsize = static_cast<float>(m_font_size);
 
         // No Y advance - only left-right text supported.
-        m_characters[unicode].reset(
-                new Character(idx,
-                    &(glyph->bitmap),
-                    static_cast<float>(glyph->bitmap_left) / fsize,
-                    static_cast<float>(glyph->bitmap_top) / fsize,
-                    (static_cast<float>(glyph->advance.x) / fsize) * (1.0f / 64.0f),
-                    fsize));
+        if (m_characters.size() <= unicode)
+        {
+            m_characters.resize(unicode + 1);
+        }
+        m_characters[unicode] = Character(idx,
+                &(glyph->bitmap),
+                static_cast<float>(glyph->bitmap_left) / fsize,
+                static_cast<float>(glyph->bitmap_top) / fsize,
+                (static_cast<float>(glyph->advance.x) / fsize) * (1.0f / 64.0f),
+                fsize);
     }
 
     /// Accessor.
@@ -189,7 +177,7 @@ public:
     const Character& getCharacter(unsigned unicode) const
     {
 #if defined(USE_LD)
-        if(MAX_CHARACTERS <= unicode)
+        if(m_characters.size() <= unicode)
         {
             std::ostringstream sstr;
             sstr << "unicode index outside of range: " << unicode;
@@ -202,7 +190,7 @@ public:
             BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
         }
 #endif
-        return *(m_characters[unicode]);
+        return m_characters[unicode];
     }
 
 #if defined(FONT_ENABLE_KERNING)
@@ -264,7 +252,7 @@ public:
     ///
     /// \param fs Font size.
     /// \param fnames Filename array.
-    /// \param mesh Mesh used by the font.
+    /// \return Font created.
     static unique_ptr<Font> create(unsigned fs, const char **fnames)
     {
         return unique_ptr<Font>(new Font(fs, fnames));

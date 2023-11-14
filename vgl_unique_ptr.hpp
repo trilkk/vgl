@@ -147,7 +147,7 @@ public:
     ///
     /// \param op Source.
     /// \return This object.
-    unique_ptr<T>& operator=(unique_ptr<T>&& op)
+    unique_ptr<T>& operator=(unique_ptr<T>&& op) noexcept
     {
         reset(op.m_ref);
         op.m_ref = NULL;
@@ -157,7 +157,7 @@ public:
     /// Truth value operator.
     ///
     /// \return True if pointer is not empty.
-    constexpr operator bool() const
+    constexpr operator bool() const noexcept
     {
         return (m_ref != NULL);
     }

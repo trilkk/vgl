@@ -3,6 +3,7 @@
 
 #include "vgl_image_2d.hpp"
 #include "vgl_state.hpp"
+#include "vgl_task_dispatcher.hpp"
 #include "vgl_texture.hpp"
 #include "vgl_texture_format.hpp"
 #include "vgl_unique_ptr.hpp"
@@ -13,6 +14,99 @@ namespace vgl
 /// 2-dimensional texture.
 class Texture2D : public Texture
 {
+private:
+    /// Texture create settings.
+    class TextureCreateSettings
+    {
+    private:
+        /// Width.
+        unsigned m_width;
+
+        /// Height.
+        unsigned m_height;
+
+        /// Pointer to texture format.
+        const TextureFormat& m_format;
+
+        /// Pointer to data.
+        const void* m_data;
+
+        /// Filtering mode.
+        FilteringMode m_filter_mode;
+
+        /// Wrap mode.
+        WrapMode m_wrap_mode;
+
+    public:
+        /// Constructor.
+        ///
+        /// \param width Width.
+        /// \param height Height.
+        /// \param format Format.
+        /// \param data Data.
+        /// \param filter Filtering mode.
+        /// \param wrap Wrap mode.
+        constexpr explicit TextureCreateSettings(unsigned width, unsigned height, const TextureFormat& format, const void* data,
+                FilteringMode filter, WrapMode wrap) noexcept :
+            m_width(width),
+            m_height(height),
+            m_format(format),
+            m_data(data),
+            m_filter_mode(filter),
+            m_wrap_mode(wrap)
+        {
+        }
+
+    public:
+        /// Accessor.
+        ///
+        /// \return Width.
+        constexpr unsigned getWidth() const noexcept
+        {
+            return m_width;
+        }
+
+        /// Accessor.
+        ///
+        /// \return Height.
+        constexpr unsigned getHeight() const noexcept
+        {
+            return m_height;
+        }
+
+        /// Accessor.
+        ///
+        /// \return Texture format.
+        constexpr const TextureFormat& getFormat() const noexcept
+        {
+            return m_format;
+        }
+
+        /// Accessor.
+        ///
+        /// \return Data.
+        constexpr const void* getData() const noexcept
+        {
+            return m_data;
+        }
+
+        /// Accessor.
+        ///
+        /// \return Filter mode.
+        constexpr FilteringMode getFilterMode() const noexcept
+        {
+            return m_filter_mode;
+        }
+
+        /// Accessor.
+        ///
+        /// \return Wrap mode.
+        constexpr WrapMode getWrapMode() const noexcept
+        {
+            return m_wrap_mode;
+        }
+    };
+
 private:
     /// Texture width.
     unsigned m_width;
@@ -29,16 +123,32 @@ public:
     {
     }
 
-private:
+public:
+    /// Accessor.
+    ///
+    /// \return Texture width.
+    constexpr unsigned getWidth() const noexcept
+    {
+        return m_width;
+    }
+
+    /// Accessor.
+    ///
+    /// \return Texture height.
+    constexpr unsigned getHeight() const noexcept
+    {
+        return m_height;
+    }
+
     /// Update texture with data.
     /// \param width Width of the texture.
     /// \param height Height of the texture.
     /// \param channels Number of channels, 0 for depth texture.
     /// \param bpc Bytes per component in texture data.
-    /// \param data Pointter to texture data, must be one byte per color channel per texel.
+    /// \param data Pointer to texture data, must be one byte per color channel per texel.
     /// \param filtering Filtering mode to use.
     /// \param wrap Wrap mode to use.
-    void update(unsigned width, unsigned height, const TextureFormat& format, void* data, FilteringMode filtering,
+    void update(unsigned width, unsigned height, const TextureFormat& format, const void* data, FilteringMode filtering,
             WrapMode wrap)
     {
         m_width = width;
@@ -68,37 +178,21 @@ private:
         updateEnd(prev_texture);
     }
 
-public:
-    /// Accessor.
+private:
+    /// Parallel texture creation function.
     ///
-    /// \return Texture width.
-    constexpr unsigned getWidth() const noexcept
+    /// \param width Texture width.
+    /// \param height Texture height.
+    /// \param format Format.
+    /// \param data Data, may be nullptr.
+    /// \param filtering Filtering mode.
+    /// \param wrap Wrap mode.
+    static unique_ptr<Texture2D> createInternal(unsigned width, unsigned height, const TextureFormat& format, void* data,
+            FilteringMode filtering, WrapMode wrap)
     {
-        return m_width;
-    }
-
-    /// Accessor.
-    ///
-    /// \return Texture height.
-    constexpr unsigned getHeight() const noexcept
-    {
-        return m_height;
-    }
-
-    /// Update texture with image data.
-    ///
-    /// Creates a 16-bit texture.
-    ///
-    /// \param image Image to update with.
-    /// \param bpc Bytes per component to convert the image to (default: 1).
-    /// \param filtering Filtering mode (default: trilinear).
-    /// \param wrap Wrap mode (defaut: wrap).
-    void update(Image2D &image, unsigned bpc = 1, FilteringMode filtering = FilteringMode::TRILINEAR,
-            WrapMode wrap = WrapMode::WRAP)
-    {
-        vector<uint8_t> export_data = image.getExportData(bpc);
-        TextureFormatColor format(image.getChannelCount(), bpc, export_data.data());
-        update(image.getWidth(), image.getHeight(), format, export_data.data(), filtering, wrap);
+        TextureCreateSettings settings(width, height, format, data, filtering, wrap);
+        Fence ret = task_wait_main(taskfunc_create_texture, &settings);
+        return unique_ptr<Texture2D>(static_cast<Texture2D*>(ret.getReturnValue()));
     }
 
 public:
@@ -115,9 +209,7 @@ public:
     static unique_ptr<Texture2D> create(unsigned width, unsigned height, const TextureFormat& format,
             FilteringMode filtering = FilteringMode::BILINEAR, WrapMode wrap = WrapMode::CLAMP)
     {
-        unique_ptr<Texture2D> ret(new Texture2D(GL_TEXTURE_2D));
-        ret->update(width, height, format, nullptr, filtering, wrap);
-        return ret;
+        return createInternal(width, height, format, nullptr, filtering, wrap);
     }
     /// Create a new texture with no data.
     ///
@@ -147,8 +239,21 @@ public:
     static unique_ptr<Texture2D> create(Image2D& img, unsigned bpc = 1, FilteringMode filtering = FilteringMode::TRILINEAR,
             WrapMode wrap = WrapMode::WRAP)
     {
-        unique_ptr<Texture2D> ret(new Texture2D(GL_TEXTURE_2D));
-        ret->update(img, bpc, filtering, wrap);
+        auto export_data = img.getExportData(bpc);
+        TextureFormatColor format(img.getChannelCount(), bpc, export_data.data());
+        return createInternal(img.getWidth(), img.getHeight(), format, export_data.data(), filtering, wrap);
+    }
+
+private:
+    /// Export a texture from this image.
+    ///
+    /// \param op Pointer to creation settings.
+    static void* taskfunc_create_texture(void* op)
+    {
+        Texture2D* ret = new Texture2D();
+        const TextureCreateSettings* settings = static_cast<const TextureCreateSettings*>(op);
+        ret->update(settings->getWidth(), settings->getHeight(), settings->getFormat(), settings->getData(),
+                settings->getFilterMode(), settings->getWrapMode());
         return ret;
     }
 };
