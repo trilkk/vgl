@@ -64,18 +64,6 @@ private:
     }
 
 public:
-    /// Multiply vector.
-    ///
-    /// \param rhs Right-hand-side operand.
-    /// \return Result vector.
-    constexpr vec3 operator*(const vec3& rhs) const noexcept
-    {
-        return vec3(m_data[0] * rhs[0] + m_data[3] * rhs[1] + m_data[6] * rhs[2],
-                m_data[1] * rhs[0] + m_data[4] * rhs[1] + m_data[7] * rhs[2],
-                m_data[2] * rhs[0] + m_data[5] * rhs[1] + m_data[8] * rhs[2]);
-    }
-
-public:
 #if defined(USE_LD)
     /// Output to stream.
     ///
@@ -85,9 +73,9 @@ public:
     friend std::ostream& operator<<(std::ostream& lhs, const mat3& rhs)
     {
         return lhs << "[ " <<
-            rhs[0] << " ; " << rhs[3] << " ; " << rhs[6] << "\n  " <<
-            rhs[1] << " ; " << rhs[4] << " ; " << rhs[7] << "\n  " <<
-            rhs[2] << " ; " << rhs[5] << " ; " << rhs[8] << " ]";
+            rhs[0u] << " ; " << rhs[3u] << " ; " << rhs[6u] << "\n  " <<
+            rhs[1u] << " ; " << rhs[4u] << " ; " << rhs[7u] << "\n  " <<
+            rhs[2u] << " ; " << rhs[5u] << " ; " << rhs[8u] << " ]";
     }
 #endif
 
@@ -155,9 +143,9 @@ public:
 /// \return Transposed matrix.
 constexpr mat3 transpose(const mat3& op) noexcept
 {
-    return mat3(op[0], op[3], op[6],
-            op[1], op[4], op[7],
-            op[2], op[5], op[8]);
+    return mat3(op[0u], op[3u], op[6u],
+            op[1u], op[4u], op[7u],
+            op[2u], op[5u], op[8u]);
 }
 
 /// Invert a 3x3 matrix.
@@ -171,20 +159,20 @@ constexpr mat3 inverse(const mat3& op) noexcept
 {
     // Here a, b and c denote top row indices 0, 3 and 6 of the original matrix.
     // Determinants are for the cofactors of those elements.
-    float det_a = mat2(op[4], op[5], op[7], op[8]).determinant();
-    float neg_det_b = mat2(op[7], op[8], op[1], op[2]).determinant();
-    float det_c = mat2(op[1], op[2], op[4], op[5]).determinant();
-    float inv_det = 1.0f / ((op[0] * det_a) + (op[3] * neg_det_b) + (op[6] * det_c));
+    float det_a = determinant(mat2(op[4u], op[5u], op[7u], op[8u]));
+    float neg_det_b = determinant(mat2(op[7u], op[8u], op[1u], op[2u]));
+    float det_c = determinant(mat2(op[1u], op[2u], op[4u], op[5u]));
+    float inv_det = 1.0f / ((op[0u] * det_a) + (op[3u] * neg_det_b) + (op[6u] * det_c));
 
     // Note that the order here is transpose of what would be got for just calculating all cofactors.
     // Some elements calculate the cofactor in the wrong order to get the negative value.
     return mat3(det_a, neg_det_b, det_c,
-            mat2(op[6], op[8], op[3], op[5]).determinant(),
-            mat2(op[0], op[2], op[6], op[8]).determinant(),
-            mat2(op[3], op[5], op[0], op[2]).determinant(),
-            mat2(op[3], op[4], op[6], op[7]).determinant(),
-            mat2(op[6], op[7], op[0], op[1]).determinant(),
-            mat2(op[0], op[1], op[3], op[4]).determinant()) * inv_det;
+            determinant(mat2(op[6u], op[8u], op[3u], op[5u])),
+            determinant(mat2(op[0u], op[2u], op[6u], op[8u])),
+            determinant(mat2(op[3u], op[5u], op[0u], op[2u])),
+            determinant(mat2(op[3u], op[4u], op[6u], op[7u])),
+            determinant(mat2(op[6u], op[7u], op[0u], op[1u])),
+            determinant(mat2(op[0u], op[1u], op[3u], op[4u]))) * inv_det;
 }
 
 }

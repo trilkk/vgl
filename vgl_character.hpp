@@ -1,6 +1,7 @@
 #ifndef VGL_CHARACTER_HPP
 #define VGL_CHARACTER_HPP
 
+#include "vgl_extern_freetype.hpp"
 #include "vgl_image_2d_gray.hpp"
 #include "vgl_texture_2d.hpp"
 

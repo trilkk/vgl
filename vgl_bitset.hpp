@@ -91,19 +91,17 @@ public:
     /// Constructor.
     ///
     /// \param op Initial value.
-    constexpr explicit bitset(int op) :
-        m_data(static_cast<uint32_t>(op))
-    {
-        assertData();
-    }
-
-    /// Constructor.
-    ///
-    /// \param op Initial value.
     constexpr explicit bitset(uint32_t op) :
         m_data(op)
     {
         assertData();
+    }
+    /// Constructor.
+    ///
+    /// \param op Initial value.
+    constexpr explicit bitset(int op) :
+        bitset(static_cast<uint32_t>(op))
+    {
     }
 
 private:

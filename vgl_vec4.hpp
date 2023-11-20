@@ -83,10 +83,10 @@ constexpr bool almost_equal(const optional<vec4>& lhs, const optional<vec4>& rhs
 /// \return Result value.
 constexpr float dot(const vec4& lhs, const vec4& rhs) noexcept
 {
-    return (lhs[0] * rhs[0]) +
-        (lhs[1] * rhs[1]) +
-        (lhs[2] * rhs[2]) +
-        (lhs[3] * rhs[3]);
+    return (lhs[0u] * rhs[0u]) +
+        (lhs[1u] * rhs[1u]) +
+        (lhs[2u] * rhs[2u]) +
+        (lhs[3u] * rhs[3u]);
 }
 
 /// Length of a vector type.

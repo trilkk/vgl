@@ -1,5 +1,5 @@
-#ifndef VGL_EXTERN_STDLIB
-#define VGL_EXTERN_STDLIB
+#ifndef VGL_EXTERN_STDLIB_HPP
+#define VGL_EXTERN_STDLIB_HPP
 
 /// \file
 /// \brief External include: stdlib
@@ -12,8 +12,14 @@
 #if !defined(dnload_free)
 #define dnload_free free
 #endif
+#if !defined(dnload_rand)
+#define dnload_rand rand
+#endif
 #if !defined(dnload_realloc)
 #define dnload_realloc realloc
+#endif
+#if !defined(dnload_srand)
+#define dnload_srand srand
 #endif
 /// \endcond
 

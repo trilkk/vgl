@@ -2,7 +2,13 @@
 #define VGL_IMAGE_HPP
 
 #include "vgl_limits.hpp"
+#include "vgl_math.hpp"
+#include "vgl_rand.hpp"
 #include "vgl_vector.hpp"
+
+#if defined(USE_LD)
+#include <sstream>
+#endif
 
 namespace vgl
 {
@@ -190,18 +196,6 @@ public:
         return m_texel_count * m_channel_count;
     }
 
-    /// Fill image with noise.
-    ///
-    /// \param nfloor Noise floor.
-    /// \param nceil Noise ceiling.
-    void noise(float nfloor = 0.0f, float nceil = 1.0f)
-    {
-        for(unsigned ii = 0, ee = getElementCount(); (ii < ee); ++ii)
-        {
-            m_data[ii] = frand(nfloor, nceil);
-        }
-    }
-
     /// Normalize color level.
     ///
     /// \param channel Channel
@@ -233,6 +227,22 @@ public:
             }
         }
     }
+
+#if !defined(VGL_DISABLE_RAND)
+
+    /// Fill image with noise.
+    ///
+    /// \param nfloor Noise floor.
+    /// \param nceil Noise ceiling.
+    void noise(float nfloor = 0.0f, float nceil = 1.0f)
+    {
+        for(unsigned ii = 0, ee = getElementCount(); (ii < ee); ++ii)
+        {
+            m_data[ii] = frand(nfloor, nceil);
+        }
+    }
+
+#endif
 };
 
 }

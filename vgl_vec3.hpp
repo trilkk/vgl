@@ -58,11 +58,11 @@ public:
 /// \param lhs Left-hand-side operand.
 /// \param rhs Right-hand-side operand.
 /// \return Result vector.
-constexpr vec3 cross(const vec3& lhs, const vec3& rhs)
+constexpr vec3 cross(const vec3& lhs, const vec3& rhs) noexcept
 {
-    return vec3(lhs[1] * rhs[2] - lhs[2] * rhs[1],
-            lhs[2] * rhs[0] - lhs[0] * rhs[2],
-            lhs[0] * rhs[1] - lhs[1] * rhs[0]);
+    return vec3(lhs[1u] * rhs[2u] - lhs[2u] * rhs[1u],
+            lhs[2u] * rhs[0u] - lhs[0u] * rhs[2u],
+            lhs[0u] * rhs[1u] - lhs[1u] * rhs[0u]);
 }
 
 /// Test if optional values are almost equal.
@@ -85,9 +85,9 @@ constexpr bool almost_equal(const optional<vec3>& lhs, const optional<vec3>& rhs
 /// \return Result value.
 constexpr float dot(const vec3& lhs, const vec3& rhs) noexcept
 {
-    return (lhs[0] * rhs[0]) +
-        (lhs[1] * rhs[1]) +
-        (lhs[2] * rhs[2]);
+    return (lhs[0u] * rhs[0u]) +
+        (lhs[1u] * rhs[1u]) +
+        (lhs[2u] * rhs[2u]);
 }
 
 /// Length of a vector type.

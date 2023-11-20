@@ -18,7 +18,7 @@ public:
 
 private:
     /// Quaternion data.
-    array<float, 4> m_data;
+    array<float, data_size> m_data;
 
 public:
     /// Empty constructor.
@@ -91,10 +91,10 @@ public:
     /// \return Result quaternion.
     constexpr quat operator-() const noexcept
     {
-        return quat(-m_data[0u],
-                -m_data[1u],
-                -m_data[2u],
-                -m_data[3u]);
+        return quat(-(*this)[0u],
+                -(*this)[1u],
+                -(*this)[2u],
+                -(*this)[3u]);
     }
 
     /// Addition operator.
@@ -103,10 +103,10 @@ public:
     /// \return Result quaternion.
     constexpr quat operator+(const quat &rhs) const noexcept
     {
-        return quat(m_data[0u] + rhs[0u],
-                m_data[1u] + rhs[1u],
-                m_data[2u] + rhs[2u],
-                m_data[3u] + rhs[3u]);
+        return quat((*this)[0u] + rhs[0u],
+                (*this)[1u] + rhs[1u],
+                (*this)[2u] + rhs[2u],
+                (*this)[3u] + rhs[3u]);
     }
     /// Addition into operator.
     ///
@@ -114,8 +114,7 @@ public:
     /// \return This quaternion.
     constexpr quat& operator+=(const quat &rhs) noexcept
     {
-        *this = *this + rhs;
-        return *this;
+        return (*this) = (*this) + rhs;
     }
 
     /// Subtraction operator.
@@ -124,10 +123,10 @@ public:
     /// \return Result quaternion.
     constexpr quat operator-(const quat &rhs) const noexcept
     {
-        return quat(m_data[0u] - rhs[0u],
-                m_data[1u] - rhs[1u],
-                m_data[2u] - rhs[2u],
-                m_data[3u] - rhs[3u]);
+        return quat((*this)[0u] - rhs[0u],
+                (*this)[1u] - rhs[1u],
+                (*this)[2u] - rhs[2u],
+                (*this)[3u] - rhs[3u]);
     }
     /// Subtraction into operator.
     ///
@@ -135,8 +134,7 @@ public:
     /// \return This quaternion.
     constexpr quat& operator-=(const quat &rhs) noexcept
     {
-        *this = *this - rhs;
-        return *this;
+        return (*this) = (*this) - rhs;
     }
 
     /// Multiplication operator.
@@ -149,10 +147,10 @@ public:
         // (Q1 * Q2).x = (w1x2 + x1w2 + y1z2 - z1y2)
         // (Q1 * Q2).y = (w1y2 - x1z2 + y1w2 + z1x2)
         // (Q1 * Q2).z = (w1z2 + x1y2 - y1x2 + z1w2)
-        return quat((m_data[0u] * rhs[0u]) - (m_data[1u] * rhs[1u]) - (m_data[2u] * rhs[2u]) - (m_data[3u] * rhs[3u]),
-                (m_data[0u] * rhs[1u]) + (m_data[1u] * rhs[0u]) + (m_data[2u] * rhs[3u]) - (m_data[3u] * rhs[2u]),
-                (m_data[0u] * rhs[2u]) - (m_data[1u] * rhs[3u]) + (m_data[2u] * rhs[0u]) + (m_data[3u] * rhs[1u]),
-                (m_data[0u] * rhs[3u]) + (m_data[1u] * rhs[2u]) - (m_data[2u] * rhs[1u]) + (m_data[3u] * rhs[0u]));
+        return quat(((*this)[0u] * rhs[0u]) - ((*this)[1u] * rhs[1u]) - ((*this)[2u] * rhs[2u]) - ((*this)[3u] * rhs[3u]),
+                ((*this)[0u] * rhs[1u]) + ((*this)[1u] * rhs[0u]) + ((*this)[2u] * rhs[3u]) - ((*this)[3u] * rhs[2u]),
+                ((*this)[0u] * rhs[2u]) - ((*this)[1u] * rhs[3u]) + ((*this)[2u] * rhs[0u]) + ((*this)[3u] * rhs[1u]),
+                ((*this)[0u] * rhs[3u]) + ((*this)[1u] * rhs[2u]) - ((*this)[2u] * rhs[1u]) + ((*this)[3u] * rhs[0u]));
     }
     /// Multiplication operator.
     ///
@@ -160,10 +158,10 @@ public:
     /// \return Result quaternion.
     constexpr quat operator*(float rhs) const noexcept
     {
-        return quat(m_data[0u] * rhs,
-                m_data[1u] * rhs,
-                m_data[2u] * rhs,
-                m_data[3u] * rhs);
+        return quat((*this)[0u] * rhs,
+                (*this)[1u] * rhs,
+                (*this)[2u] * rhs,
+                (*this)[3u] * rhs);
     }
     /// Multiplication into operator.
     ///
@@ -171,8 +169,7 @@ public:
     /// \return This quaternion.
     constexpr quat& operator*=(const quat &rhs) noexcept
     {
-        *this = *this * rhs;
-        return *this;
+        return (*this) = (*this) * rhs;
     }
     /// Multiplication into operator.
     ///
@@ -180,8 +177,7 @@ public:
     /// \return This quaternion.
     constexpr quat& operator*=(float rhs) noexcept
     {
-        *this = *this * rhs;
-        return *this;
+        return (*this) = (*this) * rhs;
     }
 
     /// Division operator.
@@ -190,10 +186,10 @@ public:
     /// \return Result quaternion.
     constexpr quat operator/(float rhs) const noexcept
     {
-        return quat(m_data[0u] / rhs,
-                m_data[1u] / rhs,
-                m_data[2u] / rhs,
-                m_data[3u] / rhs);
+        return quat((*this)[0u] / rhs,
+                (*this)[1u] / rhs,
+                (*this)[2u] / rhs,
+                (*this)[3u] / rhs);
     }
     /// Division into operator.
     ///
@@ -201,8 +197,7 @@ public:
     /// \return This quaternion.
     constexpr quat& operator/=(float rhs) noexcept
     {
-        *this = *this / rhs;
-        return *this;
+        return (*this) = (*this) / rhs;
     }
 
 public:

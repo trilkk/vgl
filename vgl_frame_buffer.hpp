@@ -286,12 +286,13 @@ public:
 #endif
 };
 
-const FrameBuffer* FrameBuffer::g_current_frame_buffer = &g_default_frame_buffer;
-FrameBuffer FrameBuffer::g_default_frame_buffer;
-
 /// FrameBuffer unique pointer type.
 using FrameBufferUptr = unique_ptr<FrameBuffer>;
 
 }
+
+#if !defined(USE_LD)
+#include "vgl_frame_buffer.cpp"
+#endif
 
 #endif

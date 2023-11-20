@@ -2,6 +2,7 @@
 #define VGL_RENDER_QUEUE_HPP
 
 #include "vgl_font.hpp"
+#include "vgl_frame_buffer.hpp"
 #include "vgl_mesh.hpp"
 #include "vgl_packed_data_reader.hpp"
 

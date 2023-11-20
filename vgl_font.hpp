@@ -286,14 +286,13 @@ public:
 #endif
 };
 
-FT_Library Font::g_freetype_library = nullptr;
-#if defined(USE_LD)
-unsigned Font::g_freetype_count = 0;
-#endif
-
 /// Font unique pointer type.
 using FontUptr = unique_ptr<Font>;
 
 }
+
+#if !defined(USE_LD)
+#include "vgl_font.cpp"
+#endif
 
 #endif

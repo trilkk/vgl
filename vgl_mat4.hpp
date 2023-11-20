@@ -47,8 +47,8 @@ public:
     /// \param mat 3x3 Matrix.
     /// \param pos Position.
     constexpr explicit mat4(const mat3 &rot, const vec3 &pos = vec3(0.0f, 0.0f, 0.0f)) noexcept :
-        base_type(rot[0], rot[1], rot[2], 0.0f, rot[3], rot[4], rot[5], 0.0f, rot[6], rot[7], rot[8], 0.0f, pos[0],
-                pos[1], pos[2], 1.0f)
+        base_type(rot[0u], rot[1u], rot[2u], 0.0f, rot[3u], rot[4u], rot[5u], 0.0f, rot[6u], rot[7u], rot[8u], 0.0f,
+                pos[0u], pos[1u], pos[2u], 1.0f)
     {
     }
 
@@ -60,8 +60,8 @@ public:
     /// \param pos Position.
     constexpr explicit mat4(const vec3& rt, const vec3& up, const vec3& fw,
             const vec3& pos = vec3(0.0f, 0.0f, 0.0f)) noexcept :
-        base_type(rt[0], rt[1], rt[2], 0.0f, up[0], up[1], up[2], 0.0f, fw[0], fw[1], fw[2], 0.0f, pos[0], pos[1],
-                pos[2], 1.0f)
+        base_type(rt[0u], rt[1u], rt[2u], 0.0f, up[0u], up[1u], up[2u], 0.0f, fw[0u], fw[1u], fw[2u], 0.0f, pos[0u],
+                pos[1u], pos[2u], 1.0f)
     {
     }
 
@@ -73,23 +73,23 @@ public:
     /// \param tz Z translation.
     constexpr void addTranslation(float tx, float ty, float tz) noexcept
     {
-        m_data[12] += tx;
-        m_data[13] += ty;
-        m_data[14] += tz;
+        m_data[12u] += tx;
+        m_data[13u] += ty;
+        m_data[14u] += tz;
     }
     /// Add translation component.
     ///
     /// \param op Translation component to add.
     constexpr void addTranslation(const vec3& op) noexcept
     {
-        addTranslation(op[0], op[1], op[2]);
+        addTranslation(op[0u], op[1u], op[2u]);
     }
     /// Get translation vector.
     ///
     /// \return Translation vector part.
     constexpr vec3 getTranslation() const noexcept
     {
-        return vec3(m_data[12], m_data[13], m_data[14]);
+        return vec3(m_data[12u], m_data[13u], m_data[14u]);
     }
     /// Set translation vector.
     ///
@@ -98,16 +98,16 @@ public:
     /// \param tz Z translation.
     constexpr void setTranslation(float tx, float ty, float tz) noexcept
     {
-        m_data[12] = tx;
-        m_data[13] = ty;
-        m_data[14] = tz;
+        m_data[12u] = tx;
+        m_data[13u] = ty;
+        m_data[14u] = tz;
     }
     /// Set translation vector.
     ///
     /// \param op New translation vector.
     constexpr void setTranslation(const vec3 &op) noexcept
     {
-        setTranslation(op[0], op[1], op[2]);
+        setTranslation(op[0u], op[1u], op[2u]);
     }
 
     /// Get rotation matrix part as 3x3 matrix.
@@ -115,9 +115,9 @@ public:
     /// \return Rotation matrix part.
     constexpr mat3 getRotation() const noexcept
     {
-        return mat3(m_data[0], m_data[1], m_data[2],
-                m_data[4], m_data[5], m_data[6],
-                m_data[8], m_data[9], m_data[10]);
+        return mat3(m_data[0u], m_data[1u], m_data[2u],
+                m_data[4u], m_data[5u], m_data[6u],
+                m_data[8u], m_data[9u], m_data[10u]);
     }
 
     /// Get forward component.
@@ -127,7 +127,7 @@ public:
     /// \return Forward vector.
     constexpr vec3 getForward() const noexcept
     {
-        return vec3(-m_data[8], -m_data[9], -m_data[10]);
+        return vec3(-m_data[8u], -m_data[9u], -m_data[10u]);
     }  
 
     /// Scale the 3x3 part of matrix directly.
@@ -137,22 +137,22 @@ public:
     /// \param sz Z scale.
     constexpr void applyScale(float sx, float sy, float sz) noexcept
     {
-        m_data[0] *= sx;
-        m_data[1] *= sy;
-        m_data[2] *= sz;
-        m_data[4] *= sx;
-        m_data[5] *= sy;
-        m_data[6] *= sz;
-        m_data[8] *= sx;
-        m_data[9] *= sy;
-        m_data[10] *= sz;
+        m_data[0u] *= sx;
+        m_data[1u] *= sy;
+        m_data[2u] *= sz;
+        m_data[4u] *= sx;
+        m_data[5u] *= sy;
+        m_data[6u] *= sz;
+        m_data[8u] *= sx;
+        m_data[9u] *= sy;
+        m_data[10u] *= sz;
     }
     /// Scale wrapper.
     ///
     /// \param op Scaling vector.
     constexpr void applyScale(const vec3 &op) noexcept
     {
-        applyScale(op[0], op[1], op[2]);
+        applyScale(op[0u], op[1u], op[2u]);
     }
 
 public:
@@ -190,7 +190,7 @@ public:
 
         if(abs(dot(unit_fw, unit_up)) > 0.999f)
         {
-            unit_up = vec3(unit_fw[1], unit_fw[0], unit_fw[2]);
+            unit_up = vec3(unit_fw[1u], unit_fw[0u], unit_fw[2u]);
         }
 
         vec3 unit_rt = normalize(cross(unit_up, unit_fw));
@@ -282,12 +282,12 @@ public:
     /// \return Result matrix.
     VGL_MATH_CONSTEXPR static mat4 transformation_euler(const vec3 &sca, const vec3 &rot, const vec3 &tra) noexcept
     {
-        mat3 rpart = mat3::rotation_euler(rot[0], rot[1], rot[2]);
+        mat3 rpart = mat3::rotation_euler(rot[0u], rot[1u], rot[2u]);
         return mat4(
-                rpart[0] * sca[0], rpart[1] * sca[0], rpart[2] * sca[0], 0.0f,
-                rpart[3] * sca[1], rpart[4] * sca[1], rpart[5] * sca[1], 0.0f,
-                rpart[6] * sca[2], rpart[7] * sca[2], rpart[8] * sca[2], 0.0f,
-                tra[0], tra[1], tra[2], 1.0f);
+                rpart[0u] * sca[0u], rpart[1u] * sca[0u], rpart[2u] * sca[0u], 0.0f,
+                rpart[3u] * sca[1u], rpart[4u] * sca[1u], rpart[5u] * sca[1u], 0.0f,
+                rpart[6u] * sca[2u], rpart[7u] * sca[2u], rpart[8u] * sca[2u], 0.0f,
+                tra[0u], tra[1u], tra[2u], 1.0f);
     }
 
     /// Create a translation matrix.
@@ -309,7 +309,7 @@ public:
     /// \return Translation matrix
     constexpr static mat4 translation(const vec3 &pos) noexcept
     {
-        return translation(pos[0], pos[1], pos[2]);
+        return translation(pos[0u], pos[1u], pos[2u]);
     }
 
 public:
@@ -322,10 +322,10 @@ public:
     friend std::ostream& operator<<(std::ostream& lhs, const mat4& rhs)
     {
         return lhs << "[ " <<
-            rhs[0] << " ;  " << rhs[4] << " ; " << rhs[8] << " ; " << rhs[12] << "\n  " <<
-            rhs[1] << " ;  " << rhs[5] << " ; " << rhs[9] << " ; " << rhs[13] << "\n  " <<
-            rhs[2] << " ;  " << rhs[6] << " ; " << rhs[10] << " ; " << rhs[14] << "\n  " <<
-            rhs[3] << " ;  " << rhs[7] << " ; " << rhs[11] << " ; " << rhs[15] << " ]";
+            rhs[0u] << " ;  " << rhs[4u] << " ; " << rhs[8u] << " ; " << rhs[12u] << "\n  " <<
+            rhs[1u] << " ;  " << rhs[5u] << " ; " << rhs[9u] << " ; " << rhs[13u] << "\n  " <<
+            rhs[2u] << " ;  " << rhs[6u] << " ; " << rhs[10u] << " ; " << rhs[14u] << "\n  " <<
+            rhs[3u] << " ;  " << rhs[7u] << " ; " << rhs[11u] << " ; " << rhs[15u] << " ]";
     }
 #endif
 };
@@ -336,17 +336,17 @@ public:
 /// \return Transposed matrix.
 constexpr mat4 transpose(const mat4& op) noexcept
 {
-    return mat4(op[0], op[4], op[8], op[12],
-            op[1], op[5], op[9], op[13],
-            op[2], op[6], op[10], op[14],
-            op[3], op[7], op[11], op[15]);
+    return mat4(op[0u], op[4u], op[8u], op[12u],
+            op[1u], op[5u], op[9u], op[13u],
+            op[2u], op[6u], op[10u], op[14u],
+            op[3u], op[7u], op[11u], op[15u]);
 }
 
 /// Convert to camera matrix.
 ///
 /// \param op Input matrix.
 /// \return View matrix from the given input.
-constexpr mat4 viewify(const mat4 &op)
+constexpr mat4 viewify(const mat4 &op) noexcept
 {
     mat3 rotation = transpose(op.getRotation());
     vec3 translation = rotation * (-op.getTranslation());

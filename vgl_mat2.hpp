@@ -30,15 +30,6 @@ public:
     }
 
 public:
-    /// Calculates the determinant of a 2x2 matrix.
-    ///
-    /// \return Determinant of this.
-    constexpr float determinant() const noexcept
-    {
-        return (m_data[0] * m_data[3]) - (m_data[1] * m_data[2]);
-    }
-
-public:
     /// Create an identity matrix.
     ///
     /// \return Result matrix.
@@ -70,22 +61,30 @@ public:
     friend std::ostream& operator<<(std::ostream& lhs, const mat2& rhs)
     {
         return lhs << "[ " <<
-            rhs[0] << " ; " << rhs[2] << "\n  " <<
-            rhs[1] << " ; " << rhs[3] << " ]";
+            rhs[0u] << " ; " << rhs[2u] << "\n  " <<
+            rhs[1u] << " ; " << rhs[3u] << " ]";
     }
 #endif
-
-public:
-    /// Transpose a matrix.
-    ///
-    /// \param op Input matrix.
-    /// \return Transposed matrix.
-    friend mat2 transpose(const mat2 &op)
-    {
-        return mat2(op[0], op[2],
-                op[1], op[3]);
-    }
 };
+
+/// Calculates the determinant of a 2x2 matrix.
+///
+/// \param op Input matrix.
+/// \return Determinant of the matrix.
+constexpr float determinant(const mat2 &op) noexcept
+{
+        return (op[0u] * op[3u]) - (op[1u] * op[2u]);
+}
+
+/// Transpose a matrix.
+///
+/// \param op Input matrix.
+/// \return Transposed matrix.
+constexpr mat2 transpose(const mat2 &op) noexcept
+{
+    return mat2(op[0u], op[2u],
+            op[1u], op[3u]);
+}
 
 }
 

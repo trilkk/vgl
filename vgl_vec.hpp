@@ -23,7 +23,7 @@ public:
 
 protected:
     /// Vector data.
-    array<float, N> m_data;
+    array<float, data_size> m_data;
 
 protected:
     /// Empty constructor.
@@ -115,7 +115,7 @@ public:
     /// \return X component.
     constexpr float x() const noexcept
     {
-        return m_data[0];
+        return m_data[0u];
     }
 
 public:
@@ -158,9 +158,9 @@ public:
     /// \return This vector.
     constexpr CrtpType& operator=(const CrtpType& rhs) noexcept
     {
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
-            m_data[ii] = rhs[ii];
+            (*this)[ii] = rhs[ii];
         }
         return *crtpThis();
     }
@@ -171,9 +171,9 @@ public:
     constexpr CrtpType operator-() const noexcept
     {
         CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
-            ret[ii] = -m_data[ii];
+            ret[ii] = -(*this)[ii];
         }
         return ret;
     }
@@ -184,8 +184,7 @@ public:
     /// \return This vector.
     constexpr CrtpType& operator+=(const CrtpType& rhs) noexcept
     {
-        *crtpThis() = *crtpThis() + rhs;
-        return *crtpThis();
+        return *crtpThis() = (*crtpThis()) + rhs;
     }
     /// Addition into operator.
     ///
@@ -193,8 +192,7 @@ public:
     /// \return This vector.
     constexpr CrtpType& operator+=(float rhs) noexcept
     {
-        *crtpThis() = *crtpThis() + rhs;
-        return *crtpThis();
+        return *crtpThis() = (*crtpThis()) + rhs;
     }
 
     /// Subtraction into operator.
@@ -203,8 +201,7 @@ public:
     /// \return This vector.
     constexpr CrtpType& operator-=(const CrtpType& rhs) noexcept
     {
-        *crtpThis() = *crtpThis() - rhs;
-        return *crtpThis();
+        return *crtpThis() = (*crtpThis()) - rhs;
     }
     /// Subtraction into operator.
     ///
@@ -212,8 +209,7 @@ public:
     /// \return This vector.
     constexpr CrtpType& operator-=(float rhs) noexcept
     {
-        *crtpThis() = *crtpThis() - rhs;
-        return *crtpThis();
+        return *crtpThis() = (*crtpThis()) - rhs;
     }
 
     /// Multiplication into operator.
@@ -222,8 +218,7 @@ public:
     /// \return This vector.
     constexpr CrtpType& operator*=(const CrtpType& rhs) noexcept
     {
-        *crtpThis() = *crtpThis() * rhs;
-        return *crtpThis();
+        return *crtpThis() = (*crtpThis()) * rhs;
     }
     /// Multiplication into operator.
     ///
@@ -231,8 +226,7 @@ public:
     /// \return This vector.
     constexpr CrtpType& operator*=(float rhs) noexcept
     {
-        *crtpThis() = *crtpThis() * rhs;
-        return *crtpThis();
+        return *crtpThis() = (*crtpThis()) * rhs;
     }
 
     /// Division into operator.
@@ -241,8 +235,7 @@ public:
     /// \return This vector.
     constexpr CrtpType& operator/=(const CrtpType& rhs) noexcept
     {
-        *crtpThis() = *crtpThis() / rhs;
-        return *crtpThis();
+        return *crtpThis() = (*crtpThis()) / rhs;
     }
     /// Division into operator.
     ///
@@ -250,8 +243,7 @@ public:
     /// \return This vector.
     constexpr CrtpType& operator/=(float rhs) noexcept
     {
-        *crtpThis() = *crtpThis() / rhs;
-        return *crtpThis();
+        return *crtpThis() = (*crtpThis()) / rhs;
     }
 
 public:
@@ -263,7 +255,7 @@ public:
     constexpr friend CrtpType operator+(const CrtpType& lhs, const CrtpType& rhs) noexcept
     {
         CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
             ret[ii] = lhs[ii] + rhs[ii];
         }
@@ -277,7 +269,7 @@ public:
     constexpr friend CrtpType operator+(const CrtpType& lhs, float rhs) noexcept
     {
         CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
             ret[ii] = lhs[ii] + rhs;
         }
@@ -301,7 +293,7 @@ public:
     constexpr friend CrtpType operator-(const CrtpType& lhs, const CrtpType& rhs) noexcept
     {
         CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
             ret[ii] = lhs[ii] - rhs[ii];
         }
@@ -315,7 +307,7 @@ public:
     constexpr friend CrtpType operator-(const CrtpType& lhs, float rhs) noexcept
     {
         CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
             ret[ii] = lhs[ii] - rhs;
         }
@@ -329,7 +321,7 @@ public:
     constexpr friend CrtpType operator-(float lhs, const CrtpType& rhs) noexcept
     {
         CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
             ret[ii] = lhs - rhs[ii];
         }
@@ -344,7 +336,7 @@ public:
     constexpr friend CrtpType operator*(const CrtpType& lhs, const CrtpType& rhs) noexcept
     {
         CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
             ret[ii] = lhs[ii] * rhs[ii];
         }
@@ -358,7 +350,7 @@ public:
     constexpr friend CrtpType operator*(const CrtpType& lhs, float rhs) noexcept
     {
         CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
             ret[ii] = lhs[ii] * rhs;
         }
@@ -382,7 +374,7 @@ public:
     constexpr friend CrtpType operator/(const CrtpType& lhs, const CrtpType& rhs) noexcept
     {
         CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
             ret[ii] = lhs[ii] / rhs[ii];
         }
@@ -396,7 +388,7 @@ public:
     constexpr friend CrtpType operator/(const CrtpType& lhs, float rhs) noexcept
     {
         CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
             ret[ii] = lhs[ii] / rhs;
         }
@@ -410,7 +402,7 @@ public:
     constexpr friend CrtpType operator/(float lhs, const CrtpType& rhs) noexcept
     {
         CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
             ret[ii] = lhs / rhs[ii];
         }
@@ -424,7 +416,7 @@ public:
     /// \return Truth value.
     constexpr friend bool operator==(const CrtpType& lhs, const CrtpType& rhs) noexcept
     {
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
             if(lhs[ii] != rhs[ii])
             {
@@ -452,7 +444,7 @@ public:
     friend std::ostream& operator<<(std::ostream& lhs, const CrtpType& rhs)
     {
         lhs << "[ " << rhs.x();
-        for(unsigned ii = 1; (ii < N); ++ii)
+        for(unsigned ii = 1; (ii < data_size); ++ii)
         {
             lhs << " ; " << rhs[ii];
         }

@@ -1,5 +1,5 @@
-#ifndef VGL_PATH_HPP
-#define VGL_PATH_HPP
+#ifndef VGL_EXTERN_BOOST_FILESYSTEM_HPP
+#define VGL_EXTERN_BOOST_FILESYSTEM_HPP
 
 /// \file boost::filesystem locating and reading functionality.
 /// This file only makes sense when not building size-minimized. It's not header-only.

@@ -28,7 +28,7 @@ public:
 
 protected:
     /// Matrix data.
-    array<float, N> m_data;
+    array<float, data_size> m_data;
 
 protected:
     /// Empty constructor.
@@ -41,7 +41,7 @@ protected:
     /// \param op Value for all components.
     constexpr explicit mat(float op) noexcept
     {
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
             m_data[ii] = op;
         }
@@ -166,7 +166,7 @@ public:
         VecType ret;
         for(unsigned ii = 0, jj = idx; (ii < A); ++ii, jj += A)
         {
-            ret[ii] = m_data[jj];
+            ret[ii] = (*this)[jj];
         }
         return ret;
     }
@@ -180,7 +180,7 @@ public:
         VecType ret;
         for(unsigned ii = 0, jj = idx * A; (ii < A); ++ii, ++jj)
         {
-            ret[ii] = m_data[jj];
+            ret[ii] = (*this)[jj];
         }
         return ret;
     }
@@ -225,9 +225,9 @@ public:
     /// \return This matrix.
     constexpr CrtpType& operator=(const CrtpType& rhs) noexcept
     {
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
-            m_data[ii] = rhs[ii];
+            (*this)[ii] = rhs[ii];
         }
         return *crtpThis();
     }
@@ -235,12 +235,12 @@ public:
     /// Unary minus operator.
     ///
     /// \return Result matrix.
-    constexpr CrtpType operator-() noexcept
+    constexpr CrtpType operator-() const noexcept
     {
         CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
-            ret[ii] = -m_data[ii];
+            ret[ii] = -(*this)[ii];
         }
         return ret;
     }
@@ -251,8 +251,7 @@ public:
     /// \return This matrix.
     constexpr CrtpType& operator+=(const CrtpType& rhs) noexcept
     {
-        *crtpThis() = *crtpThis() + rhs;
-        return *crtpThis();
+        return *crtpThis() = (*crtpThis()) + rhs;
     }
     /// Addition into operator.
     ///
@@ -260,8 +259,7 @@ public:
     /// \return This matrix.
     constexpr CrtpType& operator+=(float rhs) noexcept
     {
-        *crtpThis() = *crtpThis() + rhs;
-        return *crtpThis();
+        return *crtpThis() = (*crtpThis()) + rhs;
     }
 
     /// Subtraction into operator.
@@ -270,8 +268,7 @@ public:
     /// \return This matrix.
     constexpr CrtpType& operator-=(const CrtpType& rhs) noexcept
     {
-        *crtpThis() = *crtpThis() - rhs;
-        return *crtpThis();
+        return *crtpThis() = (*crtpThis()) - rhs;
     }
     /// Subtraction into operator.
     ///
@@ -279,32 +276,16 @@ public:
     /// \return This matrix.
     constexpr CrtpType& operator-=(float rhs) noexcept
     {
-        *crtpThis() = *crtpThis() - rhs;
-        return *crtpThis();
+        return *crtpThis() = (*crtpThis()) - rhs;
     }
 
-    /// Multiplication operator.
-    ///
-    /// \param rhs Right-hand-side operand.
-    /// \return Result matrix.
-    constexpr VecType operator*(const VecType& rhs) const noexcept
-    {
-        VecType ret;
-        for(unsigned ii = 0; (ii < A); ++ii)
-        {
-            VecType row = getRow(ii);
-            ret[ii] = dot(row, rhs);
-        }
-        return ret;
-    }
     /// Multiplication into operator.
     ///
     /// \param rhs Right-hand-side operand.
     /// \return This matrix.
     constexpr CrtpType& operator*=(const CrtpType& rhs) noexcept
     {
-        *crtpThis() = *crtpThis() * rhs;
-        return *crtpThis();
+        return *crtpThis() = (*crtpThis()) * rhs;
     }
     /// Multiplication into operator.
     ///
@@ -312,8 +293,7 @@ public:
     /// \return This matrix.
     constexpr CrtpType& operator*=(float rhs) noexcept
     {
-        *crtpThis() = *crtpThis() * rhs;
-        return *crtpThis();
+        return *crtpThis() = (*crtpThis()) * rhs;
     }
 
     /// Division into operator.
@@ -322,8 +302,7 @@ public:
     /// \return This matrix.
     constexpr CrtpType& operator/=(float rhs) noexcept
     {
-        *crtpThis() = *crtpThis() / rhs;
-        return *crtpThis();
+        return *crtpThis() = (*crtpThis()) / rhs;
     }
 
 public:
@@ -335,7 +314,7 @@ public:
     constexpr friend CrtpType operator+(const CrtpType& lhs, const CrtpType& rhs) noexcept
     {
         CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
             ret[ii] = lhs[ii] + rhs[ii];
         }
@@ -373,7 +352,7 @@ public:
     constexpr friend CrtpType operator-(const CrtpType& lhs, const CrtpType& rhs) noexcept
     {
         CrtpType ret;
-        for(unsigned ii = 0; (ii < N); ++ii)
+        for(unsigned ii = 0; (ii < data_size); ++ii)
         {
             ret[ii] = lhs[ii] - rhs[ii];
         }
@@ -438,6 +417,20 @@ public:
         for(unsigned ii = 0; (ii < N); ++ii)
         {
             ret[ii] = lhs[ii] * rhs;
+        }
+        return ret;
+    }
+    /// Multiplication operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return Result matrix.
+    constexpr friend VecType operator*(const CrtpType& lhs, const VecType& rhs) noexcept
+    {
+        VecType ret;
+        for(unsigned ii = 0; (ii < A); ++ii)
+        {
+            VecType row = lhs.getRow(ii);
+            ret[ii] = dot(row, rhs);
         }
         return ret;
     }
