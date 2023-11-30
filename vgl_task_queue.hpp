@@ -63,10 +63,18 @@ public:
         m_cond->wait(sl);
     }
 
+    /// Gets the number of tasks in the queue.
+    ///
+    /// \return Number of tasks in the queue.
+    constexpr unsigned size() const noexcept
+    {
+        return m_tasks.size();
+    }
+
     /// Tell if the task queue is empty.
     ///
     /// \return True if empty, false otherwise.
-    constexpr bool empty() const
+    constexpr bool empty() const noexcept
     {
         return m_tasks.empty();
     }

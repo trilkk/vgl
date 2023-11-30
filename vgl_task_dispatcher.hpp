@@ -135,7 +135,6 @@ private:
     /// \param params Function parameters.
     detail::FenceData* internalDispatch(detail::TaskQueue& task_queue, TaskFunc func, void* params)
     {
-        ScopedLock sl(*m_mutex);
         detail::FenceData* ret = acquireFenceData();
         ret->setActive(true);
         ret->setReturnValue(nullptr);
@@ -166,9 +165,23 @@ private:
     }
 
     /// Spawn a new thread.
+    ///
+    /// Thread that has not entered execution is considered waiting.
     void spawnThread()
     {
         m_threads.emplace_back(task_thread_func, this);
+        ++m_threads_waiting;
+    }
+    /// Spawns a thread if it's necessary.
+    ///
+    /// Must be out of waiting threads and below concurrency limit.
+    void spawnThreadIfBelowConcurrency()
+    {
+        if((m_threads_waiting < m_tasks_any.size()) &&
+                (m_threads.size() < m_concurrency))
+        {
+            spawnThread();
+        }
     }
 
     /// Thread function.
@@ -176,21 +189,20 @@ private:
     Thread::return_type threadFunc()
     {
         ScopedLock sl(*m_mutex);
+        --m_threads_waiting;
 
         while(!m_quitting)
         {
             if((m_threads_active < m_concurrency) && !m_tasks_any.empty())
             {
                 ++m_threads_active;
-
-                // Release lock for the duration of executing the task.
                 {
+                    // Release lock for the duration of executing the task.
                     Task task = m_tasks_any.acquire();
                     sl.release();
                     task();
                     sl.acquire();
                 }
-
                 --m_threads_active;
             }
             else
@@ -216,12 +228,6 @@ public:
         m_tasks_any.initialize();
         m_tasks_main.initialize();
         m_mutex.reset(new Mutex());
-
-        while(op)
-        {
-            spawnThread();
-            --op;
-        }
     }
 
     /// Gets a main context task.
@@ -247,6 +253,7 @@ public:
     {
         ScopedLock sl(*m_mutex);
         m_tasks_any.emplace(func, params);
+        spawnThreadIfBelowConcurrency();
     }
     /// Dispatch a task (main thread).
     ///
@@ -271,7 +278,9 @@ public:
             return immediateDispatch(func, params);
         }
 
+        ScopedLock sl(*m_mutex);
         detail::FenceData* data = internalDispatch(m_tasks_any, func, params);
+        spawnThreadIfBelowConcurrency();
         return Fence(data);
     }
     /// Dispatch a task and wait for it to complete (main thread).
@@ -287,6 +296,7 @@ public:
             return immediateDispatch(func, params);
         }
 
+        ScopedLock sl(*m_mutex);
         detail::FenceData* data = internalDispatch(m_tasks_main, func, params);
         return Fence(data);
     }
