@@ -12,7 +12,7 @@ template<typename T> class unique_ptr
 {
 private:
     /// Object reference.
-    T* m_ref;
+    T* m_ref = nullptr;
 
 private:
     /// Deleted copy constructor.
@@ -21,11 +21,8 @@ private:
     unique_ptr<T>& operator=(const unique_ptr<T>&) = delete;
 
 public:
-    /// Empty constructor.
-    constexpr explicit unique_ptr() :
-        m_ref(nullptr)
-    {
-    }
+    /// Default constructor.
+    constexpr explicit unique_ptr() noexcept = default;
 
     /// Constructor.
     ///
@@ -46,22 +43,19 @@ public:
     }
 
     /// Constructor from nullptr.
-    unique_ptr(const nullptr_t&) :
-        m_ref(nullptr)
+    constexpr unique_ptr(const nullptr_t&) noexcept
     {
     }
 
     /// Destructor.
     ~unique_ptr()
     {
-        erase();
+        destruct();
     }
 
 private:
-    /// Delete contents if they exist.
-    ///
-    /// Will not actually modify the content pointer.
-    constexpr void erase() const
+    /// Internal destructor.
+    void destruct()
     {
         delete m_ref;
     }
@@ -90,7 +84,7 @@ public:
     /// \param op New contents.
     void reset(T* op = nullptr)
     {
-        erase();
+        destruct();
         m_ref = op;
     }
 

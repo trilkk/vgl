@@ -20,31 +20,25 @@ class Cond
 
 private:
     /// Actual cond.
-    cond_type
-#if !defined(VGL_ENABLE_GTK)
-        *
-#endif
-        m_cond;
+    cond_type* m_cond;
 
 private:
     /// Deleted copy constructor.
     Cond(const Cond&) = delete;
-    /// Deleted move constructor.
-    Cond(Cond&&) = delete;
     /// Deleted assignment.
     Cond& operator=(const Cond&) = delete;
-    /// Deleted move.
-    Cond& operator=(Cond&&) = delete;
 
 public:
     /// Constructor.
-    explicit Cond()
-#if !defined(VGL_ENABLE_GTK)
-        : m_cond(dnload_SDL_CreateCond())
+    explicit Cond() :
+#if defined(VGL_ENABLE_GTK)
+        m_cond(new cond_type)
+#else
+        m_cond(dnload_SDL_CreateCond())
 #endif
     {
 #if defined(VGL_ENABLE_GTK)
-        dnload_g_cond_init(&m_cond);
+        dnload_g_cond_init(m_cond);
 #elif defined(USE_LD) && defined(DEBUG)
         if(!m_cond)
         {
@@ -53,15 +47,27 @@ public:
 #endif
     }
 
+    /// Constructor.
+    ///
+    /// \param op Internal type to adapt.
+    constexpr Cond(cond_type* op) noexcept :
+        m_cond(op)
+    {
+    }
+
     /// Destructor.
     ~Cond()
     {
-#if defined(VGL_ENABLE_GTK)
-        dnload_g_cond_clear(&m_cond);
-#else
-        VGL_ASSERT(m_mutex);
-        dnload_SDL_DestroyCond(m_cond);
-#endif
+        destruct();
+    }
+
+    /// Move constructor.
+    ///
+    /// \param other Source object.
+    constexpr Cond(Cond&& other) noexcept :
+        Cond(other.m_cond)
+    {
+        other.m_cond = nullptr;
     }
 
 public:
@@ -69,7 +75,7 @@ public:
     void broadcast()
     {
 #if defined(VGL_ENABLE_GTK)
-        dnload_g_cond_broadcast(&m_cond);
+        dnload_g_cond_broadcast(m_cond);
 #else
         int err = dnload_SDL_CondBroadcast(m_cond);
 #if defined(USE_LD) && defined(DEBUG)
@@ -87,7 +93,7 @@ public:
     void signal()
     {
 #if defined(VGL_ENABLE_GTK)
-        dnload_g_cond_broadcast(&m_cond);
+        dnload_g_cond_broadcast(m_cond);
 #else
         int err = dnload_SDL_CondSignal(m_cond);
 #if defined(USE_LD) && defined(DEBUG)
@@ -117,6 +123,20 @@ public:
     }
 
 private:
+    /// Internal destructor.
+    void destruct()
+    {
+        if(m_cond)
+        {
+#if defined(VGL_ENABLE_GTK)
+            dnload_g_cond_clear(m_cond);
+            delete m_cond;
+#else
+            dnload_SDL_DestroyCond(m_cond);
+#endif
+        }
+    }
+
     /// Internal wait on condition variable.
     ///
     /// \param cond Condition variable.
@@ -124,7 +144,7 @@ private:
     void wait(Mutex::mutex_type* mutex)
     {
 #if defined(VGL_ENABLE_GTK)
-        dnload_g_cond_wait(&m_cond, mutex);
+        dnload_g_cond_wait(m_cond, mutex);
 #else
         int err = dnload_SDL_CondWait(m_cond, mutex);
 #if defined(USE_LD) && defined(DEBUG)
@@ -136,6 +156,19 @@ private:
         (void)err;
 #endif
 #endif
+    }
+
+public:
+    /// Move operator.
+    ///
+    /// \param other Source object.
+    /// \return This object.
+    Cond& operator=(Cond&& other)
+    {
+        destruct();
+        m_cond = other.m_cond;
+        other.m_cond = nullptr;
+        return *this;
     }
 };
 

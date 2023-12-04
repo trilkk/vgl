@@ -45,10 +45,7 @@ public:
     /// Implicitly unlocks the mutex.
     ~ScopedLock()
     {
-        if(m_mutex)
-        {
-            release();
-        }
+        destruct();
     }
 
 public:
@@ -72,13 +69,24 @@ public:
         Mutex::internal_mutex_release(m_mutex);
     }
 
+private:
+    /// Internal destructor.
+    void destruct()
+    {
+        if(m_mutex)
+        {
+            release();
+        }
+    }
+
 public:
     /// Move operator.
     ///
     /// \param op Source.
     /// \return This object.
-    constexpr ScopedLock& operator=(ScopedLock&& op) noexcept
+    ScopedLock& operator=(ScopedLock&& op)
     {
+        destruct();
         m_mutex = op.m_mutex;
         op.m_mutex = nullptr;
         return *this;

@@ -29,10 +29,10 @@ private:
     detail::FenceData* m_fence_data = nullptr;
 
     /// Function pointer to be executed.
-    TaskFunc m_func;
+    TaskFunc m_func = nullptr;
 
     /// Parameter to the function pointer.
-    void* m_params;
+    void* m_params = nullptr;
 
 private:
     /// Deleted copy constructor.
@@ -41,6 +41,9 @@ private:
     Task& operator=(const Task&) = delete;
 
 public:
+    /// Default constructor.
+    constexpr explicit Task() = default;
+
     /// Constructor.
     ///
     /// \param func Function for execution.
@@ -63,26 +66,19 @@ public:
     {
     }
 
-    /// Move constructor.
-    ///
-    /// \param op Source task.
-    constexpr Task(Task&& op) noexcept :
-        m_fence_data(op.m_fence_data),
-        m_func(op.m_func),
-        m_params(op.m_params)
-    {
-        op.m_fence_data = nullptr;
-    }
-
-public:
     /// Destructor.
     ~Task()
     {
-        // Mutexes are recursive, so it's safe to lock just for signalling.
-        if(m_fence_data)
-        {
-            detail::internal_fence_data_signal(*m_fence_data);
-        }
+        destruct();
+    }
+
+    /// Move constructor.
+    ///
+    /// \param other Source object.
+    constexpr Task(Task&& op) noexcept :
+        Task(op.m_fence_data, op.m_func, op.m_params)
+    {
+        op.m_fence_data = nullptr;
     }
 
 public:
@@ -96,11 +92,24 @@ public:
         return m_func;
     }
 
+private:
+    /// Internal destructor.
+    void destruct()
+    {
+        // Mutexes are recursive, so it's safe to lock just for signalling.
+        if(m_fence_data)
+        {
+            detail::internal_fence_data_signal(*m_fence_data);
+        }
+    }
+
+public:
     /// Execute function.
     ///
     /// \return Pointer to function that was executed.
     TaskFunc operator()()
     {
+        VGL_ASSERT(m_func);
         void* ret = m_func(m_params);
         if(m_fence_data)
         {
@@ -115,17 +124,26 @@ public:
         return m_func;
     }
 
-public:
     /// Move operator.
     ///
-    /// \param op Source task.
-    constexpr Task& operator=(Task&& op) noexcept
+    /// \param other Source object.
+    /// \return This object.
+    Task& operator=(Task&& other)
     {
-        m_fence_data = op.m_fence_data;
-        m_func = op.m_func;
-        m_params = op.m_params;
-        op.m_fence_data = nullptr;
+        destruct();
+        m_fence_data = other.m_fence_data;
+        m_func = other.m_func;
+        m_params = other.m_params;
+        other.m_fence_data = nullptr;
         return *this;
+    }
+
+    /// Bool operator.
+    ///
+    /// \return Task validity flag.
+    operator bool()
+    {
+        return static_cast<bool>(m_func);
     }
 };
 

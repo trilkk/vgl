@@ -18,7 +18,7 @@ private:
     queue<Task> m_tasks;
 
     /// Condition variable to be signalled when the task queue is modified.
-    unique_ptr<Cond> m_cond;
+    Cond m_cond = Cond(nullptr);
 
 private:
     /// Deleted copy constructor.
@@ -34,13 +34,13 @@ public:
     /// Initialize the task queue.
     void initialize()
     {
-        m_cond.reset(new Cond());
+        m_cond = Cond();
     }
 
     /// Uninitialize the task queue.
     void uninitialize()
     {
-        m_cond->broadcast();
+        m_cond.broadcast();
 #if defined(USE_LD)
         while(!m_tasks.empty())
         {
@@ -52,7 +52,7 @@ public:
     /// Signal on the task queue.
     void signal()
     {
-        m_cond->signal();
+        m_cond.signal();
     }
 
     /// Wait on the task queue.
@@ -60,7 +60,7 @@ public:
     /// \param op Locked scope.
     void wait(ScopedLock& sl)
     {
-        m_cond->wait(sl);
+        m_cond.wait(sl);
     }
 
     /// Gets the number of tasks in the queue.
@@ -98,7 +98,7 @@ public:
     void emplace(TaskFunc func, void* params)
     {
         m_tasks.emplace(func, params);
-        m_cond->signal();
+        m_cond.signal();
     }
     /// Emplace into the task queue.
     ///
@@ -110,7 +110,7 @@ public:
     void emplace(detail::FenceData* fence_data, TaskFunc func, void* params)
     {
         m_tasks.emplace(fence_data, func, params);
-        m_cond->signal();
+        m_cond.signal();
     }
 };
 

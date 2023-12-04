@@ -26,6 +26,7 @@ set(VGL_HEADERS
     "${VGL_ROOT}/vgl_extern_sdl.hpp"
     "${VGL_ROOT}/vgl_extern_stdlib.hpp"
     "${VGL_ROOT}/vgl_fence.hpp"
+    "${VGL_ROOT}/vgl_fence_pool.hpp"
     "${VGL_ROOT}/vgl_font.hpp"
     "${VGL_ROOT}/vgl_frame_buffer.hpp"
     "${VGL_ROOT}/vgl_geometry_buffer.hpp"
