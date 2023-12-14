@@ -109,8 +109,8 @@ inline void* array_new_internal(void* ptr, size_t new_size)
 
 /// Array delete.
 ///
-/// Repolacement for delete[] using free().
-/// Use with types that have destructors is not supported.
+/// Replacement for delete[] using free().
+/// Use with types that have no destructors.
 ///
 /// \param ptr Pointer to free.
 inline void array_delete(void *ptr)
@@ -121,7 +121,7 @@ inline void array_delete(void *ptr)
 /// Array new.
 ///
 /// Replacement for new[] using realloc().
-/// Use with types that have destructors is not supported.
+/// Use with types that have no destructors.
 ///
 /// \param ptr Existing ptr (may be NULL).
 /// \param count Number of elements to allocate.

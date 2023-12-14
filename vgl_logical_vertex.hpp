@@ -32,7 +32,7 @@ public:
         /// Accessor.
         ///
         /// \return Weights.
-        constexpr uvec4 getWeights() const
+        constexpr uvec4 getWeights() const noexcept
         {
             return m_weights;
         }
@@ -40,20 +40,20 @@ public:
         /// Accessor.
         ///
         /// \return References.
-        constexpr uvec4 getReferences() const
+        constexpr uvec4 getReferences() const noexcept
         {
             return m_references;
         }
 
     public:
         /// Default constructor.
-        explicit BoneRef() = default;
+        constexpr explicit BoneRef() noexcept = default;
 
         /// Constructor.
         ///
         /// \param weights Weights.
         /// \param references References.
-        constexpr explicit BoneRef(uvec4 weights, uvec4 references) :
+        constexpr explicit BoneRef(uvec4 weights, uvec4 references) noexcept :
             m_weights(weights),
             m_references(references)
         {
@@ -63,7 +63,7 @@ public:
         /// Equals operator.
         ///
         /// \param rhs Right-hand-side operand.
-        constexpr bool operator==(const BoneRef& rhs) const
+        constexpr bool operator==(const BoneRef& rhs) const noexcept
         {
             return (m_weights == rhs.m_weights) &&
                 (m_references == rhs.m_references);
@@ -71,7 +71,7 @@ public:
         /// Not equals operator.
         ///
         /// \param rhs Right-hand-side operand.
-        constexpr bool operator!=(const BoneRef& rhs) const
+        constexpr bool operator!=(const BoneRef& rhs) const noexcept
         {
             return !(*this == rhs);
         }
@@ -106,7 +106,7 @@ public:
     /// \param px X position.
     /// \param py Y position.
     /// \param pz Z position.
-    constexpr explicit LogicalVertex(float px, float py, float pz) :
+    constexpr explicit LogicalVertex(float px, float py, float pz) noexcept :
         m_position(px, py, pz)
     {
     }
@@ -114,7 +114,7 @@ public:
     /// Constructor.
     ///
     /// \param pos Position.
-    constexpr explicit LogicalVertex(const vec3& pos) :
+    constexpr explicit LogicalVertex(const vec3& pos) noexcept :
         m_position(pos)
     {
     }
@@ -122,8 +122,17 @@ public:
     /// Constructor.
     ///
     /// \param pos Position.
+    constexpr explicit LogicalVertex(const vec3& pos, const vec2& texcoord) noexcept :
+        m_position(pos),
+        m_texcoord(texcoord)
+    {
+    }
+
+    /// Constructor.
+    ///
+    /// \param pos Position.
     /// \param col Color.
-    constexpr explicit LogicalVertex(const vec3& pos, const uvec4& col) :
+    constexpr explicit LogicalVertex(const vec3& pos, const uvec4& col) noexcept :
         m_position(pos),
         m_color(col)
     {
@@ -134,7 +143,7 @@ public:
     /// \param pos Position.
     /// \param weights Bone weights.
     /// \param references Bone references.
-    constexpr explicit LogicalVertex(const vec3& pos, const uvec4& weights, const uvec4& references) :
+    constexpr explicit LogicalVertex(const vec3& pos, const uvec4& weights, const uvec4& references) noexcept :
         m_position(pos),
         m_bone_ref(BoneRef(weights, references))
     {
@@ -146,7 +155,7 @@ public:
     /// \param col Color.
     /// \param weights Bone weights.
     /// \param references Bone references.
-    constexpr explicit LogicalVertex(const vec3& pos, const uvec4& col, const uvec4& weights, const uvec4& references) :
+    constexpr explicit LogicalVertex(const vec3& pos, const uvec4& col, const uvec4& weights, const uvec4& references) noexcept :
         m_position(pos),
         m_color(col),
         m_bone_ref(BoneRef(weights, references))
@@ -160,7 +169,7 @@ public:
     /// \param pos Position.
     /// \param col Optional color.
     /// \param bref Optional bone reference struct.
-    constexpr explicit LogicalVertex(const vec3& pos, const optional<uvec4>& col, const optional<BoneRef>& bref) :
+    constexpr explicit LogicalVertex(const vec3& pos, const optional<uvec4>& col, const optional<BoneRef>& bref) noexcept :
         m_position(pos),
         m_color(col),
         m_bone_ref(bref)
@@ -262,7 +271,7 @@ public:
     }
 
     /// Calculate normal averaging from face reference normals.
-    void calculateNormal()
+    VGL_MATH_CONSTEXPR void calculateNormal()
     {
         // If already set, this is a part of a flat face and should not average a normal.
         if(m_normal)
@@ -294,14 +303,14 @@ public:
     /// Accessor.
     ///
     /// \return Color.
-    constexpr optional<uvec4> getColor() const
+    constexpr optional<uvec4> getColor() const noexcept
     {
         return m_color;
     }
     /// Setter.
     ///
     /// \param op Color.
-    constexpr void setColor(const uvec4& op)
+    constexpr void setColor(const uvec4& op) noexcept
     {
         m_color = op;
     }
@@ -309,7 +318,7 @@ public:
     /// Accessor.
     ///
     /// \return Reference to the face references.
-    const vector<LogicalFace*>& getFaceReferences() const
+    const vector<LogicalFace*>& getFaceReferences() const noexcept
     {
         return m_face_references;
     }
@@ -317,14 +326,14 @@ public:
     /// Accessor.
     ///
     /// \return Normal or nullopt.
-    constexpr optional<vec3> getNormal() const
+    constexpr optional<vec3> getNormal() const noexcept
     {
         return m_normal;
     }
     /// Setter.
     ///
     /// \param op Normal.
-    constexpr void setNormal(const vec3& op)
+    constexpr void setNormal(const vec3& op) noexcept
     {
         m_normal = op;
     }
@@ -332,7 +341,7 @@ public:
     /// Accessor.
     ///
     /// \return Position.
-    constexpr vec3 getPosition() const
+    constexpr vec3 getPosition() const noexcept
     {
         return m_position;
     }
@@ -340,7 +349,7 @@ public:
     /// Accessor.
     ///
     /// \return References or nullopt.
-    constexpr optional<uvec4> getReferences() const
+    constexpr optional<uvec4> getReferences() const noexcept
     {
         if(m_bone_ref)
         {
@@ -351,7 +360,7 @@ public:
     /// Accessor.
     ///
     /// \return Weights or nullopt.
-    constexpr optional<uvec4> getWeights() const
+    constexpr optional<uvec4> getWeights() const noexcept
     {
         if(m_bone_ref)
         {
@@ -363,14 +372,14 @@ public:
     /// Accessor.
     ///
     /// \return Texcoords or nullopt.
-    constexpr optional<vec2> getTexcoord() const
+    constexpr optional<vec2> getTexcoord() const noexcept
     {
         return m_texcoord;
     }
     /// Setter.
     ///
     /// \param op Texcoords.
-    constexpr void setTexcoord(const vec2& op)
+    constexpr void setTexcoord(const vec2& op) noexcept
     {
         m_texcoord = op;
     }
@@ -381,7 +390,7 @@ public:
     ///
     /// \param rhs Right-hand-side operand.
     /// \return True if match, false if no.
-    constexpr bool matches(const LogicalVertex& rhs) const
+    constexpr bool matches(const LogicalVertex& rhs) const noexcept
     {
         return almost_equal(m_position, rhs.m_position) &&
             almost_equal(m_normal, rhs.m_normal) &&

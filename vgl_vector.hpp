@@ -57,6 +57,21 @@ public:
         }            
     }
 
+#if defined(USE_LD)
+    /// Consructor from iterators.
+    ///
+    /// \param first First iterator to insert.
+    /// \param last End of iteration.
+    template<typename InputIt> vector(InputIt first, InputIt last)
+    {
+        while(first != last)
+        {
+            emplace_back(*first);
+            ++first;
+        }
+    }
+#endif
+
     /// Move constructor.
     ///
     /// \param op Source object.
@@ -329,6 +344,18 @@ public:
 
         m_size = cnt;
     }
+
+#if defined(USE_LD)
+    /// Swap with another object.
+    ///
+    /// \param other Object to swap with.
+    void swap(vector& other)
+    {
+        vgl::swap(m_data, other.m_data);
+        vgl::swap(m_size, other.m_size);
+        vgl::swap(m_capacity, other.m_capacity);
+    }
+#endif
 
 public:
     /// Access operator.

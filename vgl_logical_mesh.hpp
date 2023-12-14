@@ -215,6 +215,20 @@ public:
     }
 #endif
 
+    /// Move constructor.
+    ///
+    /// \param other Source object.
+    constexpr LogicalMesh(LogicalMesh&& other) noexcept :
+        m_vertices(move(other.m_vertices)),
+        m_faces(move(other.m_faces))
+    {
+    }
+
+    /// Deleted copy constructor.
+    LogicalMesh(const LogicalMesh&) = delete;
+    /// Deleted copy operator.
+    LogicalMesh& operator=(const LogicalMesh&) = delete;
+
 private:
     /// Add face (internal).
     ///
@@ -764,6 +778,20 @@ private:
     {
         return static_cast<LogicalMesh*>(op)->createMesh();
     }
+
+public:
+#if defined(USE_LD)
+    /// Move operator.
+    ///
+    /// \param other Source object.
+    /// \return This object.
+    LogicalMesh& operator=(LogicalMesh&& other)
+    {
+        m_vertices = move(other.m_vertices);
+        m_faces = move(other.m_faces);
+        return *this;
+    }
+#endif
 
 public:
 #if defined(USE_LD)

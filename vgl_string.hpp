@@ -3,6 +3,10 @@
 
 #include "vgl_realloc.hpp"
 
+#if defined(USE_LD)
+#include "vgl_utility.hpp"
+#endif
+
 namespace vgl
 {
 
@@ -203,6 +207,29 @@ public:
         return m_data[idx];
     }
 
+    /// Less than operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return True if this is less than rhs, false otherwise.
+    template<typename R> constexpr bool operator<(const string_data<R>& rhs) const noexcept
+    {
+        unsigned common_length = min(length(), rhs.length());
+        for(unsigned ii = 0; (ii < common_length); ++ii)
+        {
+            auto ccl = m_data[ii];
+            auto ccr = rhs.m_data[ii];
+            if(ccl < ccr)
+            {
+                return true;
+            }
+            else if(ccl > ccr)
+            {
+                return false;
+            }
+        }
+        return length() < rhs.length();
+    }
+
     /// Equals operator.
     ///
     /// \param rhs Right-hand-side operand.
@@ -228,13 +255,28 @@ public:
     ///
     /// \param rhs Right-hand-side operand.
     /// \return True if equal, false if not.
-    constexpr bool operator!=(const string_data<T>& rhs) const noexcept
+    template<typename R> constexpr bool operator!=(const string_data<R>& rhs) const noexcept
     {
         return !(*this == rhs);
     }
 
 public:
 #if defined(USE_LD)
+    /// Conversion to STL string operator.
+    ///
+    /// \return STL string.
+    operator std::string() const
+    {
+        return std::string(data(), length());
+    }
+    /// Conversion to STL string_view operator.
+    ///
+    /// \return STL string.
+    operator std::string_view() const
+    {
+        return std::string_view(data(), length());
+    }
+
     /// Stream output operator.
     ///
     /// \param lhs Left-hand-side operand.
@@ -289,14 +331,42 @@ public:
         assign(op);
     }
 
+#if defined(USE_LD)
+    /// Consructor from iterators.
+    ///
+    /// \param first First iterator to insert.
+    /// \param last End of iteration.
+    template<typename InputIt> string(InputIt first, InputIt last)
+    {
+        resize(static_cast<unsigned>(last - first));
+        for(unsigned ii = 0; (first != last); ++ii, ++first)
+        {
+            base_type::m_data[ii] = *first;
+        }
+    }
+
     /// Copy constructor.
     ///
     /// \param op String data input.
-    string(const string& op) :
-        base_type()
+    string(const string& other)
     {
-        assign(op);
+        assign(other);
     }
+
+    /// Copy operator.
+    ///
+    /// \param other Source object.
+    /// \return This object.
+    string& operator=(const string& other)
+    {
+        return assign(other);
+    }
+#else
+    /// Deleted copy constructor.
+    string(const string&) = delete;
+    /// Deleted copy operator.
+    string& operator=(const string&) = delete;
+#endif
 
     /// Move constructor.
     ///
@@ -306,6 +376,21 @@ public:
     {
         op.m_data = nullptr;
         op.m_length = 0;
+    }
+
+    /// Move operator.
+    ///
+    /// \param op Source object.
+    /// \return This object.
+    constexpr string& operator=(string&& op) noexcept
+    {
+        base_type::m_data = op.m_data;
+        base_type::m_length = op.m_length;
+        op.m_data = nullptr;
+#if defined(USE_LD) && defined(DEBUG)
+        op.m_length = 0;
+#endif
+        return *this;
     }
 
     /// Destructor.
@@ -322,6 +407,13 @@ public:
     /// \return This object.
     string& assign(const char* data, unsigned len)
     {
+#if defined(USE_LD)
+        if(length() == len)
+        {
+            detail::internal_memcpy(base_type::m_data, data, len);
+            return *this;
+        }
+#endif
         clear();
         if(len > 0)
         {
@@ -396,7 +488,7 @@ public:
     /// \param value Value for new elements.
     void resize(unsigned new_size, char value)
     {
-        unsigned old_size = base_type::m_length;
+        unsigned old_size = length();
 
         resize(new_size);
 
@@ -407,20 +499,71 @@ public:
         }
     }
 
+#if defined(USE_LD)
+    /// Swap with another object.
+    ///
+    /// \param other Object to swap with.
+    void swap(string& other)
+    {
+        vgl::swap(base_type::m_data, other.base_type::m_data);
+        vgl::swap(base_type::m_length, other.base_type::m_length);
+    }
+#endif
+
 public:
+#if defined(USE_LD)
+    /// Addition operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return Concatenated string.
+    string operator+(const string& rhs) const
+    {
+        string ret;
+        auto new_size = length() + rhs.length();
+        if(new_size)
+        {
+            ret.resize(new_size);
+            if(length())
+            {
+                detail::internal_memcpy(ret.base_type::m_data, data(), length());
+            }
+            if(ret.length())
+            {
+                detail::internal_memcpy(ret.base_type::m_data + length(), rhs.data(), rhs.length());
+            }
+        }
+        return ret;
+    }
+    /// Addition operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return Concatenated string.
+    string operator+(const char* rhs) const
+    {
+        string ret;
+        auto rhs_len = detail::internal_strlen(rhs);
+        auto new_size = length() + rhs_len;
+        if(new_size)
+        {
+            ret.resize(new_size);
+            if(length())
+            {
+                detail::internal_memcpy(ret.base_type::m_data, data(), length());
+            }
+            if(rhs_len)
+            {
+                detail::internal_memcpy(ret.base_type::m_data + length(), rhs, rhs_len);
+            }
+        }
+        return ret;
+    }
+#endif
+
     /// Assignment operator.
     ///
     /// \param op Input data.
     /// \return This object.
     string& operator=(const char* op)
-    {
-        return assign(op);
-    }
-    /// Assignment operator.
-    ///
-    /// \param op Input data.
-    /// \return This object.
-    string& operator=(const string& op)
     {
         return assign(op);
     }
@@ -433,23 +576,33 @@ public:
         return assign(rhs.data());
     }
 
-    /// Move operator.
-    ///
-    /// \param op Source object.
-    /// \return This object.
-    constexpr string& operator=(string&& op) noexcept
-    {
-        base_type::m_data = op.m_data;
-        base_type::m_length = op.m_length;
-        op.m_data = nullptr;
-#if defined(USE_LD) && defined(DEBUG)
-        op.m_length = 0;
-#endif
-        return *this;
-    }
-
 public:
 #if defined(USE_LD)
+    /// Addition operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Concatenated string.
+    friend string operator+(const char* lhs, const string& rhs)
+    {
+        string ret;
+        auto lhs_len = detail::internal_strlen(lhs);
+        auto new_size = lhs_len + rhs.length();
+        if(new_size)
+        {
+            ret.resize(new_size);
+            if(lhs_len)
+            {
+                detail::internal_memcpy(ret.base_type::m_data, lhs, lhs_len);
+            }
+            if(rhs.length())
+            {
+                detail::internal_memcpy(ret.base_type::m_data + lhs_len, rhs.data(), rhs.length());
+            }
+        }
+        return ret;
+    }
+
     /// Stream output operator.
     ///
     /// \param lhs Left-hand-side operand.
