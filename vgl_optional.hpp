@@ -121,9 +121,9 @@ protected:
     /// Constructor.
     ///
     /// \param op Initial intialization value.
-    constexpr explicit optional_data(bool op) noexcept
+    constexpr explicit optional_data(bool op) noexcept :
+        base_type(op)
     {
-        base_type::m_initialized = op;
     }
 
     /// Destructor.
