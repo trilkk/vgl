@@ -11,6 +11,7 @@
 namespace vgl
 {
 
+using std::is_trivially_constructible;
 using std::is_trivially_destructible;
 
 #if defined(VGL_IS_CONSTANT_EVALUATED)

@@ -348,7 +348,8 @@ public:
     /// Copy constructor.
     ///
     /// \param op String data input.
-    string(const string& other)
+    string(const string& other) :
+        base_type()
     {
         assign(other);
     }

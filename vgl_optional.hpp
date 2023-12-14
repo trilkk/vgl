@@ -49,7 +49,16 @@ protected:
     uint32_t m_data[STORAGE_SIZE];
 
     /// Flag for initialization.
-    bool m_initialized;
+    bool m_initialized = false;
+
+protected:
+    /// Constructor.
+    ///
+    /// \param op Initial intialization value.
+    constexpr explicit optional_internal_data(bool op) noexcept:
+        m_initialized(op)
+    {
+    }
 
 protected:
     /// Accessor.
@@ -79,22 +88,22 @@ protected:
     using base_type = optional_internal_data<T>;
 
 protected:
-    /// Default constructor.
+    /// Constructor.
     ///
-    /// \param op Initial value.
-    constexpr explicit optional_data(bool op) noexcept
+    /// \param op Initial intialization value.
+    constexpr explicit optional_data(bool op) noexcept :
+        base_type(op)
     {
-        base_type::m_initialized = op;
     }
 
 protected:
     /// Trivial destruct.
-    constexpr void destruct()
+    constexpr void destruct() noexcept
     {
     }
 
     /// Trivial destruct and flag unused.
-    constexpr void reset()
+    constexpr void reset() noexcept
     {
         destruct();
         base_type::m_initialized = false;
@@ -109,9 +118,9 @@ protected:
     using base_type = optional_internal_data<T>;
 
 protected:
-    /// Default constructor.
+    /// Constructor.
     ///
-    /// \param op Initial value.
+    /// \param op Initial intialization value.
     constexpr explicit optional_data(bool op) noexcept
     {
         base_type::m_initialized = op;
@@ -125,7 +134,7 @@ protected:
 
 protected:
     /// Nontrivial destructi.
-    constexpr void destruct()
+    constexpr void destruct() noexcept
     {
         if(base_type::m_initialized)
         {
@@ -134,7 +143,7 @@ protected:
     }
 
     /// Nontrivial destruct and flag uninitialized.
-    constexpr void reset()
+    constexpr void reset() noexcept
     {
         if(base_type::m_initialized)
         {

@@ -60,21 +60,21 @@ public:
     /// Iterator to the beginning.
     ///
     /// \return Iterator.
-    constexpr iterator begin()
+    constexpr iterator begin() noexcept
     {
         return m_data;
     }
     /// Iterator to the beginning.
     ///
     /// \return Iterator.
-    constexpr const_iterator begin() const
+    constexpr const_iterator begin() const noexcept
     {
         return m_data;
     }
     /// Iterator to the beginning.
     ///
     /// \return Iterator.
-    constexpr const_iterator cbegin() const
+    constexpr const_iterator cbegin() const noexcept
     {
         return m_data;
     }
@@ -82,21 +82,21 @@ public:
     /// Iterator to the end.
     ///
     /// \return Iterator.
-    constexpr iterator end()
+    constexpr iterator end() noexcept
     {
         return m_data + N;
     }
     /// Iterator to the end.
     ///
     /// \return Iterator.
-    constexpr const_iterator end() const
+    constexpr const_iterator end() const noexcept
     {
         return m_data + N;
     }
     /// Iterator to the end.
     ///
     /// \return Iterator.
-    constexpr const_iterator cend() const
+    constexpr const_iterator cend() const noexcept
     {
         return m_data + N;
     }
@@ -104,14 +104,14 @@ public:
     /// Accessor.
     ///
     /// \return First element.
-    constexpr T& front()
+    constexpr T& front() noexcept
     {
         return m_data[0];
     }
     /// Accessor.
     ///
     /// \return First element.
-    constexpr const T& front() const
+    constexpr const T& front() const noexcept
     {
         return m_data[0];
     }
@@ -119,14 +119,14 @@ public:
     /// Accessor.
     ///
     /// \return Last element.
-    constexpr T& back()
+    constexpr T& back() noexcept
     {
         return m_data[N - 1];
     }
     /// Accessor.
     ///
     /// \return Last element.
-    constexpr const T& back() const
+    constexpr const T& back() const noexcept
     {
         return m_data[N - 1];
     }
@@ -134,14 +134,14 @@ public:
     /// Accessor.
     ///
     /// \return Pointer to data.
-    constexpr T* data()
+    constexpr T* data() noexcept
     {
         return m_data;
     }
     /// Accessor.
     ///
     /// \return Pointer to data.
-    constexpr const T* data() const
+    constexpr const T* data() const noexcept
     {
         return m_data;
     }
@@ -149,7 +149,7 @@ public:
     /// Get byte size.
     ///
     /// \return Current size in bytes.
-    constexpr static unsigned getSizeBytes()
+    constexpr static unsigned getSizeBytes() noexcept
     {
         return N * sizeof(T);
     }
@@ -157,7 +157,7 @@ public:
     /// Accessor.
     ///
     /// \return Array size.
-    constexpr static unsigned size()
+    constexpr static unsigned size() noexcept
     {
         return N;
     }
