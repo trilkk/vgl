@@ -1,6 +1,7 @@
 #ifndef VGL_STRING_HPP
 #define VGL_STRING_HPP
 
+#include "vgl_limits.hpp"
 #include "vgl_realloc.hpp"
 
 #if defined(USE_LD)
@@ -35,6 +36,10 @@ public:
     using iterator = T*;
     /// Const iterator type.
     using const_iterator = const T*;
+
+public:
+    /// No-position.
+    static const unsigned npos = numeric_limits<unsigned>::max();
 
 protected:
     /// Internal data.
@@ -127,6 +132,28 @@ public:
         return (m_length <= 0);
     }
 
+    /// Finds the occurrance of another substring.
+    ///
+    /// \param rhs Right-hand side operand.
+    /// \param pos Position to start search from.
+    /// \return Found index or npos if not found.
+    constexpr unsigned find(const string_data& rhs, unsigned pos = 0) const noexcept
+    {
+        if(rhs.length() > m_length)
+        {
+            return npos;
+        }
+        unsigned remaining = m_length - rhs.length();
+        for(unsigned ii = pos; (ii <= remaining); ++ii)
+        {
+            if(matchAtPosition(rhs, ii))
+            {
+                return ii;
+            }
+        }
+        return npos;
+    }
+
     /// Accessor.
     ///
     /// \return String length (without terminating zero).
@@ -171,6 +198,26 @@ public:
             ++op;
             ++ii;
         }
+    }
+
+private:
+    /// Checks if given string matches at given position.
+    ///
+    /// Parameters must be valid.
+    ///
+    /// \param rhs Right-hand side operand.
+    /// \param pos Position to search from.
+    /// \return True if found, false if not.
+    constexpr bool matchAtPosition(const string_data& rhs, unsigned pos) const noexcept
+    {
+        for(unsigned ii = 0; (ii < rhs.length()); ++ii)
+        {
+            if(m_data[ii + pos] != rhs.m_data[ii])
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
 public:
