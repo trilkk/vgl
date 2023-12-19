@@ -3,7 +3,7 @@
 
 #include "vgl_assert.hpp"
 #include "vgl_cond.hpp"
-#include "vgl_scoped_lock.hpp"
+#include "vgl_scoped_acquire.hpp"
 #include "vgl_unique_ptr.hpp"
 
 namespace vgl
@@ -75,7 +75,7 @@ public:
     }
 
     /// Signal anyone waiting on the fence.
-    void signal()
+    void signal() const
     {
         m_cond.signal();
     }
@@ -83,7 +83,7 @@ public:
     /// Wait on the fence.
     ///
     /// \param op Locked scope.
-    void wait(ScopedLock& op)
+    void wait(const ScopedAcquire& op) const
     {
         m_cond.wait(op);
     }
@@ -160,7 +160,7 @@ public:
     }
 
     /// Signal anyone waiting on the fence.
-    void signal()
+    void signal() const
     {
         VGL_ASSERT(m_fence_data);
         m_fence_data->signal();
@@ -169,7 +169,7 @@ public:
     /// Wait on the fence.
     ///
     /// \param op Locked scope.
-    void wait(ScopedLock& op)
+    void wait(ScopedAcquire& op) const
     {
         VGL_ASSERT(m_fence_data);
         m_fence_data->wait(op);

@@ -2,6 +2,7 @@
 #define VGL_TASK_DISPATCHER_HPP
 
 #include "vgl_fence_pool.hpp"
+#include "vgl_scoped_release.hpp"
 #include "vgl_task_queue.hpp"
 #include "vgl_thread.hpp"
 #include "vgl_vector.hpp"
@@ -84,7 +85,7 @@ public:
 #endif
         {
             {
-                ScopedLock sl(m_mutex);
+                ScopedAcquire sa(m_mutex);
                 m_quitting = true;
                 m_tasks_any.uninitialize();
                 m_tasks_main.uninitialize();
@@ -102,7 +103,7 @@ private:
     /// \return Fence data structure to use.
     FenceData* acquireFenceDataSafe()
     {
-        ScopedLock sl(m_mutex);
+        ScopedAcquire sa(m_mutex);
         return m_fence_pool.acquire();
     }
 
@@ -179,7 +180,7 @@ private:
     /// \return Thread return value.
     Thread::return_type threadFunc()
     {
-        ScopedLock sl(m_mutex);
+        ScopedAcquire sa(m_mutex);
         --m_threads_waiting;
 
 #if defined(USE_LD)
@@ -194,16 +195,15 @@ private:
                 {
                     // Release lock for the duration of executing the task.
                     Task task = m_tasks_any.acquire();
-                    sl.release();
+                    ScopedRelease sr(sa);
                     task();
-                    sl.acquire();
                 }
                 --m_threads_active;
             }
             else
             {
                 ++m_threads_waiting;
-                m_tasks_any.wait(sl);
+                m_tasks_any.wait(sa);
                 --m_threads_waiting;
             }
         }
@@ -230,7 +230,7 @@ public:
     /// \return Main context task.
     Task acquireMainTask()
     {
-        ScopedLock sl(m_mutex);
+        ScopedAcquire sa(m_mutex);
 
 #if defined(USE_LD)
         while(!m_quitting)
@@ -240,7 +240,7 @@ public:
         {
             if(m_tasks_main.empty())
             {
-                m_tasks_main.wait(sl);
+                m_tasks_main.wait(sa);
             }
             else
             {
@@ -257,7 +257,7 @@ public:
     /// \param params Function parameters.
     void dispatch(TaskFunc func, void* params)
     {
-        ScopedLock sl(m_mutex);
+        ScopedAcquire sa(m_mutex);
         m_tasks_any.emplace(func, params);
         spawnThreadIfBelowConcurrency();
     }
@@ -267,7 +267,7 @@ public:
     /// \param params Function parameters.
     void dispatchMain(TaskFunc func, void* params)
     {
-        ScopedLock sl(m_mutex);
+        ScopedAcquire sa(m_mutex);
         m_tasks_main.emplace(func, params);
     }
 
@@ -284,7 +284,7 @@ public:
             return immediateDispatch(func, params);
         }
 
-        ScopedLock sl(m_mutex);
+        ScopedAcquire sa(m_mutex);
         FenceData* data = internalDispatch(m_tasks_any, func, params);
         spawnThreadIfBelowConcurrency();
         return Fence(data);
@@ -302,7 +302,7 @@ public:
             return immediateDispatch(func, params);
         }
 
-        ScopedLock sl(m_mutex);
+        ScopedAcquire sa(m_mutex);
         FenceData* data = internalDispatch(m_tasks_main, func, params);
         return Fence(data);
     }
@@ -313,7 +313,7 @@ public:
     void signalFence(FenceData& op)
     {
         {
-            ScopedLock sl(m_mutex);
+            ScopedAcquire sa(m_mutex);
             op.setActive(false);
         }
         op.signal();
@@ -325,7 +325,7 @@ public:
     /// \return Stored return value from the fence.
     void* waitFence(Fence& op)
     {
-        ScopedLock sl(m_mutex);
+        ScopedAcquire sa(m_mutex);
 
         // Fence may have turned inactive before the wait point is reached.
         if(op)
@@ -350,7 +350,7 @@ public:
             }
 
             m_tasks_any.signal();
-            op.wait(sl);
+            op.wait(sa);
 
             if(is_spawned)
             {

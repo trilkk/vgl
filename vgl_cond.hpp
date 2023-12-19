@@ -1,7 +1,7 @@
 #ifndef VGL_COND_HPP
 #define VGL_COND_HPP
 
-#include "vgl_scoped_lock.hpp"
+#include "vgl_scoped_acquire.hpp"
 
 namespace vgl
 {
@@ -72,7 +72,7 @@ public:
 
 public:
     /// Signal the cond, waking all the threads.
-    void broadcast()
+    void broadcast() const
     {
 #if defined(VGL_ENABLE_GTK)
         dnload_g_cond_broadcast(m_cond);
@@ -90,7 +90,7 @@ public:
     }
 
     /// Signal the cond, waking one thread.
-    void signal()
+    void signal() const
     {
 #if defined(VGL_ENABLE_GTK)
         dnload_g_cond_broadcast(m_cond);
@@ -110,14 +110,14 @@ public:
     /// Wait on cond.
     ///
     /// \param op Mutex (already locked).
-    void wait(Mutex& op)
+    void wait(const Mutex& op) const
     {
         wait(op.getMutexImpl());
     }
     /// Wait on scoped lock.
     ///
     /// \param op Scoped lock (already held).
-    void wait(ScopedLock& op)
+    void wait(const ScopedAcquire& op) const
     {
         wait(op.getMutexImpl());
     }
@@ -141,7 +141,7 @@ private:
     ///
     /// \param cond Condition variable.
     /// \param mutex Mutex.
-    void wait(Mutex::mutex_type* mutex)
+    void wait(Mutex::mutex_type* mutex) const
     {
 #if defined(VGL_ENABLE_GTK)
         dnload_g_cond_wait(m_cond, mutex);

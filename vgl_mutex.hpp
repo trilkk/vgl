@@ -85,19 +85,19 @@ public:
     /// Accessor.
     ///
     /// \return Inner mutex.
-    constexpr mutex_type* getMutexImpl() const
+    constexpr mutex_type* getMutexImpl() const noexcept
     {
         return m_mutex;
     }
 
     /// Lock.
-    void acquire()
+    void acquire() const
     {
         internal_mutex_acquire(getMutexImpl());
     }
 
     /// Unlock.
-    void release()
+    void release() const
     {
         internal_mutex_release(getMutexImpl());
     }

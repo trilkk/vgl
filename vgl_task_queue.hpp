@@ -50,7 +50,7 @@ public:
     }
 
     /// Signal on the task queue.
-    void signal()
+    void signal() const
     {
         m_cond.signal();
     }
@@ -58,7 +58,7 @@ public:
     /// Wait on the task queue.
     ///
     /// \param op Locked scope.
-    void wait(ScopedLock& sl)
+    void wait(const ScopedAcquire& sl) const
     {
         m_cond.wait(sl);
     }
