@@ -1,5 +1,7 @@
 #include "vgl_state.hpp"
 
+#include "vgl_vector.hpp"
+
 namespace vgl
 {
 
@@ -54,7 +56,7 @@ std::string to_string(OperationMode op)
 std::string gl_extension_string(unsigned align, unsigned indent)
 {
     std::string extension_string(reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS)));
-    std::vector<std::string> extensions;
+    vector<std::string> extensions;
     for(unsigned ii = 0; (ii < extension_string.length());)
     {
         int cc = extension_string[ii];
