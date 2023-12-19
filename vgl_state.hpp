@@ -419,8 +419,6 @@ public:
 class OpenGlStencilState
 {
 private:
-    /// Current clear stencil.
-    uint8_t m_clear_stencil = 0u;
     /// Current stencil function.
     GLenum m_stencil_func = GL_FALSE;
     /// Current stencil operation mode.
