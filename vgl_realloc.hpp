@@ -1,46 +1,19 @@
 #ifndef VGL_REALLOC_HPP
 #define VGL_REALLOC_HPP
 
-#include "vgl_extern_stdlib.hpp"
+/// \file Replacements for new/delete.
+///
+/// As per spec, the operators are not inline, and are found in the correspondig source file.
+///
+/// Note that only single-object new/delete are replaced. The array versions are not.
+/// Containers use array_new and manual constructor calls as needed.
 
-#include <new>
+#include "vgl_extern_stdlib.hpp"
 
 #if defined(USE_LD)
 #include <boost/throw_exception.hpp>
 #include <iostream>
 #endif
-
-/// A global delete operator using free().
-///
-/// \param ptr Pointer to free.
-inline void operator delete(void *ptr) noexcept
-{
-    dnload_free(ptr);
-}
-/// Aligned global delete operator using free().
-///
-/// \param ptr Pointer to free.
-/// \param align Ignored alignment.
-inline void operator delete(void *ptr, size_t align) noexcept
-{
-    dnload_free(ptr);
-    (void)align;
-}
-
-/// A global new operator using realloc().
-///
-/// \param sz Size to allocate.
-/// \return Allocated pointer.
-inline void* operator new(size_t sz)
-{
-#if defined(USE_LD) && defined(DEBUG)
-    if(!sz)
-    {
-        std::cerr << "WARNING: call to new() with size 0" << std::endl;
-    }
-#endif
-    return dnload_realloc(nullptr, sz);
-}
 
 namespace vgl
 {
@@ -133,5 +106,9 @@ template <typename T> inline T* array_new(T* ptr, size_t count)
 }
 
 }
+
+#if !defined(USE_LD)
+#include "vgl_realloc.cpp"
+#endif
 
 #endif

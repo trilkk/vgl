@@ -98,6 +98,7 @@ set(VGL_SOURCES
     "${VGL_ROOT}/vgl_logical_mesh.cpp"
     "${VGL_ROOT}/vgl_mesh.cpp"
     "${VGL_ROOT}/vgl_rand.cpp"
+    "${VGL_ROOT}/vgl_realloc.cpp"
     "${VGL_ROOT}/vgl_state.cpp"
     "${VGL_ROOT}/vgl_texture.cpp"
     "${VGL_ROOT}/vgl_task_dispatcher.cpp"
