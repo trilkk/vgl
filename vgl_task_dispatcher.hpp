@@ -7,6 +7,10 @@
 #include "vgl_thread.hpp"
 #include "vgl_vector.hpp"
 
+#if defined(USE_LD)
+#include <sstream>
+#endif
+
 namespace vgl
 {
 
@@ -161,7 +165,13 @@ private:
     /// Thread that has not entered execution is considered waiting.
     void spawnThread()
     {
+#if defined(USE_LD)
+        std::ostringstream sstr;
+        sstr << "TaskDispatcher(" << m_threads.size() << ")";
+        m_threads.emplace_back(task_thread_func, this, sstr.str().c_str());
+#else
         m_threads.emplace_back(task_thread_func, this);
+#endif
         ++m_threads_waiting;
     }
     /// Spawns a thread if it's necessary.

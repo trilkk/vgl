@@ -6,9 +6,16 @@
 
 #if defined(USE_LD)
 
-#if defined(WIN32)
+#if defined(_WIN32) || defined(_WIN64)
+#define _USE_MATH_DEFINES
+#define NOMINMAX
 #include "windows.h"
-#include "GL/glew.h"
+#endif
+
+#if defined(VGL_ENABLE_GTK)
+#define GL_GLEXT_PROTOTYPES
+#include "GL/gl.h"
+#include "GL/glext.h"
 #else
 #include "GL/glew.h"
 #endif

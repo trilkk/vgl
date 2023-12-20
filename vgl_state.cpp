@@ -5,6 +5,27 @@
 namespace vgl
 {
 
+namespace
+{
+
+/// Gets GL string in safe manner.
+///
+/// If the returned string is nullptr, returns an empty string.
+///
+/// \param op String enumeration to get.
+/// \return Result of glGetString() packed into a string.
+std::string gl_get_string(GLenum op)
+{
+    const GLubyte* ret = glGetString(op);
+    if(!ret)
+    {
+        return std::string();
+    }
+    return std::string(reinterpret_cast<const char*>(ret));
+}
+
+}
+
 namespace detail
 {
 
@@ -55,7 +76,7 @@ std::string to_string(OperationMode op)
 
 std::string gl_extension_string(unsigned align, unsigned indent)
 {
-    std::string extension_string(reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS)));
+    std::string extension_string = gl_get_string(GL_EXTENSIONS);
     vector<std::string> extensions;
     for(unsigned ii = 0; (ii < extension_string.length());)
     {
@@ -131,14 +152,12 @@ std::string gl_extension_string(unsigned align, unsigned indent)
 
 std::string gl_vendor_string()
 {
-    return reinterpret_cast<const char*>(glGetString(GL_VENDOR)) + std::string(" ") +
-        reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    return gl_get_string(GL_VENDOR) + " " + gl_get_string(GL_RENDERER);
 }
 
 std::string gl_version_string()
 {
-    return reinterpret_cast<const char*>(glGetString(GL_VERSION)) + std::string(" GLSL ") +
-        reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
+    return gl_get_string(GL_VERSION) + " GLSL " + gl_get_string(GL_SHADING_LANGUAGE_VERSION);
 }
 
 void error_check(const char* str)

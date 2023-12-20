@@ -462,13 +462,17 @@ public:
             return *this;
         }
 #endif
-        clear();
+        base_type::m_length = len;
         if(len > 0)
         {
-            base_type::m_length = len;
-            unsigned copy_length = len + 1;
-            base_type::m_data = array_new(base_type::m_data, copy_length);
-            detail::internal_memcpy(base_type::m_data, data, copy_length);
+            base_type::m_data = array_new(base_type::m_data, len + 1);
+            detail::internal_memcpy(base_type::m_data, data, len);
+            base_type::m_data[len] = 0;
+        }
+        else
+        {
+            array_delete(base_type::m_data);
+            base_type::m_data = nullptr;
         }
         return *this;
     }
@@ -498,7 +502,7 @@ public:
     /// \return This object.
     string& assign(const string_data<char>& op)
     {
-        return assign(reinterpret_cast<const char*>(op.data(), op.length()));
+        return assign(const_cast<const char*>(op.data()), op.length());
     }
 
     /// Return C string representing the string.
