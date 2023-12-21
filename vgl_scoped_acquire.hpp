@@ -8,7 +8,7 @@ namespace vgl
 
 /// Scoped mutex acquire.
 ///
-/// Can be released and re-acquired manually. Consider using ScopedRelease.
+/// Can be released and re-acquired manually.
 class ScopedAcquire
 {
 private:

@@ -9,6 +9,7 @@ namespace vgl
 /// Condition variable.
 class Cond
 {
+public:
     /// Internal mutex implementation.
     using cond_type =
 #if defined(VGL_ENABLE_GTK)
@@ -71,6 +72,16 @@ public:
     }
 
 public:
+#if defined(USE_LD)
+    /// Accessor.
+    ///
+    /// \return Internal implementation.
+    constexpr cond_type* getCondImpl() const noexcept
+    {
+        return m_cond;
+    }
+#endif
+
     /// Signal the cond, waking all the threads.
     void broadcast() const
     {
@@ -170,6 +181,19 @@ public:
         other.m_cond = nullptr;
         return *this;
     }
+
+public:
+#if defined(USE_LD)
+    /// Stream output operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Output stream.
+    friend std::ostream& operator<<(std::ostream& lhs, const Cond& rhs)
+    {
+        return lhs << "Cond(" << rhs.getCondImpl() << ")";
+    }
+#endif
 };
 
 }

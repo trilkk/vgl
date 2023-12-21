@@ -1,30 +1,10 @@
 #include "vgl_state.hpp"
 
+#include "vgl_string_view.hpp"
 #include "vgl_vector.hpp"
 
 namespace vgl
 {
-
-namespace
-{
-
-/// Gets GL string in safe manner.
-///
-/// If the returned string is nullptr, returns an empty string.
-///
-/// \param op String enumeration to get.
-/// \return Result of glGetString() packed into a string.
-std::string gl_get_string(GLenum op)
-{
-    const GLubyte* ret = glGetString(op);
-    if(!ret)
-    {
-        return std::string();
-    }
-    return std::string(reinterpret_cast<const char*>(ret));
-}
-
-}
 
 namespace detail
 {
@@ -74,28 +54,40 @@ std::string to_string(OperationMode op)
     BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
 }
 
+std::string gl_get_string(GLenum op)
+{
+    const GLubyte* ret = glGetString(op);
+    if(!ret)
+    {
+        return std::string();
+    }
+    return std::string(reinterpret_cast<const char*>(ret));
+}
+
 std::string gl_extension_string(unsigned align, unsigned indent)
 {
     std::string extension_string = gl_get_string(GL_EXTENSIONS);
-    vector<std::string> extensions;
-    for(unsigned ii = 0; (ii < extension_string.length());)
+    string_view extension_view(extension_string.data(), static_cast<unsigned>(extension_string.length()));
+    vector<string_view> extensions;
+    for(unsigned ii = 0; (ii < extension_view.length());)
     {
-        int cc = extension_string[ii];
+        int cc = extension_view[ii];
         if(!cc || (cc == ' ') || (cc == '\t') || (cc == '\r') || (cc == '\n'))
         {
             if(ii != 0)
             {
-                extensions.push_back(extension_string.substr(0, ii));
+                extensions.emplace_back(extension_view.data(), ii);
             }
-            extension_string = extension_string.substr(ii + 1);
+            unsigned skip = ii + 1;
+            extension_view = string_view(extension_view.data() + skip, extension_view.length() - skip);
             ii = 0;
             continue;
         }
         ++ii;
     }
-    if(!extension_string.empty())
+    if(!extension_view.empty())
     {
-        extensions.push_back(extension_string);
+        extensions.emplace_back(extension_view);
     }
 
     std::string istr;
@@ -128,12 +120,12 @@ std::string gl_extension_string(unsigned align, unsigned indent)
             }
             else
             {
-                line += istr + vv;
+                line += istr + std::string(vv);
             }
         }
         else
         {
-            line += " " + vv;
+            line += " " + std::string(vv);
         }
     }
 

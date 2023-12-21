@@ -2,7 +2,6 @@
 #define VGL_TASK_DISPATCHER_HPP
 
 #include "vgl_fence_pool.hpp"
-#include "vgl_scoped_release.hpp"
 #include "vgl_task_queue.hpp"
 #include "vgl_thread.hpp"
 #include "vgl_vector.hpp"
@@ -18,7 +17,7 @@ namespace detail
 {
 
 /// Task queue class.
-class TaskDispatcher
+class InternalTaskDispatcher
 {
 private:
     /// Threads created for this task queue.
@@ -56,21 +55,11 @@ private:
 #endif
 
 public:
-    /// Global queue for tasks.
-    static TaskDispatcher g_task_dispatcher;
-
-private:
-    /// Deleted copy constructor.
-    TaskDispatcher(const TaskDispatcher&) = delete;
-    /// Deleted assignment.
-    TaskDispatcher& operator=(const TaskDispatcher&) = delete;
-
-public:
     /// Default constructor.
-    constexpr explicit TaskDispatcher() = default;
+    constexpr explicit InternalTaskDispatcher() = default;
 
     /// Destructor.
-    ~TaskDispatcher()
+    ~InternalTaskDispatcher()
     {
 #if defined(USE_LD)
 #if defined(DEBUG)
@@ -100,6 +89,11 @@ public:
         }
 #endif
     }
+
+    /// Deleted copy constructor.
+    InternalTaskDispatcher(const InternalTaskDispatcher&) = delete;
+    /// Deleted assignment.
+    InternalTaskDispatcher& operator=(const InternalTaskDispatcher&) = delete;
 
 private:
     /// Acquire or reuse fence data (locked).
@@ -167,7 +161,7 @@ private:
     {
 #if defined(USE_LD)
         std::ostringstream sstr;
-        sstr << "TaskDispatcher(" << m_threads.size() << ")";
+        sstr << "InternalTaskDispatcher(" << m_threads.size() << ")";
         m_threads.emplace_back(task_thread_func, this, sstr.str().c_str());
 #else
         m_threads.emplace_back(task_thread_func, this);
@@ -205,9 +199,10 @@ private:
                 {
                     // Release lock for the duration of executing the task.
                     Task task = m_tasks_any.acquire();
-                    ScopedRelease sr(sa);
+                    sa.release();
                     task();
                 }
+                sa.acquire();
                 --m_threads_active;
             }
             else
@@ -259,6 +254,62 @@ public:
         }
 
         return Task();
+    }
+
+    /// Mark fence data as inactive (from locked context) and signal threads waiting on it.
+    ///
+    /// \param op Fence data.
+    void fenceSignal(FenceData& op)
+    {
+        {
+            ScopedAcquire sa(m_mutex);
+            op.setActive(false);
+        }
+        op.signal();
+    }
+
+    /// Wait on a fence internal state.
+    ///
+    /// \param op Fence.
+    /// \return Stored return value from the fence.
+    void* fenceWait(Fence& op)
+    {
+        ScopedAcquire sa(m_mutex);
+
+        // Fence may have turned inactive before the wait point is reached.
+        if(op)
+        {
+#if defined(USE_LD) && defined(DEBUG)
+            if(isMainThread())
+            {
+                BOOST_THROW_EXCEPTION(std::runtime_error("cannot wait on main thread"));
+            }
+#endif
+
+            bool is_spawned = isSpawnedThread();
+
+            // If waiting would lock the last concurrent thread, spawn a new thread.
+            if(is_spawned)
+            {
+                if(m_threads_waiting <= 0)
+                {
+                    spawnThread();
+                }
+                --m_threads_active;
+            }
+
+            m_tasks_any.signal();
+            op.wait(sa);
+
+            if(is_spawned)
+            {
+                ++m_threads_active;
+            }
+        }
+
+        FenceData* data = op.releaseData();
+        m_fence_pool.emplace(data);
+        return data->getReturnValue();
     }
 
     /// Dispatch a task (any thread).
@@ -317,78 +368,108 @@ public:
         return Fence(data);
     }
 
-    /// Mark fence data as inactive (from locked context) and signal threads waiting on it.
-    ///
-    /// \param op Fence data.
-    void signalFence(FenceData& op)
-    {
-        {
-            ScopedAcquire sa(m_mutex);
-            op.setActive(false);
-        }
-        op.signal();
-    }
-
-    /// Wait on a fence internal state.
-    ///
-    /// \param op Fence.
-    /// \return Stored return value from the fence.
-    void* waitFence(Fence& op)
-    {
-        ScopedAcquire sa(m_mutex);
-
-        // Fence may have turned inactive before the wait point is reached.
-        if(op)
-        {
-#if defined(USE_LD) && defined(DEBUG)
-            if(isMainThread())
-            {
-                BOOST_THROW_EXCEPTION(std::runtime_error("cannot wait on main thread"));
-            }
-#endif
-
-            bool is_spawned = isSpawnedThread();
-
-            // If waiting would lock the last concurrent thread, spawn a new thread.
-            if(is_spawned)
-            {
-                if(m_threads_waiting <= 0)
-                {
-                    spawnThread();
-                }
-                --m_threads_active;
-            }
-
-            m_tasks_any.signal();
-            op.wait(sa);
-
-            if(is_spawned)
-            {
-                ++m_threads_active;
-            }
-        }
-
-        FenceData* data = op.releaseData();
-        m_fence_pool.emplace(data);
-        return data->getReturnValue();
-    }
-
 private:
     /// Task dispatcher thread.
     ///
     /// \param op Pointer to task queue.
     static Thread::return_type task_thread_func(void* op)
     {
-        return static_cast<TaskDispatcher*>(op)->threadFunc();
+        return static_cast<InternalTaskDispatcher*>(op)->threadFunc();
     }
 };
+
+}
+
+/// Task dispatcher interface class.
+class TaskDispatcher
+{
+private:
+    /// Global queue for tasks.
+    static detail::InternalTaskDispatcher g_instance;
+
+public:
+    /// Initialize task system.
+    ///
+    /// \param op Concurrency level.
+    static void initialize(unsigned op)
+    {
+        g_instance.initialize(op);
+    }
+
+    /// Signal fence data.
+    ///
+    /// \param op Fence data.
+    static void fence_data_signal(detail::FenceData& op)
+    {
+        g_instance.fenceSignal(op);
+    }
+
+    /// Wait on fence.
+    ///
+    /// \param op Fence data.
+    static void* fence_wait(Fence& op)
+    {
+        return g_instance.fenceWait(op);
+    }
+
+    /// Get a main loop task.
+    ///
+    /// This function blocks if main loop tasks are not available.
+    ///
+    /// \return New main loop task.
+    static Task acquire_main()
+    {
+        return g_instance.acquireMainTask();
+    }
+
+    /// Dispatch task (any thread).
+    ///
+    /// \param func Function to dispatch.
+    /// \param params Function parameters.
+    static void dispatch(TaskFunc func, void* params)
+    {
+        g_instance.dispatch(func, params);
+    }
+
+    /// Dispatch task (main thread).
+    ///
+    /// \param func Function to dispatch.
+    /// \param params Function parameters.
+    static void dispatch_main(TaskFunc func, void* params)
+    {
+        g_instance.dispatchMain(func, params);
+    }
+
+    /// Wait on a task (any thread).
+    ///
+    /// \param func Function to dispatch.
+    /// \param params Function parameters.
+    /// \return Fence.
+    static Fence wait(TaskFunc func, void* params)
+    {
+        return g_instance.wait(func, params);
+    }
+
+    /// Wait on a task (main thread).
+    ///
+    /// \param func Function to dispatch.
+    /// \param params Function parameters.
+    /// \return Fence.
+    static Fence wait_main(TaskFunc func, void* params)
+    {
+        return g_instance.waitMain(func, params);
+    }
+};
+
+namespace detail
+{
 
 /// Internal signal of fence data.
 ///
 /// \param op Fence data.
 inline void internal_fence_data_signal(FenceData& op)
 {
-    TaskDispatcher::g_task_dispatcher.signalFence(op);
+    TaskDispatcher::fence_data_signal(op);
 }
 
 /// Internal wait for fence data on the task dispatcher.
@@ -396,65 +477,9 @@ inline void internal_fence_data_signal(FenceData& op)
 /// \param op Fence data.
 inline void* internal_fence_wait(Fence& op)
 {
-    return TaskDispatcher::g_task_dispatcher.waitFence(op);
+    return TaskDispatcher::fence_wait(op);
 }
 
-}
-
-/// Initialize task system.
-///
-/// \param op Concurrency level.
-inline void tasks_initialize(unsigned op)
-{
-    detail::TaskDispatcher::g_task_dispatcher.initialize(op);
-}
-
-/// Get a main loop task.
-///
-/// This function blocks if main loop tasks are not available.
-///
-/// \return New main loop task.
-inline Task task_acquire_main()
-{
-    return detail::TaskDispatcher::g_task_dispatcher.acquireMainTask();
-}
-
-/// Dispatch task (any thread).
-///
-/// \param func Function to dispatch.
-/// \param params Function parameters.
-inline void task_dispatch(TaskFunc func, void* params)
-{
-    detail::TaskDispatcher::g_task_dispatcher.dispatch(func, params);
-}
-
-/// Dispatch task (main thread).
-///
-/// \param func Function to dispatch.
-/// \param params Function parameters.
-inline void task_dispatch_main(TaskFunc func, void* params)
-{
-    detail::TaskDispatcher::g_task_dispatcher.dispatchMain(func, params);
-}
-
-/// Wait on a task (any thread).
-///
-/// \param func Function to dispatch.
-/// \param params Function parameters.
-/// \return Fence.
-inline Fence task_wait(TaskFunc func, void* params)
-{
-    return detail::TaskDispatcher::g_task_dispatcher.wait(func, params);
-}
-
-/// Wait on a task (main thread).
-///
-/// \param func Function to dispatch.
-/// \param params Function parameters.
-/// \return Fence.
-inline Fence task_wait_main(TaskFunc func, void* params)
-{
-    return detail::TaskDispatcher::g_task_dispatcher.waitMain(func, params);
 }
 
 }

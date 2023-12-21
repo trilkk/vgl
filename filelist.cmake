@@ -64,7 +64,6 @@ set(VGL_HEADERS
     "${VGL_ROOT}/vgl_realloc.hpp"
     "${VGL_ROOT}/vgl_render_queue.hpp"
     "${VGL_ROOT}/vgl_scoped_acquire.hpp"
-    "${VGL_ROOT}/vgl_scoped_release.hpp"
     "${VGL_ROOT}/vgl_state.hpp"
     "${VGL_ROOT}/vgl_string.hpp"
     "${VGL_ROOT}/vgl_string_view.hpp"

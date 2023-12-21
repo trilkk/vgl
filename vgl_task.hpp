@@ -115,10 +115,10 @@ public:
         {
             m_fence_data->setReturnValue(ret);
         }
-#if defined(USE_LD)
+#if defined(USE_LD) && defined(DEBUG)
         else if(ret)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("task return value was not handled"));
+            std::cerr << "Task::operator(): unhandled return value '" << ret << "'" << std::endl;
         }
 #endif
         return m_func;

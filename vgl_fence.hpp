@@ -44,6 +44,16 @@ public:
     explicit FenceData() = default;
 
 public:
+#if defined(USE_LD)
+    /// Accessor.
+    ///
+    /// \return Internal implementation.
+    constexpr Cond::cond_type* getCondImpl() const noexcept
+    {
+        return m_cond.getCondImpl();
+    }
+#endif
+
     /// Accessor.
     ///
     /// \return Return value stored in the fence data.
@@ -87,6 +97,19 @@ public:
     {
         m_cond.wait(op);
     }
+
+public:
+#if defined(USE_LD)
+    /// Stream output operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Output stream.
+    friend std::ostream& operator<<(std::ostream& lhs, const FenceData& rhs)
+    {
+        return lhs << "FenceData(" << rhs.getCondImpl() << ")";
+    }
+#endif
 };
 
 /// Internal fence state unique pointer type.
@@ -182,10 +205,10 @@ private:
         if(m_fence_data)
         {
             void* ret = detail::internal_fence_wait(*this);
-#if defined(USE_LD)
+#if defined(USE_LD) && defined(DEBUG)
             if(ret)
             {
-                BOOST_THROW_EXCEPTION(std::runtime_error("fence being destructed has unhandled return value"));
+                std::cerr << "Fence::destruct(): unhandled return value '" << ret << "'" << std::endl;
             }
 #else
             (void)ret;
@@ -215,6 +238,19 @@ public:
         VGL_ASSERT(m_fence_data);
         return m_fence_data->isActive();
     }
+
+public:
+#if defined(USE_LD)
+    /// Stream output operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Output stream.
+    friend std::ostream& operator<<(std::ostream& lhs, const Fence& rhs)
+    {
+        return lhs << "Fence(" << rhs.m_fence_data->getCondImpl() << ")";
+    }
+#endif
 };
 
 }

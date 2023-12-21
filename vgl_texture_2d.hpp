@@ -191,7 +191,7 @@ private:
             FilteringMode filtering, WrapMode wrap)
     {
         TextureCreateSettings settings(width, height, format, data, filtering, wrap);
-        Fence ret = task_wait_main(taskfunc_create_texture, &settings);
+        Fence ret = TaskDispatcher::wait_main(task_create_texture, &settings);
         return unique_ptr<Texture2D>(static_cast<Texture2D*>(ret.getReturnValue()));
     }
 
@@ -248,7 +248,7 @@ private:
     /// Export a texture from this image.
     ///
     /// \param op Pointer to creation settings.
-    static void* taskfunc_create_texture(void* op)
+    static void* task_create_texture(void* op)
     {
         Texture2D* ret = new Texture2D();
         const TextureCreateSettings* settings = static_cast<const TextureCreateSettings*>(op);

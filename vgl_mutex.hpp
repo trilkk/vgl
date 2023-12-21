@@ -10,6 +10,7 @@
 
 #if defined(USE_LD)
 #include <boost/throw_exception.hpp>
+#include <ostream>
 #include <stdexcept>
 #endif
 
@@ -84,7 +85,7 @@ public:
 public:
     /// Accessor.
     ///
-    /// \return Inner mutex.
+    /// \return Internal implementation.
     constexpr mutex_type* getMutexImpl() const noexcept
     {
         return m_mutex;
@@ -170,6 +171,19 @@ public:
         other.m_mutex = nullptr;
         return *this;
     }
+
+public:
+#if defined(USE_LD)
+    /// Stream output operator.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Output stream.
+    friend std::ostream& operator<<(std::ostream& lhs, const Mutex& rhs)
+    {
+        return lhs << "Mutex(" << rhs.getMutexImpl() << ")";
+    }
+#endif
 };
 
 }

@@ -791,6 +791,14 @@ constexpr const char* gl_error_string(GLenum err)
     return "unknown error";
 }
 
+/// Gets GL string in safe manner.
+///
+/// If the returned string is nullptr, returns an empty string.
+///
+/// \param op String enumeration to get.
+/// \return Result of glGetString() packed into a string.
+std::string gl_get_string(GLenum op);
+
 /// Gets OpenGL extension string.
 ///
 /// \param align Lines are at most this long (0: infinite).
