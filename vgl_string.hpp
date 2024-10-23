@@ -6,6 +6,7 @@
 
 #if defined(USE_LD)
 #include "vgl_utility.hpp"
+#include <ostream>
 #endif
 
 namespace vgl
@@ -71,6 +72,7 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(idx >= m_length)
         {
+            // Can't use vgl_throw_exception.hpp yet.
             BOOST_THROW_EXCEPTION(std::runtime_error("accessing index " + std::to_string(idx) +
                         " from string of length " + std::to_string(m_length)));
         }
@@ -86,6 +88,7 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(idx < 0)
         {
+            // Can't use vgl_throw_exception.hpp yet.
             BOOST_THROW_EXCEPTION(std::runtime_error("accessing negative index " + std::to_string(idx) +
                         " from string of length " + std::to_string(m_length)));
         }
@@ -355,8 +358,10 @@ public:
 
     /// Constructor.
     ///
+    /// Intentionally not explicit.
+    ///
     /// \param op C string input.
-    explicit string(const char* op)
+    string(const char* op)
     {
         assign(op);
     }
@@ -563,6 +568,23 @@ public:
 #endif
 
 public:
+    /// Assignment operator.
+    ///
+    /// \param op Input data.
+    /// \return This object.
+    string& operator=(const char* op)
+    {
+        return assign(op);
+    }
+    /// Assignment operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return This object.
+    string& operator=(const string_data<const char>& rhs)
+    {
+        return assign(rhs.data());
+    }
+
 #if defined(USE_LD)
     /// Addition operator.
     ///
@@ -586,6 +608,7 @@ public:
         }
         return ret;
     }
+
     /// Addition operator.
     ///
     /// \param rhs Right-hand-side operand.
@@ -609,27 +632,41 @@ public:
         }
         return ret;
     }
-#endif
 
-    /// Assignment operator.
-    ///
-    /// \param op Input data.
-    /// \return This object.
-    string& operator=(const char* op)
-    {
-        return assign(op);
-    }
-    /// Assignment operator.
+    /// Addition into operator.
     ///
     /// \param rhs Right-hand-side operand.
     /// \return This object.
-    string& operator=(const string_data<const char>& rhs)
+    string& operator+=(const string& rhs)
     {
-        return assign(rhs.data());
+        if(rhs.length())
+        {
+            auto old_size = length();
+            auto new_size = old_size + rhs.length();
+            resize(new_size);
+            detail::internal_memcpy(base_type::m_data + old_size, rhs.data(), rhs.length());
+        }
+        return *this;
+    }
+
+    /// Addition into operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return This object.
+    string& operator+=(const char* rhs)
+    {
+        auto rhs_len = detail::internal_strlen(rhs);
+        if(rhs_len)
+        {
+            auto old_size = length();
+            auto new_size = old_size + rhs_len;
+            resize(new_size);
+            detail::internal_memcpy(base_type::m_data + old_size, rhs, rhs_len);
+        }
+        return *this;
     }
 
 public:
-#if defined(USE_LD)
     /// Addition operator.
     ///
     /// \param lhs Left-hand-side operand.
@@ -666,6 +703,188 @@ public:
     }
 #endif
 };
+
+#if defined(USE_LD)
+namespace detail
+{
+
+/// Integer to maximum character count -transformation.
+/// \return Maximum integer character count.
+template<unsigned> constexpr unsigned int_character_width();
+/// \cond
+template<> constexpr unsigned int_character_width<1>()
+{
+    return 4;
+}
+template<> constexpr unsigned int_character_width<2>()
+{
+    return 6;
+}
+template<> constexpr unsigned int_character_width<4>()
+{
+    return 11;
+}
+template<> constexpr unsigned int_character_width<8>()
+{
+    return 20;
+}
+/// \endcond
+
+/// Unsigned integer to maximum character count -transformation.
+/// \return Maximum unsigned integer character count.
+template<unsigned> constexpr unsigned unsigned_character_width();
+/// \cond
+template<> constexpr unsigned unsigned_character_width<1>()
+{
+    return 3;
+}
+template<> constexpr unsigned unsigned_character_width<2>()
+{
+    return 5;
+}
+template<> constexpr unsigned unsigned_character_width<4>()
+{
+    return 10;
+}
+template<> constexpr unsigned unsigned_character_width<8>()
+{
+    return 20;
+}
+/// \endcond
+
+/// Converts an integer to a string.
+/// \param op Integer to convert.
+/// \return String representation.
+template<typename T> string int_to_string(T op)
+{
+    if(op == 0)
+    {
+        return string("0");
+    }
+
+    const unsigned charw = int_character_width<sizeof(T)>();
+    char data[charw + 1];
+
+    unsigned iter = charw;
+    data[charw] = 0;
+    if(op < 0)
+    {
+        do {
+            --iter;
+            data[iter] = static_cast<char>('0' + (-(op % 10)));
+            op /= 10;
+        } while(op < 0);
+        --iter;
+        data[iter] = '-';
+    }
+    else
+    {
+        do {
+            --iter;
+            data[iter] = static_cast<char>('0' + (op % 10));
+            op /= 10;
+        } while(op > 0);
+    }
+    return string(data + iter);
+}
+
+/// Converts an unsigned integer to a string.
+/// \param op Unsigned integer to convert.
+/// \return String representation.
+template<typename T> string unsigned_to_string(T op)
+{
+    if(op == 0)
+    {
+        return string("0");
+    }
+
+    const unsigned charw = unsigned_character_width<sizeof(T)>();
+    char data[charw + 1];
+
+    unsigned iter = charw;
+    data[charw] = 0;
+    do {
+        --iter;
+        data[iter] = static_cast<char>('0' + (op % 10));
+        op /= 10;
+    } while(op > 0);
+    return string(data + iter);
+}
+
+}
+
+/// String conversion from integer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(int8_t op)
+{
+    return detail::int_to_string(op);
+}
+
+/// String conversion from unsigned integer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(uint8_t op)
+{
+    return detail::unsigned_to_string(op);
+}
+
+/// String conversion from integer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(int16_t op)
+{
+    return detail::int_to_string(op);
+}
+
+/// String conversion from unsigned integer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(uint16_t op)
+{
+    return detail::unsigned_to_string(op);
+}
+
+/// String conversion from integer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(int32_t op)
+{
+    return detail::int_to_string(op);
+}
+
+/// String conversion from unsigned integer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(uint32_t op)
+{
+    return detail::unsigned_to_string(op);
+}
+
+/// String conversion from integer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(int64_t op)
+{
+    return detail::int_to_string(op);
+}
+
+/// String conversion from unsigned integer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(uint64_t op)
+{
+    return detail::unsigned_to_string(op);
+}
+#endif
 
 }
 

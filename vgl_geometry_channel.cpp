@@ -9,34 +9,33 @@ namespace vgl
 ///
 /// \param op Channel ID.
 /// \return String representation for channel.
-std::string to_string(GeometryChannel op)
+string to_string(GeometryChannel op)
 {
     switch(op)
     {
     case POSITION:
-        return std::string("POSITION");
+        return string("POSITION");
 
     case NORMAL:
-        return std::string("NORMAL");
+        return string("NORMAL");
 
     case TEXCOORD:
-        return std::string("TEXCOORD");
+        return string("TEXCOORD");
 
     case COLOR:
-        return std::string("COLOR");
+        return string("COLOR");
 
     case BONE_WEIGHT:
-        return std::string("BONE_WEIGHT");
+        return string("BONE_WEIGHT");
 
     case BONE_REF:
-        return std::string("BONE_REF");
+        return string("BONE_REF");
 
     default:
         break;
     }
 
-    BOOST_THROW_EXCEPTION(std::runtime_error("no string representation defined for channel " +
-                std::to_string(static_cast<int>(op))));
+    VGL_THROW_RUNTIME_ERROR("no string representation defined for channel " + to_string(static_cast<int>(op)));
 }
 
 #endif

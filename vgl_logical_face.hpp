@@ -207,8 +207,8 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
           if(idx >= m_num_corners)
           {
-              BOOST_THROW_EXCEPTION(std::runtime_error("accessing index " + std::to_string(idx) + " of a " +
-                          std::to_string(m_num_corners) + "-corner face"));
+              VGL_THROW_RUNTIME_ERROR("accessing index " + to_string(idx) + " of a " + to_string(m_num_corners) +
+                      "-corner face");
           }
 #else
           (void)idx;
@@ -223,7 +223,7 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
           if(m_num_corners <= 3)
           {
-              BOOST_THROW_EXCEPTION(std::runtime_error("cannot degrade triangle by removing a corner"));
+              VGL_THROW_RUNTIME_ERROR("cannot degrade triangle by removing a corner");
           }
 #endif
           --m_num_corners;
@@ -397,7 +397,7 @@ public:
 #if defined(USE_LD)
         if(isQuad() && ((m_indices[0] == m_indices[2]) || (m_indices[1] == m_indices[3])))
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("degenerate trapezoid quad"));
+            VGL_THROW_RUNTIME_ERROR("degenerate trapezoid quad");
         }
 #endif
 
@@ -417,8 +417,7 @@ public:
 #if defined(USE_LD)
         if((m_num_corners != 3) && (m_num_corners != 4))
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("don't know how to write face with " +
-                        std::to_string(m_num_corners) + " corners"));
+            VGL_THROW_RUNTIME_ERROR("don't know how to write face with " + to_string(m_num_corners) + " corners");
         }
 #endif
         op.write(static_cast<uint16_t>(m_indices[0]));

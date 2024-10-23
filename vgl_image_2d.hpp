@@ -41,9 +41,9 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if((px >= m_width) || (py >= m_height) || (ch >= getChannelCount()))
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("image " + std::to_string(m_width) + ";" +
-                        std::to_string(m_height) + ";" + std::to_string(getChannelCount()) + ": accessing " +
-                        std::to_string(px) + ";" + std::to_string(py) + ";" + std::to_string(ch)));
+            VGL_THROW_RUNTIME_ERROR("image " + to_string(m_width) + ";" + to_string(m_height) + ";" +
+                    to_string(getChannelCount()) + ": accessing " + to_string(px) + ";" + to_string(py) + ";" +
+                    to_string(ch));
         }
 #else
         (void)px;

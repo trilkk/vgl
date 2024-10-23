@@ -114,6 +114,16 @@ public:
 
 #if defined(USE_LD)
 
+        /// To string operator.
+        ///
+        /// \param op Input object.
+        /// \return String representation.
+        friend string to_string(const ChannelInfo& op)
+        {
+            return to_string(op.m_semantic) + ": " + to_string(op.m_element_count) + ", " + to_string(op.m_type) +
+                ", " + to_string(op.m_offset);
+        }
+
         /// Stream output operator.
         ///
         /// \param lhs Left-hand-side operand.
@@ -121,8 +131,7 @@ public:
         /// \return Output stream.
         friend std::ostream& operator<<(std::ostream& lhs, const ChannelInfo& rhs)
         {
-            return lhs << to_string(rhs.m_semantic) << ": " << rhs.m_element_count << ", " << rhs.m_type << ", " <<
-                rhs.m_offset;
+            return lhs << to_string(rhs);
         }
 
 #endif
@@ -365,8 +374,7 @@ public:
             {
                 if(disabled_location)
                 {
-                    BOOST_THROW_EXCEPTION(std::runtime_error("attribute binding gap at " +
-                                std::to_string(*disabled_location)));
+                    VGL_THROW_RUNTIME_ERROR("attribute binding gap at " + to_string(*disabled_location));
                 }
                 disable_attribs = ii + 1;
             }

@@ -76,6 +76,7 @@ set(VGL_HEADERS
     "${VGL_ROOT}/vgl_texture_cube.hpp"
     "${VGL_ROOT}/vgl_texture_format.hpp"
     "${VGL_ROOT}/vgl_thread.hpp"
+    "${VGL_ROOT}/vgl_throw_exception.hpp"
     "${VGL_ROOT}/vgl_type_traits.hpp"
     "${VGL_ROOT}/vgl_unique_ptr.hpp"
     "${VGL_ROOT}/vgl_uvec4.hpp"

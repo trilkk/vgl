@@ -2,6 +2,10 @@
 
 #include <new>
 
+#if defined(USE_LD) && defined(DEBUG)
+#include <iostream>
+#endif
+
 void operator delete(void *ptr) noexcept
 {
     dnload_free(ptr);
