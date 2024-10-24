@@ -2,7 +2,7 @@
 #define VGL_FONT_HPP
 
 #include "vgl_character.hpp"
-#include "vgl_extern_boost_filesystem.hpp"
+#include "vgl_filesystem.hpp"
 
 namespace vgl
 {
@@ -101,12 +101,12 @@ private:
     {
         FT_Error err;
 #if defined(USE_LD)
-        boost::filesystem::path pth = find_file(fname);
+        path pth = find_file(fname);
         if(pth.empty())
         {
             return false;
         }
-        err = dnload_FT_New_Face(g_freetype_library, pth.string().c_str(), 0, &m_face);
+        err = dnload_FT_New_Face(g_freetype_library, pth.getString().c_str(), 0, &m_face);
 #else
         err = dnload_FT_New_Face(g_freetype_library, fname, 0, &m_face);
 #endif

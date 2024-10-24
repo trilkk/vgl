@@ -271,6 +271,19 @@ public:
         return *base_type::getPtr();
     }
 
+    /// Returns the contained value or an alternative.
+    ///
+    /// \param op Alternative value.
+    /// \return Contained value or passed value if this object is empty.
+    template<typename U> constexpr T value_or(U&& op) const
+    {
+        if(has_value())
+        {
+            return value();
+        }
+        return op;
+    }
+
     /// Constructs a member in-place.
     ///
     /// \param args Arguments.

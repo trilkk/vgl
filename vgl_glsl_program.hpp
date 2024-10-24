@@ -80,7 +80,7 @@ enum class UniformSemantic
 ///
 /// \param op Channel ID.
 /// \return String representation for channel.
-std::string to_string(UniformSemantic op);
+string to_string(UniformSemantic op);
 
 #endif
 
@@ -359,7 +359,7 @@ private:
 #if defined(USE_LD)
         if(type != GL_FRAGMENT_SHADER)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("invalid shader type: " + std::to_string(type)));
+            VGL_THROW_RUNTIME_ERROR("invalid shader type: " + to_string(type));
         }
 #endif
         return m_frag;
@@ -420,8 +420,8 @@ public:
         {
             if(vv.getChannel() == channel)
             {
-                BOOST_THROW_EXCEPTION(std::runtime_error("trying to add multiple channels of of type " +
-                            to_string(channel) + " into the same program"));
+                VGL_THROW_RUNTIME_ERROR("trying to add multiple channels of of type " + to_string(channel) +
+                        " into the same program");
             }
         }
 #endif
@@ -429,8 +429,7 @@ public:
 #if defined(USE_LD)
         if(!m_attributes.back().isValid())
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("cannot add attribute '" + std::string(name) + "' to program " +
-                       std::to_string(m_id)));
+            VGL_THROW_RUNTIME_ERROR("cannot add attribute '" + string(name) + "' to program " + to_string(m_id));
         }
 #endif
     }
@@ -458,8 +457,8 @@ public:
 #if defined(USE_LD)
         if(!m_attributes.back().isValid())
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("cannot add uniform '" + std::string(name) + "' with semantic " +
-                        to_string(semantic) + " to program " + std::to_string(m_id)));
+            VGL_THROW_RUNTIME_ERROR("cannot add uniform '" + string(name) + "' with semantic " + to_string(semantic) +
+                    " to program " + to_string(m_id));
         }
 #endif
     }

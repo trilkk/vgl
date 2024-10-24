@@ -80,8 +80,8 @@ public:
 #if defined(USE_LD)
         if(remaining() < sizeof(T))
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("cannot read value of size " + std::to_string(sizeof(T)) + ": " +
-                        std::to_string(remaining()) + " bytes remaining"));
+            VGL_THROW_RUNTIME_ERROR("cannot read value of size " + to_string(sizeof(T)) + ": " +
+                    to_string(remaining()) + " bytes remaining");
         }
 #endif
         return *reinterpret_cast<const T*>(advance(static_cast<unsigned>(sizeof(T) * op)));

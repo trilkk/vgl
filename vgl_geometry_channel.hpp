@@ -4,9 +4,7 @@
 #include "vgl_extern_opengl.hpp"
 
 #if defined(USE_LD)
-#include <stdexcept>
-#include <string>
-#include <boost/throw_exception.hpp>
+#include "vgl_throw_exception.hpp"
 #endif
 
 namespace vgl
@@ -43,7 +41,7 @@ enum GeometryChannel
 ///
 /// \param op Channel ID.
 /// \return String representation for channel.
-std::string to_string(GeometryChannel op);
+string to_string(GeometryChannel op);
 
 #endif
 
@@ -75,8 +73,7 @@ constexpr GLint geometry_channel_element_count(GeometryChannel op)
 
 #if defined(USE_LD)
     default:
-        BOOST_THROW_EXCEPTION(std::runtime_error("no element count defined for channel " +
-                    std::to_string(static_cast<int>(op))));
+        VGL_THROW_RUNTIME_ERROR("no element count defined for channel " + to_string(static_cast<int>(op)));
 #endif
     }
 }
@@ -106,8 +103,7 @@ constexpr GLenum geometry_channel_element_type(GeometryChannel op)
 
 #if defined(USE_LD)
     default:
-        BOOST_THROW_EXCEPTION(std::runtime_error("no element count defined for channel " +
-                    std::to_string(static_cast<int>(op))));
+        VGL_THROW_RUNTIME_ERROR("no element count defined for channel " + to_string(static_cast<int>(op)));
 #endif
     }
 }
@@ -135,8 +131,8 @@ constexpr GLboolean geometry_channel_element_normalized(GeometryChannel op)
 
 #if defined(USE_LD)
     default:
-        BOOST_THROW_EXCEPTION(std::runtime_error("no element normalized status defined for channel " +
-                    std::to_string(static_cast<int>(op))));
+        VGL_THROW_RUNTIME_ERROR("no element normalized status defined for channel " +
+                to_string(static_cast<int>(op)));
 #endif
     }
 }

@@ -2,8 +2,7 @@
 #define VGL_ARRAY_HPP
 
 #if defined(USE_LD)
-#include <sstream>
-#include <boost/throw_exception.hpp>
+#include "vgl_throw_exception.hpp"
 #endif
 
 namespace vgl
@@ -34,8 +33,7 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(idx >= N)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("accessing index " + std::to_string(idx) +
-                        " from array of size " + std::to_string(N)));
+            VGL_THROW_RUNTIME_ERROR("accessing index " + to_string(idx) + " from array of size " + to_string(N));
         }
 #else
         (void)idx;
@@ -49,8 +47,8 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(idx < 0)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("accessing negative index " + std::to_string(idx) +
-                        " from array of size " + std::to_string(N)));
+            VGL_THROW_RUNTIME_ERROR("accessing negative index " + to_string(idx) + " from array of size " +
+                    to_string(N));
         }
 #endif
         accessCheck(static_cast<unsigned>(idx));

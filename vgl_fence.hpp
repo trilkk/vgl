@@ -6,6 +6,11 @@
 #include "vgl_scoped_acquire.hpp"
 #include "vgl_unique_ptr.hpp"
 
+#if defined(USE_LD)
+#include "vgl_throw_exception.hpp"
+#include <iostream>
+#endif
+
 namespace vgl
 {
 
@@ -163,7 +168,7 @@ public:
 #if defined(USE_LD)
         if(!m_fence_data)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("fence data has already been cleared"));
+            VGL_THROW_RUNTIME_ERROR("fence data has already been cleared");
         }
 #endif
         void* ret = detail::internal_fence_wait(*this);
@@ -217,7 +222,7 @@ private:
         }
     }
 
-public:    
+public:
     /// Move operator.
     ///
     /// \param other Source object.
@@ -239,8 +244,9 @@ public:
         return m_fence_data->isActive();
     }
 
-public:
 #if defined(USE_LD)
+
+public:
     /// Stream output operator.
     ///
     /// \param lhs Left-hand-side operand.
@@ -250,6 +256,7 @@ public:
     {
         return lhs << "Fence(" << rhs.m_fence_data->getCondImpl() << ")";
     }
+
 #endif
 };
 

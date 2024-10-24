@@ -11,8 +11,8 @@
 #include "vgl_extern_stdlib.hpp"
 
 #if defined(USE_LD)
+#include <stdexcept>
 #include <boost/throw_exception.hpp>
-#include <iostream>
 #endif
 
 namespace vgl
@@ -65,14 +65,17 @@ inline void* array_new_internal(void* ptr, size_t new_size)
 #if defined(USE_LD)
     if(!new_size)
     {
-        BOOST_THROW_EXCEPTION(std::runtime_error("resize to zero not supported"));
+        // Can't use vgl_throw_exception.hpp yet.
+        BOOST_THROW_EXCEPTION(std::runtime_error("array_new_internal(): resize to zero not supported"));
     }
 #endif
     void* ret = dnload_realloc(ptr, new_size);
 #if defined(USE_LD)
     if(!ret)
     {
-        BOOST_THROW_EXCEPTION(std::runtime_error("allocating " + std::to_string(new_size) + " bytes failed"));
+        // Can't use vgl_throw_exception.hpp yet.
+        BOOST_THROW_EXCEPTION(std::runtime_error("array_new_internal(): allocating " + std::to_string(new_size) +
+                    " bytes failed"));
     }
 #endif
     return ret;

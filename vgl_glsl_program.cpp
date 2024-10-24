@@ -8,36 +8,36 @@ const GlslProgram* GlslProgram::g_current_program = nullptr;
 
 #if defined(USE_LD)
 
-std::string to_string(UniformSemantic op)
+string to_string(UniformSemantic op)
 {
     switch(op)
     {
     case UniformSemantic::PROJECTION_MATRIX:
-        return std::string("PROJECTION_MATRIX");
+        return string("PROJECTION_MATRIX");
 
     case UniformSemantic::CAMERA_MATRIX:
-        return std::string("CAMERA_MATRIX");
+        return string("CAMERA_MATRIX");
 
     case UniformSemantic::MODELVIEW_MATRIX:
-        return std::string("MODELVIEW_MATRIXC");
+        return string("MODELVIEW_MATRIXC");
 
     case UniformSemantic::NORMAL_MATRIX:
-        return std::string("NORMAL_MATRIX");
+        return string("NORMAL_MATRIX");
 
     case UniformSemantic::PROJECTION_CAMERA_MATRIX:
-        return std::string("PROJECTION_CAMERA_MATRIX");
+        return string("PROJECTION_CAMERA_MATRIX");
 
     case UniformSemantic::CAMERA_MODELVIEW_MATRIX:
-        return std::string("CAMERA_MODELVIEW_MATRIX");
+        return string("CAMERA_MODELVIEW_MATRIX");
     
     case UniformSemantic::PROJECTION_CAMERA_MODELVIEW_MATRIX:
-        return std::string("PROJECTION_CAMERA_MODELVIEW_MATRIX");
+        return string("PROJECTION_CAMERA_MODELVIEW_MATRIX");
 
     case UniformSemantic::CAMERA_POSITION:
-        return std::string("CAMERA_POSITION");
+        return string("CAMERA_POSITION");
 
     default:
-        return std::string("NONE");
+        return string("NONE");
     }
 }
 

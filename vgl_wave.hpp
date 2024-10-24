@@ -6,7 +6,7 @@
 
 #if defined(USE_LD)
 
-#include "vgl_extern_boost_filesystem.hpp"
+#include "vgl_string_view.hpp"
 
 namespace vgl
 {
@@ -15,7 +15,7 @@ namespace vgl
 ///
 /// \parmam op Source input.
 /// \ŗeturn Preprocessed source.
-std::string wave_preprocess_glsl(std::string_view op);
+string wave_preprocess_glsl(string_view op);
 
 }
 
