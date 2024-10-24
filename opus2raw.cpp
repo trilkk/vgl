@@ -124,11 +124,11 @@ int main(int argc, char **argv)
             }
             if(vmap.count("input-file"))
             {
-                input_file = path(vmap["input-file"].as<string>());
+                input_file = path(vmap["input-file"].as<std::string>().c_str());
             }
             if(vmap.count("output-file"))
             {
-                output_file = path(vmap["output-file"].as<string>());
+                output_file = path(vmap["output-file"].as<std::string>().c_str());
             }
         }
         else
