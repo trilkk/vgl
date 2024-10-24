@@ -384,6 +384,17 @@ public:
     }
 
 #if defined(USE_LD)
+    /// Constructor from std::string.
+    ///
+    /// Intentionally not explicit.
+    ///
+    /// \param op String data input.
+    string(const std::string& op) :
+        base_type()
+    {
+        assign(op.data(), static_cast<unsigned>(op.length()));
+    }
+
     /// Consructor from iterators.
     ///
     /// \param first First iterator to insert.

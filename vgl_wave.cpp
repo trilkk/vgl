@@ -1,19 +1,16 @@
 #include "vgl_wave.hpp"
 
-#include <utility>
+#include "vgl_filesystem.hpp"
+
+//#include <utility>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/wave/cpp_context.hpp>
 #include <boost/wave/cpplexer/cpp_lex_iterator.hpp>
 
-namespace fs = boost::filesystem;
 using wave_token = boost::wave::cpplexer::lex_token<>;
 using wave_cpplex_iterator = boost::wave::cpplexer::lex_iterator<wave_token>;
 using wave_context = boost::wave::context<std::string::const_iterator, wave_cpplex_iterator>;
-
-//######################################
-// Local ###############################
-//######################################
 
 namespace
 {
@@ -334,9 +331,73 @@ std::string convert_glesv2_gl(std::string_view op)
 namespace vgl
 {
 
-std::string wave_preprocess_glsl(std::string_view op)
+string wave_preprocess_glsl(string_view op)
 {
-    std::string input_source = read_file_locate(op);
+    std::string input_source = read_file_locate(op).c_str();
+
+#if 1
+    std::string wave_input = R"WAVE(precision highp float;
+
+#if defined(USE_LD)
+uniform int debug_mode;
+#endif
+
+vec3 depth_encode(float op)
+{
+    float lin_z = op * 65535.99609375;
+    float lo = lin_z - floor(lin_z);
+    lin_z = (lin_z - lo) / 256.0;
+    float mid = lin_z - floor(lin_z);
+    float hi = (lin_z - mid) / 255.0;
+    return vec3(hi, vec2(mid, lo) * 1.003921568627451);
+}
+
+float color_encode(float color, float angle)
+{
+    float ret = min(angle, 1.0) * 0.2470588;
+    if(color >= 0.75)
+    {
+        // Should be 0.7529412
+        return ret + 0.7547795;
+    }
+    if(color >= 0.5)
+    {
+        // Should be 0.5019608
+        return ret + 0.5037990;
+    }
+    if(color >= 0.25)
+    {
+        // Should be 0.2509804
+        return ret + 0.2528187;
+    }
+    return ret;
+}
+
+float sample_stipple(float ss, float cmp)
+{
+    if(cmp >= ss)
+    {
+        return 1.0;
+    }
+    float ss_border = ss - 0.2;
+    if(cmp >= ss_border)
+    {
+        return (cmp - ss_border) / 0.2;
+    }
+    return 0.0;
+}
+)WAVE";
+    {
+        wave_context ctx(cbegin(wave_input), cend(wave_input), "Boost::Wave GLSL;");
+        ctx.add_macro_definition("USE_LD");
+        for(const auto& vv : ctx)
+        {
+            auto value = vv.get_value();
+            std::cout << "token: '" << value << "'\n";
+        }
+    }
+#endif
+
 #if !defined(DNLOAD_GLESV2)
     input_source = convert_glesv2_gl(input_source);
 #endif
@@ -350,7 +411,9 @@ std::string wave_preprocess_glsl(std::string_view op)
     ctx.add_macro_definition("USE_LD");
     for(const auto& vv : ctx)
     {
-        preprocessed << vv.get_value();
+        auto value = vv.get_value();
+        std::cout << "token: '" << value << "'\n";
+        preprocessed << value;
     }
 
     return source.first + glsl_tidy(preprocessed.str());

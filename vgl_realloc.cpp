@@ -6,6 +6,8 @@
 #include <iostream>
 #endif
 
+#if !defined(VGL_DISABLE_NEW) && 0
+
 void operator delete(void *ptr) noexcept
 {
     dnload_free(ptr);
@@ -75,6 +77,8 @@ void* operator new[](size_t sz, size_t align)
     return dnload_realloc(nullptr, sz);
     (void)align;
 }
+
+#endif
 
 #endif
 

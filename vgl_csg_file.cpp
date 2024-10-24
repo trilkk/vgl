@@ -15,7 +15,7 @@ namespace
 ///
 /// \param op Input string.
 /// \return Header-friendly string.
-std::string headerify(std::string_view op)
+string headerify(string_view op)
 {
     std::ostringstream sstr;
     for(const auto cc : op)
@@ -38,15 +38,15 @@ std::string headerify(std::string_view op)
 
 }
 
-CsgFile::CsgFile(std::string_view filename) :
+CsgFile::CsgFile(string_view filename) :
     m_basename(filename),
-    m_filename(find_file(m_basename))
+    m_filename(find_file(filename))
 {
     if(!isValid())
     {
         std::cerr << "CsgFile::CsgFile(): '" << m_basename << "' not found" << std::endl;
     }
-    m_contents = read_file(m_filename);
+    m_contents = m_filename.readToString().value_or(string());
 }
 
 unsigned CsgFile::update(const int16_t* data, unsigned count)
@@ -56,22 +56,22 @@ unsigned CsgFile::update(const int16_t* data, unsigned count)
         std::cerr << "CsgFile::update(): illegal input data: " << data << " ; " << count << std::endl;
         return 0;
     }
-    std::string cmp_contents = generate_contents(m_basename, data, count);
+    string cmp_contents = generate_contents(m_basename, data, count);
     if(cmp_contents == m_contents)
     {
         return 0;
     }
-    write_file(m_filename, cmp_contents);
+    m_filename.write(cmp_contents);
     return static_cast<unsigned>(sizeof(*data) * count);
 }
 
-std::string CsgFile::generate_contents(std::string_view filename, const int16_t* data, unsigned count)
+string CsgFile::generate_contents(string_view filename, const int16_t* data, unsigned count)
 {
     const unsigned LINE_LEN = 78;
 
     std::ostringstream sstr;
-    std::string fname = headerify(filename);
-    std::string_view indent = "    ";
+    string fname = headerify(filename);
+    string_view indent = "    ";
 
     sstr << "#ifndef __" << fname << "__\n#define __" << fname << "__\n\nconst unsigned g_" << fname <<
         "_size = " << count << ";\n\nconst int16_t g_" << fname << "[] =\n{\n";
