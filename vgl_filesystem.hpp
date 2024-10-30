@@ -20,9 +20,13 @@ namespace vgl
 /// Intentionally does not inherit as to not confuse external code.
 class path
 {
+public:
+    /// Storage type.
+    using storage_type = std::filesystem::path;
+
 private:
     /// Internal path.
-    std::filesystem::path m_data;
+    storage_type m_data;
 
 public:
     /// Default constructor.
@@ -51,7 +55,7 @@ public:
     /// Base class copy constructor.
     ///
     /// \param op Boost path object.
-    explicit path(const std::filesystem::path& op) :
+    explicit path(const storage_type& op) :
         m_data(op)
     {
     }
@@ -59,7 +63,7 @@ public:
     /// Base class move constructor.
     ///
     /// \param op Boost path object.
-    explicit path(std::filesystem::path&& op) :
+    explicit path(storage_type&& op) :
         m_data(move(op))
     {
     }

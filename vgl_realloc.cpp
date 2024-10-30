@@ -6,7 +6,7 @@
 #include <iostream>
 #endif
 
-#if !defined(VGL_DISABLE_NEW) && 0
+#if !defined(VGL_DISABLE_NEW)
 
 void operator delete(void *ptr) noexcept
 {
