@@ -4,7 +4,10 @@
 #include "vgl_algorithm.hpp"
 #include "vgl_assert.hpp"
 #include "vgl_extern_math.hpp"
+#include "vgl_limits.hpp"
 #include "vgl_type_traits.hpp"
+
+#include <cstdint>
 
 #if defined(VGL_IS_CONSTANT_EVALUATED)
 /// Math functions have constexpr path.
@@ -376,6 +379,27 @@ constexpr float mix(float lhs, float rhs, float ratio) noexcept
     return lhs + (rhs - lhs) * ratio;
 }
 
+namespace detail
+{
+
+/// Mix two integers.
+///
+/// \param lhs Left-hand-side operand.
+/// \param rhs Right-hand-side operand.
+/// \param ratio Mixing ratio.
+/// \return Mixing result.
+template<typename T> constexpr T mix_integers(T lhs, T rhs, float ratio) noexcept
+{
+    float c1 = static_cast<float>(lhs);
+    float c2 = static_cast<float>(rhs);
+    float ret = clamp(mix(c1, c2, ratio),
+            static_cast<float>(numeric_limits<T>::min()),
+            static_cast<float>(numeric_limits<T>::max()));
+    return static_cast<T>(iround(ret));
+}
+
+}
+
 /// Mix two signed integers.
 ///
 /// \param lhs Left-hand-side operand.
@@ -384,10 +408,7 @@ constexpr float mix(float lhs, float rhs, float ratio) noexcept
 /// \return Mixing result.
 constexpr int8_t mix(int8_t lhs, int8_t rhs, float ratio) noexcept
 {
-    float c1 = static_cast<float>(lhs);
-    float c2 = static_cast<float>(rhs);
-    float ret = clamp(mix(c1, c2, ratio), -128.0f, 127.0f);
-    return static_cast<int8_t>(iround(ret));
+    return detail::mix_integers(lhs, rhs, ratio);
 }
 
 /// Mix two signed integers.
@@ -398,10 +419,18 @@ constexpr int8_t mix(int8_t lhs, int8_t rhs, float ratio) noexcept
 /// \return Mixing result.
 constexpr int16_t mix(int16_t lhs, int16_t rhs, float ratio) noexcept
 {
-    float c1 = static_cast<float>(lhs);
-    float c2 = static_cast<float>(rhs);
-    float ret = clamp(mix(c1, c2, ratio), -32768.0f, 32767.0f);
-    return static_cast<int16_t>(iround(ret));
+    return detail::mix_integers(lhs, rhs, ratio);
+}
+
+/// Mix two signed integers.
+///
+/// \param lhs Left-hand-side operand.
+/// \param rhs Right-hand-side operand.
+/// \param ratio Mixing ratio.
+/// \return Mixing result.
+constexpr int32_t mix(int32_t lhs, int32_t rhs, float ratio) noexcept
+{
+    return detail::mix_integers(lhs, rhs, ratio);
 }
 
 /// Mix two unsigned integers.
@@ -412,10 +441,29 @@ constexpr int16_t mix(int16_t lhs, int16_t rhs, float ratio) noexcept
 /// \return Mixing result.
 constexpr uint8_t mix(uint8_t lhs, uint8_t rhs, float ratio) noexcept
 {
-    float c1 = static_cast<float>(lhs);
-    float c2 = static_cast<float>(rhs);
-    float ret = clamp(mix(c1, c2, ratio), 0.0f, 255.0f);
-    return static_cast<uint8_t>(iround(ret));
+    return detail::mix_integers(lhs, rhs, ratio);
+}
+
+/// Mix two unsigned integers.
+///
+/// \param lhs Left-hand-side operand.
+/// \param rhs Right-hand-side operand.
+/// \param ratio Mixing ratio.
+/// \return Mixing result.
+constexpr uint16_t mix(uint16_t lhs, uint16_t rhs, float ratio) noexcept
+{
+    return detail::mix_integers(lhs, rhs, ratio);
+}
+
+/// Mix two unsigned integers.
+///
+/// \param lhs Left-hand-side operand.
+/// \param rhs Right-hand-side operand.
+/// \param ratio Mixing ratio.
+/// \return Mixing result.
+constexpr uint32_t mix(uint32_t lhs, uint32_t rhs, float ratio) noexcept
+{
+    return detail::mix_integers(lhs, rhs, ratio);
 }
 
 /// Generic fallback implementation of mix().

@@ -26,9 +26,13 @@ optional<string> path::readToString() const
             return nullopt;
         }
 
-        while(!feof(fd))
+        for(;;)
         {
             char cc = static_cast<char>(fgetc(fd));
+            if(feof(fd))
+            {
+                break;
+            }
             ret << cc;
         }
 
@@ -49,9 +53,14 @@ optional<vector<uint8_t>> path::readToVector() const
             return nullopt;
         }
 
-        while(!feof(fd))
+        for(;;)
         {
-            ret.push_back(static_cast<uint8_t>(fgetc(fd)));
+            uint8_t cc = static_cast<uint8_t>(fgetc(fd));
+            if(feof(fd))
+            {
+                break;
+            }
+            ret.push_back(cc);
         }
 
         fclose(fd);

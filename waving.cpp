@@ -26,7 +26,7 @@ static const char *usage = ""
 /// \return Program return code.
 int main(int argc, char **argv)
 {
-    //try
+    try
     {
         optional<path> input_file;
         optional<path> output_file;
@@ -98,11 +98,11 @@ int main(int argc, char **argv)
             std::cout << std::endl;
         }
     }
-    //catch(const boost::exception &err)
-    //{
-    //    std::cerr << boost::diagnostic_information(err);
-    //    return 1;
-    //}
+    catch(const boost::exception &err)
+    {
+        std::cerr << boost::diagnostic_information(err);
+        return 1;
+    }
 
     return 0;
 }
