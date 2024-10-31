@@ -135,6 +135,27 @@ public:
         return (m_length <= 0);
     }
 
+    /// Accessor.
+    ///
+    /// \return String length (without terminating zero).
+    constexpr unsigned length() const noexcept
+    {
+        return m_length;
+    }
+
+    /// Returns the internal data pointer.
+    ///
+    /// \return Data pointer.
+    constexpr const T* data() const noexcept
+    {
+        if(m_data)
+        {
+            return m_data;
+        }
+        return reinterpret_cast<const T*>("");
+    }
+
+#if defined(USE_LD)
     /// Finds the occurrance of another substring.
     ///
     /// \param rhs Right-hand side operand.
@@ -155,26 +176,6 @@ public:
             }
         }
         return npos;
-    }
-
-    /// Accessor.
-    ///
-    /// \return String length (without terminating zero).
-    constexpr unsigned length() const noexcept
-    {
-        return m_length;
-    }
-
-    /// Returns the internal data pointer.
-    ///
-    /// \return Data pointer.
-    constexpr const T* data() const noexcept
-    {
-        if(m_data)
-        {
-            return m_data;
-        }
-        return reinterpret_cast<const T*>("");
     }
 
     /// Tells if the string starts with given substring.
@@ -222,6 +223,7 @@ private:
         }
         return true;
     }
+#endif
 
 public:
     /// Access operator.
@@ -257,29 +259,6 @@ public:
         return m_data[idx];
     }
 
-    /// Less than operator.
-    ///
-    /// \param rhs Right-hand-side operand.
-    /// \return True if this is less than rhs, false otherwise.
-    template<typename R> constexpr bool operator<(const string_data<R>& rhs) const noexcept
-    {
-        unsigned common_length = min(length(), rhs.length());
-        for(unsigned ii = 0; (ii < common_length); ++ii)
-        {
-            auto ccl = m_data[ii];
-            auto ccr = rhs.m_data[ii];
-            if(ccl < ccr)
-            {
-                return true;
-            }
-            else if(ccl > ccr)
-            {
-                return false;
-            }
-        }
-        return length() < rhs.length();
-    }
-
     /// Equals operator.
     ///
     /// \param rhs Right-hand-side operand.
@@ -309,6 +288,31 @@ public:
     {
         return !(*this == rhs);
     }
+
+#if defined(USE_LD)
+    /// Less than operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return True if this is less than rhs, false otherwise.
+    template<typename R> constexpr bool operator<(const string_data<R>& rhs) const noexcept
+    {
+        unsigned common_length = min(length(), rhs.length());
+        for(unsigned ii = 0; (ii < common_length); ++ii)
+        {
+            auto ccl = m_data[ii];
+            auto ccr = rhs.m_data[ii];
+            if(ccl < ccr)
+            {
+                return true;
+            }
+            else if(ccl > ccr)
+            {
+                return false;
+            }
+        }
+        return length() < rhs.length();
+    }
+#endif
 
 public:
 #if defined(USE_LD)
@@ -591,9 +595,9 @@ public:
     ///
     /// \param rhs Right-hand-side operand.
     /// \return This object.
-    string& operator=(const string_data<const char>& rhs)
+    template<typename T> string& operator=(const detail::string_data<T>& rhs)
     {
-        return assign(rhs.data());
+        return assign(rhs.data(), rhs.length());
     }
 
 #if defined(USE_LD)
@@ -601,7 +605,7 @@ public:
     ///
     /// \param rhs Right-hand-side operand.
     /// \return Concatenated string.
-    string operator+(const string& rhs) const
+    template<typename T> string operator+(const detail::string_data<T>& rhs) const
     {
         string ret;
         auto new_size = length() + rhs.length();
@@ -648,7 +652,7 @@ public:
     ///
     /// \param rhs Right-hand-side operand.
     /// \return This object.
-    string& operator+=(const string& rhs)
+    template<typename T> string& operator+=(const detail::string_data<T>& rhs)
     {
         if(rhs.length())
         {
@@ -701,16 +705,6 @@ public:
             }
         }
         return ret;
-    }
-
-    /// Stream output operator.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return Output stream.
-    friend std::ostream& operator<<(std::ostream& lhs, const string& rhs)
-    {
-        return lhs << rhs.c_str();
     }
 #endif
 };

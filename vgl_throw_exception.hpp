@@ -14,7 +14,7 @@ namespace vgl
 
 /// Wrapper for runtime_error.
 ///
-/// Main intent is to support vgl::string as opposed to std::string. Eating own dog food good.
+/// Main intent is to support and be easily constructable using replacement classes. Eating own dog food good.
 class runtime_error : public std::exception
 {
 private:

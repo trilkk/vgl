@@ -71,7 +71,7 @@ public:
                     !m_threads.empty() ||
                     !m_fence_pool.empty())
             {
-                BOOST_THROW_EXCEPTION(std::runtime_error("task queue was never initialized but is not at initial state"));
+                VGL_THROW_RUNTIME_ERROR("task queue was never initialized but is not at initial state");
             }
         }
         else
@@ -160,9 +160,8 @@ private:
     void spawnThread()
     {
 #if defined(USE_LD)
-        std::ostringstream sstr;
-        sstr << "InternalTaskDispatcher(" << m_threads.size() << ")";
-        m_threads.emplace_back(task_thread_func, this, sstr.str().c_str());
+        string threadName = "InternalTaskDispatcher(" + to_string(m_threads.size()) + ")";
+        m_threads.emplace_back(task_thread_func, this, threadName.c_str());
 #else
         m_threads.emplace_back(task_thread_func, this);
 #endif
@@ -282,7 +281,7 @@ public:
 #if defined(USE_LD) && defined(DEBUG)
             if(isMainThread())
             {
-                BOOST_THROW_EXCEPTION(std::runtime_error("cannot wait on main thread"));
+                VGL_THROW_RUNTIME_ERROR("cannot wait on main thread");
             }
 #endif
 
