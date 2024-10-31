@@ -27,6 +27,7 @@ public:
     /// \param filename Basename of the file to read.
     explicit CsgFile(string_view filename);
 
+public:
     /// Update the file if it's different from given input.
     ///
     /// \param data Input data to compare to file contents.

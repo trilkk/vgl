@@ -24,6 +24,78 @@ public:
     /// Storage type.
     using storage_type = std::filesystem::path;
 
+public:
+    /// RAII wrapper for a file descriptor.
+    class FileDescriptor
+    {
+    private:
+        /// Contained descriptor.
+        FILE* m_fd = nullptr;
+
+    public:
+        /// Constructor.
+        ///
+        /// \param fname Filename.
+        /// \param mode Opening mode.
+        explicit FileDescriptor(const char* fname, const char* mode);
+
+        /// Destructor.
+        ~FileDescriptor();
+
+        /// Move constructor.
+        ///
+        /// \param other Source object.
+        /// \return This object.
+        FileDescriptor(FileDescriptor&& other) :
+            m_fd(other.m_fd)
+        {
+            other.m_fd = nullptr;
+        }
+
+        /// Deleted copy constructor.
+        FileDescriptor(const FileDescriptor&);
+        /// Deleted copy operator.
+        FileDescriptor& operator=(const FileDescriptor&);
+
+    public:
+        /// Read one character from the file.
+        ///
+        /// \return Character read or nullopt.
+        optional<char> readChar() const;
+
+        /// Read one unsigned byte from the file.
+        ///
+        /// \return Unsigned byte read or nullopt.
+        optional<uint8_t> readUnsigned() const;
+
+        /// Write data to file.
+        ///
+        /// \param data Data to write.
+        /// \param len Data size.
+        /// \return Number of bytes written.
+        size_t write(const void* data, size_t len);
+
+    public:
+        /// Conversion to bool.
+        ///
+        /// \return True if the file was opened successfully, false otherwise.
+        operator bool() const
+        {
+            return static_cast<bool>(m_fd);
+        }
+
+        /// Move operator.
+        ///
+        /// \param other Source object.
+        /// \return This object.
+        FileDescriptor& operator=(FileDescriptor&& other)
+        {
+            m_fd = other.m_fd;
+            other.m_fd = nullptr;
+            return *this;
+        }
+    };
+
 private:
     /// Internal path.
     storage_type m_data;
@@ -91,7 +163,10 @@ public:
     ///
     /// \param mode Opening mode.
     /// \return FILE handle or nullptr.
-    FILE* fopen(const char* mode) const;
+    FileDescriptor openFile(const char* mode) const
+    {
+        return FileDescriptor(getString().c_str(), mode);
+    }
 
     /// Reads the file pointed by the path into a string.
     ///

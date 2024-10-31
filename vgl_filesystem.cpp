@@ -1,69 +1,96 @@
 #include "vgl_filesystem.hpp"
 
+#include "vgl_assert.hpp"
+
 #include <iostream>
 
 namespace vgl
 {
 
-FILE* path::fopen(const char* mode) const
+path::FileDescriptor::FileDescriptor(const char* fname, const char* mode) :
+    m_fd(fopen(fname, mode))
 {
-    FILE* ret = ::fopen(getString().c_str(), mode);
-    if(!ret)
+    if(!m_fd)
     {
         std::cerr << "path::fopen(): could not open '" << to_string(*this) << "' using mode '" << mode << "'\n";
     }
-    return ret;
+}
+
+path::FileDescriptor::~FileDescriptor()
+{
+    if(m_fd)
+    {
+        fclose(m_fd);
+    }
+}
+
+optional<char> path::FileDescriptor::readChar() const
+{
+    VGL_ASSERT(m_fd);
+    char cc = static_cast<char>(fgetc(m_fd));
+    if(feof(m_fd))
+    {
+        return nullopt;
+    }
+    return cc;
+}
+
+optional<uint8_t> path::FileDescriptor::readUnsigned() const
+{
+    VGL_ASSERT(m_fd);
+    uint8_t cc = static_cast<uint8_t>(fgetc(m_fd));
+    if(feof(m_fd))
+    {
+        return nullopt;
+    }
+    return cc;
+}
+
+size_t path::FileDescriptor::write(const void* data, size_t len)
+{
+    VGL_ASSERT(m_fd);
+    return fwrite(data, 1u, len, m_fd);
 }
 
 optional<string> path::readToString() const
 {
-    std::ostringstream ret;
-
+    auto fd = openFile("rb");
+    if(!fd)
     {
-        FILE* fd = fopen("rb");
-        if(!fd)
-        {
-            return nullopt;
-        }
-
-        for(;;)
-        {
-            char cc = static_cast<char>(fgetc(fd));
-            if(feof(fd))
-            {
-                break;
-            }
-            ret << cc;
-        }
-
-        fclose(fd);
+        return nullopt;
     }
 
-    return optional<string>(ret.str());
+    vector<char> ret;
+    for(;;)
+    {
+        optional<char> cc = fd.readChar();
+        if(!cc)
+        {
+            break;
+        }
+        ret.push_back(*cc);
+    }
+
+    return string(ret.data(), ret.size());
 }
 
 optional<vector<uint8_t>> path::readToVector() const
 {
-    vector<uint8_t> ret;
-
+    auto fd = openFile("rb");
+    if(!fd)
     {
-        FILE* fd = fopen("rb");
-        if(!fd)
-        {
-            return nullopt;
-        }
+        return nullopt;
+    }
 
-        for(;;)
+    vector<uint8_t> ret;
+    for(;;)
+    {
+        optional<uint8_t> cc = fd.readUnsigned();
+        if(!cc)
         {
-            uint8_t cc = static_cast<uint8_t>(fgetc(fd));
-            if(feof(fd))
-            {
-                break;
-            }
-            ret.push_back(cc);
+            break;
         }
-
-        fclose(fd);
+        ret.push_back(*cc);
     }
 
     return ret;
@@ -71,20 +98,19 @@ optional<vector<uint8_t>> path::readToVector() const
 
 bool path::write(string_view contents) const
 {
-    FILE* fd = fopen("wb");
+    auto fd = openFile("wb");
     if(!fd)
     {
         return false;
     }
 
-    size_t bytes_written = fwrite(contents.data(), 1u, contents.length(), fd);
+    size_t bytes_written = fd.write(contents.data(), contents.length());
     bool ret = (bytes_written == contents.length());
     if(!ret)
     {
         std::cerr << "path::write(): could only write " << bytes_written << " out of " << contents.length() <<
             "bytes requested to '" << to_string(*this) << "'\n";
     }
-    fclose(fd);
     return ret;
 }
 
