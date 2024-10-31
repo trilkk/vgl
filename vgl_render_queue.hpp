@@ -81,11 +81,11 @@ private:
 #if defined(USE_LD)
             if(!m_program)
             {
-                BOOST_THROW_EXCEPTION(std::runtime_error("cannot apply mesh before a program has been set"));
+                VGL_THROW_RUNTIME_ERROR("cannot apply mesh before a program has been set");
             }
             if(!m_projection_matrix)
             {
-                BOOST_THROW_EXCEPTION(std::runtime_error("cannot apply mesh before view settings have been read"));
+                VGL_THROW_RUNTIME_ERROR("cannot apply mesh before view settings have been read");
             }
             VGL_ASSERT(m_projection_range);
             VGL_ASSERT(m_camera_matrix);
@@ -117,7 +117,7 @@ private:
 #if defined(USE_LD)
             if(!m_program)
             {
-                BOOST_THROW_EXCEPTION(std::runtime_error("cannot get uniform locations before a program has been read"));
+                VGL_THROW_RUNTIME_ERROR("cannot get uniform locations before a program has been read");
             }
 #endif
 

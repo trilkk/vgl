@@ -94,9 +94,7 @@ public:
 #if defined(USE_LD)
         if(0.0f > stamp)
         {
-            std::ostringstream sstr;
-            sstr << "tried to add spline point with invalid timestamp: " << stamp;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("tried to add spline point with invalid timestamp: " + to_string(stamp));
         }
 #endif
         m_points.emplace_back(pos, stamp);
@@ -141,7 +139,7 @@ public:
 #if defined(USE_LD)
         if(m_points.empty())
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("incorrect spline data"));
+            VGL_THROW_RUNTIME_ERROR("incorrect spline data");
         }
 #endif
         precalculate();

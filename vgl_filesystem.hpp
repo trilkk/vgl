@@ -32,6 +32,12 @@ public:
         /// Contained descriptor.
         FILE* m_fd = nullptr;
 
+    private:
+        /// Deleted copy constructor.
+        FileDescriptor(const FileDescriptor&);
+        /// Deleted copy operator.
+        FileDescriptor& operator=(const FileDescriptor&);
+
     public:
         /// Constructor.
         ///
@@ -51,11 +57,6 @@ public:
         {
             other.m_fd = nullptr;
         }
-
-        /// Deleted copy constructor.
-        FileDescriptor(const FileDescriptor&);
-        /// Deleted copy operator.
-        FileDescriptor& operator=(const FileDescriptor&);
 
     public:
         /// Read one character from the file.

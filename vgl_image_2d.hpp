@@ -135,9 +135,7 @@ public:
 #if defined(USE_LD)
         if(4 < getChannelCount())
         {
-            std::ostringstream sstr;
-            sstr << "cannot filter texture with " << getChannelCount() << " channels";
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("cannot filter texture with " + to_string(getChannelCount()) + " channels");
         }
 #endif
         unsigned element_count = getWidth() * getHeight() * getChannelCount();

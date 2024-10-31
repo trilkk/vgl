@@ -174,7 +174,7 @@ constexpr double compile_time_sqrt(double tgt, double curr)
 {
     double next = curr - (((curr * curr) - tgt) / (2 * curr));
 
-    if(abs((next * next) - tgt) < std::numeric_limits<double>::epsilon() * 8.0)
+    if(abs((next * next) - tgt) < numeric_limits<double>::epsilon() * 8.0)
     {
         return next;
     }
@@ -673,7 +673,7 @@ VGL_MATH_CONSTEXPR float sqrt(float val) noexcept
 #if defined(VGL_IS_CONSTANT_EVALUATED)
     if(is_constant_evaluated())
     {
-        if((val <= 0.0f) || (val >= std::numeric_limits<float>::infinity()))
+        if((val <= 0.0f) || (val >= numeric_limits<float>::infinity()))
         {
             return 0.0f;
         }

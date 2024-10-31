@@ -770,14 +770,17 @@ template<typename T> string int_to_string(T op)
 {
     if(op == 0)
     {
-        return string("0");
+        const char ZERO[] =
+        {
+            '0',
+        };
+        return string(ZERO, 1);
     }
 
-    const unsigned charw = int_character_width<sizeof(T)>();
-    char data[charw + 1];
+    const unsigned CHARW = int_character_width<sizeof(T)>();
+    char data[CHARW];
 
-    unsigned iter = charw;
-    data[charw] = 0;
+    unsigned iter = CHARW;
     if(op < 0)
     {
         do {
@@ -796,7 +799,7 @@ template<typename T> string int_to_string(T op)
             op /= 10;
         } while(op > 0);
     }
-    return string(data + iter);
+    return string(data + iter, CHARW - iter);
 }
 
 /// Converts an unsigned integer to a string.
@@ -810,17 +813,47 @@ template<typename T> string unsigned_to_string(T op)
         return string("0");
     }
 
-    const unsigned charw = unsigned_character_width<sizeof(T)>();
-    char data[charw + 1];
+    const unsigned CHARW = unsigned_character_width<sizeof(T)>();
+    char data[CHARW];
 
-    unsigned iter = charw;
-    data[charw] = 0;
+    unsigned iter = CHARW;
     do {
         --iter;
         data[iter] = static_cast<char>('0' + (op % 10));
         op /= 10;
     } while(op > 0);
-    return string(data + iter);
+    return string(data + iter, CHARW - iter);
+}
+
+/// Converts a pointer number to a string.
+///
+/// \param op Pointer to convert.
+/// \return String representation.
+template<typename T> string pointer_to_string(T op)
+{
+    auto intToHexChar = [](size_t val) -> char
+    {
+        if(val < 10)
+        {
+            return static_cast<char>('0' + val);
+        }
+        return static_cast<char>('A' + (val - 10));
+    };
+
+    const unsigned CHARW = static_cast<unsigned>(sizeof(T) * 2);
+    char data[CHARW + 2];
+
+    data[0] = '0';
+    data[1] = 'x';
+
+    unsigned iter = CHARW + 2;
+    auto val = static_cast<size_t>(op);
+    do {
+        --iter;
+        data[iter] = intToHexChar(val % 16);
+        val /= 16;
+    } while(iter > 2);
+    return string(data, CHARW + 2);
 }
 
 /// Converts a floating-point number to a string.
@@ -906,6 +939,15 @@ inline string to_string(int64_t op)
 inline string to_string(uint64_t op)
 {
     return detail::unsigned_to_string(op);
+}
+
+/// String conversion from pointer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(void* op)
+{
+    return detail::pointer_to_string(reinterpret_cast<size_t>(op));
 }
 
 /// String conversion from floating-point number.

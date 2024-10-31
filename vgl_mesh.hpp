@@ -93,7 +93,7 @@ public:
 #if defined(USE_LD) && defined(DEBUG)
         if(!m_handle)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("cannot draw mesh with invalid geometry handle"));
+            VGL_THROW_RUNTIME_ERROR("cannot draw mesh with invalid geometry handle");
         }
 #endif
         m_handle->draw(op, GL_TRIANGLES, m_data.getIndexCount());

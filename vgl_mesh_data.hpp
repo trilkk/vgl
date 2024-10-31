@@ -113,7 +113,6 @@ public:
         }
 
 #if defined(USE_LD)
-
         /// To string operator.
         ///
         /// \param op Input object.
@@ -133,7 +132,6 @@ public:
         {
             return lhs << to_string(rhs);
         }
-
 #endif
     };
 
@@ -327,7 +325,7 @@ public:
 #if defined(USE_LD)
         if((m_vertex_count + op.getVertexCount()) > 0xFFFFu)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("trying to merge mesh data sets beyond 16 bit index scope"));
+            VGL_THROW_RUNTIME_ERROR("trying to merge mesh data sets beyond 16 bit index scope");
         }
 #endif
         uint16_t index_offset = static_cast<uint16_t>(m_vertex_count);

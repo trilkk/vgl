@@ -91,6 +91,8 @@ int main(int argc, char **argv)
             number_vector.emplace_back(to_string(static_cast<int64_t>(0x8000000000000000)));
             number_vector.emplace_back("\nuint64_t number: ");
             number_vector.emplace_back(to_string(static_cast<uint64_t>(0xFFFFFFFFFFFFFFFF)));
+            number_vector.emplace_back("\npointer: ");
+            number_vector.emplace_back(to_string(reinterpret_cast<void*>(0xDEADBEEF)));
             for(const auto& vv : number_vector)
             {
                 std::cout << vv;
