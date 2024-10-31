@@ -87,7 +87,7 @@ public:
 #if defined(USE_LD)
         if(0 >= frame_count)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("can't animate animation without frames"));
+            VGL_THROW_RUNTIME_ERROR("can't animate animation without frames");
         }
 #endif
 
@@ -110,10 +110,9 @@ public:
 #if defined(USE_LD)
                 if(ll.getTime() >= rtime)
                 {
-                    std::ostringstream sstr;
-                    sstr << "animation index " << ii << " has time " << ll.getTime() <<
-                        " which is not smaller than frame " << (ii + 1) << " with time " << rr.getTime();
-                    BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+                    VGL_THROW_RUNTIME_ERROR("animation index " + to_string(ii) + " has time " +
+                            to_string(ll.getTime()) + " which is not smaller than frame " + to_string(ii + 1) +
+                            " with time " + to_string(rr.getTime()));
                 }
 #endif
 
@@ -127,9 +126,8 @@ public:
 #if defined(USE_LD)
                 if(ii >= frame_count)
                 {
-                    std::ostringstream sstr;
-                    sstr << "could not find frames to interpolate for time " << bounded_time;
-                    BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+                    VGL_THROW_RUNTIME_ERROR("could not find frames to interpolate for time " +
+                            to_string(bounded_time));
                 }
 #endif
             }

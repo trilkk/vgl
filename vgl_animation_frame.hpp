@@ -44,9 +44,7 @@ private:
 #if defined(USE_LD)
         if((frame_amount % 7) != 0)
         {
-            std::ostringstream sstr;
-            sstr << "invalid frame amount: " << frame_amount;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("invalid frame amount: " + to_string(frame_amount));
         }
 #endif
 
@@ -124,9 +122,8 @@ public:
 #if defined(USE_LD)
         if(rhs.getBoneCount() != bone_count)
         {
-            std::ostringstream sstr;
-            sstr << "cannot interpolate between frames of size " << bone_count << " and " << rhs.getBoneCount();
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("cannot interpolate between frames of size " + to_string(bone_count) + " and " +
+                   to_string(rhs.getBoneCount()));
         }
 #endif
 

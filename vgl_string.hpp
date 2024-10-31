@@ -800,6 +800,7 @@ template<typename T> string int_to_string(T op)
 }
 
 /// Converts an unsigned integer to a string.
+///
 /// \param op Unsigned integer to convert.
 /// \return String representation.
 template<typename T> string unsigned_to_string(T op)
@@ -820,6 +821,17 @@ template<typename T> string unsigned_to_string(T op)
         op /= 10;
     } while(op > 0);
     return string(data + iter);
+}
+
+/// Converts a floating-point number to a string.
+///
+/// Intentionally uses the standard library.
+///
+/// \param op Floating-point number to convert.
+/// \return String representation.
+template<typename T> string float_to_string(T op)
+{
+    return string(std::to_string(op));
 }
 
 }
@@ -894,6 +906,33 @@ inline string to_string(int64_t op)
 inline string to_string(uint64_t op)
 {
     return detail::unsigned_to_string(op);
+}
+
+/// String conversion from floating-point number.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(float op)
+{
+    return detail::float_to_string(op);
+}
+
+/// String conversion from floating-point number.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(double op)
+{
+    return detail::float_to_string(op);
+}
+
+/// String conversion from floating-point number.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(long double op)
+{
+    return detail::float_to_string(op);
 }
 #endif
 
