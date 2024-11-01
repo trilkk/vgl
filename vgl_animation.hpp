@@ -51,9 +51,8 @@ private:
 #if defined(USE_LD)
         if(animation_data_size % (frame_amount + 1) != 0)
         {
-            std::ostringstream sstr;
-            sstr << "incompatible bone (" << bone_amount << ") and animation (" << animation_data_size << ") amounts";
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("incompatible bone (" + to_string(bone_amount) + ") and animation (" +
+                   to_string(animation_data_size) + ") amounts");
         }
 #endif
 

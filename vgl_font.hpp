@@ -2,7 +2,10 @@
 #define VGL_FONT_HPP
 
 #include "vgl_character.hpp"
-#include "vgl_extern_boost_filesystem.hpp"
+
+#if defined(USE_LD)
+#include "vgl_filesystem.hpp"
+#endif
 
 namespace vgl
 {
@@ -56,7 +59,7 @@ public:
                 {
                     sstr << ((ii != fnames) ? " '" : ", '") << (*ii) << "'";
                 }
-                BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+                VGL_THROW_RUNTIME_ERROR(sstr.str().c_str());
             }
 #endif
             if(load(*iter))
@@ -69,9 +72,8 @@ public:
 #if defined(USE_LD)
         if(err)
         {
-            std::ostringstream sstr;
-            sstr << "could not set font size to " << m_font_size << " on " << m_face;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("could not set font size to " + to_string(m_font_size) + " on " +
+                    to_string(m_face));
         }
 #else
         (void)err;
@@ -101,12 +103,12 @@ private:
     {
         FT_Error err;
 #if defined(USE_LD)
-        boost::filesystem::path pth = find_file(fname);
+        path pth = find_file(fname);
         if(pth.empty())
         {
             return false;
         }
-        err = dnload_FT_New_Face(g_freetype_library, pth.string().c_str(), 0, &m_face);
+        err = dnload_FT_New_Face(g_freetype_library, pth.getString().c_str(), 0, &m_face);
 #else
         err = dnload_FT_New_Face(g_freetype_library, fname, 0, &m_face);
 #endif
@@ -123,9 +125,7 @@ public:
 #if defined(USE_LD)
         if(0 >= idx)
         {
-            std::ostringstream sstr;
-            sstr << "no character " << unicode << " found in font";
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("no character " + to_string(unicode)+ " found in font");
         }
 #endif
 
@@ -133,9 +133,8 @@ public:
 #if defined(USE_LD)
         if(err)
         {
-            std::ostringstream sstr;
-            sstr << "error loading character " << unicode << " at index " << idx << ": " << err;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("error loading character " + to_string(unicode) + " at index " + to_string(idx) +
+                    ": " + to_string(err));
         }
 #else
         (void)err;
@@ -148,9 +147,8 @@ public:
 #if defined(USE_LD)
             if(err)
             {
-                std::ostringstream sstr;
-                sstr << "error rendering glyph " << unicode << " at index " << idx << ": " << err;
-                BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+                VGL_THROW_RUNTIME_ERROR("error rendering glyph " + to_string(unicode) + " at index " +
+                        to_string(idx) + ": " + to_string(err));
             }
 #endif
         }
@@ -179,15 +177,11 @@ public:
 #if defined(USE_LD)
         if(m_characters.size() <= unicode)
         {
-            std::ostringstream sstr;
-            sstr << "unicode index outside of range: " << unicode;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("unicode index outside of range: " + to_string(unicode));
         }
         if(!m_characters[unicode])
         {
-            std::ostringstream sstr;
-            sstr << "character " << unicode << " has not been created";
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("character " + to_string(unicode) + " has not been created");
         }
 #endif
         return m_characters[unicode];
@@ -207,9 +201,8 @@ public:
 #if defined(USE_LD)
         if(err)
         {
-            std::ostringstream sstr;
-            sstr << "could not get kerning information for " << prev << " and " << next;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("could not get kerning information for " + to_string(prev) + " and " +
+                    to_string(next));
         }
 #else
         (void)err;
@@ -238,9 +231,7 @@ private:
 #if defined(USE_LD)
         if(0 != err)
         {
-            std::ostringstream sstr;
-            sstr << "could not init FreeType: " << err;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("could not init FreeType: " + to_string(err));
         }
 #else
         (void)err;
@@ -277,9 +268,7 @@ public:
         FT_Error err = FT_Done_FreeType(g_freetype_library);
         if(0 != err)
         {
-            std::ostringstream sstr;
-            sstr << "could not close FreeType: " << err;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("could not close FreeType: " + to_string(err));
         }
         g_freetype_library = nullptr;
     }

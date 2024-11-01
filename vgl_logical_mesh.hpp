@@ -276,7 +276,7 @@ private:
 #if defined(USE_LD)
         if(!success)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("replacing a new vertex turned a face degenerate"));
+            VGL_THROW_RUNTIME_ERROR("replacing a new vertex turned a face degenerate");
         }
 #else
         (void)success;
@@ -301,7 +301,7 @@ private:
 #if defined(USE_LD)
         if(!isOrphanedVertex(op))
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("cannot erase non-orphaned vertex " + std::to_string(op)));
+            VGL_THROW_RUNTIME_ERROR("cannot erase non-orphaned vertex " + to_string(op));
         }
         ++g_vertices_erased;
 #endif
@@ -312,7 +312,7 @@ private:
 #if defined(USE_LD)
             if(erase_count)
             {
-                BOOST_THROW_EXCEPTION(std::runtime_error("erasing orphaned vertex turned a face degenerate"));
+                VGL_THROW_RUNTIME_ERROR("erasing orphaned vertex turned a face degenerate");
             }
 #else
             (void)erase_count;
@@ -384,7 +384,7 @@ private:
             }
         }
     }
-        
+
 public:
     /// Add face.
     ///
@@ -575,12 +575,12 @@ public:
 #if defined(USE_LD)
                 if(channels && (channels != written))
                 {
-                    BOOST_THROW_EXCEPTION(std::runtime_error("channel mismatch between vertices"));
+                    VGL_THROW_RUNTIME_ERROR("channel mismatch between vertices");
                 }
 #endif
             }
         }
-        
+
         for(auto& face : m_faces)
         {
             face.write(*ret);

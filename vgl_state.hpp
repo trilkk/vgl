@@ -37,7 +37,7 @@ enum OperationMode
 ///
 /// \param op Mode.
 /// \return String representation.
-std::string to_string(OperationMode op);
+string to_string(OperationMode op);
 
 #endif
 
@@ -76,9 +76,8 @@ public:
 #if defined(USE_LD)
         if((MAX_ATTRIB_ARRAYS <= op))
         {
-            std::ostringstream sstr;
-            sstr << "enabling attribute index " << op << " (" << MAX_ATTRIB_ARRAYS << " supported)";
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("enabling attribute index " + to_string(op) + " (" +
+                    to_string(MAX_ATTRIB_ARRAYS) + " supported)");
         }
 #endif
         if(!m_attrib_arrays_enabled[op])
@@ -150,7 +149,7 @@ public:
 #if defined(USE_LD)
                     if(op != PREMULTIPLIED)
                     {
-                        BOOST_THROW_EXCEPTION(std::runtime_error("invalid blend mode: '" + to_string(op) + "'"));
+                        VGL_THROW_RUNTIME_ERROR("invalid blend mode: '" + to_string(op) + "'");
                     }
 #endif
                     dnload_glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -476,7 +475,7 @@ public:
 #if defined(USE_LD)
                 if(op != DISABLED)
                 {
-                    BOOST_THROW_EXCEPTION(std::runtime_error("invalid stencil operation: '" + to_string(op) + "'"));
+                    VGL_THROW_RUNTIME_ERROR("invalid stencil operation: '" + to_string(op) + "'");
                 }
 #endif
                 dnload_glStencilOpSeparate(GL_FRONT_AND_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
@@ -797,24 +796,24 @@ constexpr const char* gl_error_string(GLenum err)
 ///
 /// \param op String enumeration to get.
 /// \return Result of glGetString() packed into a string.
-std::string gl_get_string(GLenum op);
+string gl_get_string(GLenum op);
 
 /// Gets OpenGL extension string.
 ///
 /// \param align Lines are at most this long (0: infinite).
 /// \param indent Lines after the first one have this many spaces as indentation.
 /// \return Result string.
-std::string gl_extension_string(unsigned align = 78, unsigned indent = 0);
+string gl_extension_string(unsigned align = 78, unsigned indent = 0);
 
 /// Gets OpenGL vendor string.
 ///
 /// \return OpenGL vendor.
-std::string gl_vendor_string();
+string gl_vendor_string();
 
 /// Gets OpenGL version string.
 ///
 /// \return OpenGL version.
-std::string gl_version_string();
+string gl_version_string();
 
 /// Perform error check.
 ///

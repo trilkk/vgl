@@ -43,7 +43,7 @@ public:
 #elif defined(USE_LD) && defined(DEBUG)
         if(!m_cond)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error(std::string("Cond::Cond(): ") + SDL_GetError()));
+            VGL_THROW_RUNTIME_ERROR(string("Cond::Cond(): ") + SDL_GetError());
         }
 #endif
     }
@@ -92,7 +92,7 @@ public:
 #if defined(USE_LD) && defined(DEBUG)
         if(err)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error(std::string("Cond::broadcast(): ") + SDL_GetError()));
+            VGL_THROW_RUNTIME_ERROR(string("Cond::broadcast(): ") + SDL_GetError());
         }
 #else
         (void)err;
@@ -110,7 +110,7 @@ public:
 #if defined(USE_LD) && defined(DEBUG)
         if(err)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error(std::string("Cond::signal(): ") + SDL_GetError()));
+            VGL_THROW_RUNTIME_ERROR(string("Cond::signal(): ") + SDL_GetError());
         }
 #else
         (void)err;
@@ -161,7 +161,7 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(err)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error(std::string("internal_cond_wait(): ") + SDL_GetError()));
+            VGL_THROW_RUNTIME_ERROR(string("internal_cond_wait(): ") + SDL_GetError());
         }
 #else
         (void)err;

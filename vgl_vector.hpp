@@ -6,6 +6,10 @@
 #include "vgl_type_traits.hpp"
 #include "vgl_utility.hpp"
 
+#if defined(USE_LD)
+#include "vgl_throw_exception.hpp"
+#endif
+
 namespace vgl
 {
 
@@ -58,7 +62,7 @@ public:
             {
                 new(&m_data[ii]) T();
             }
-        }            
+        }
     }
 
 #if defined(USE_LD)
@@ -105,8 +109,8 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(idx >= m_size)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("accessing index " + std::to_string(idx) +
-                        " from vector of size " + std::to_string(m_size)));
+            VGL_THROW_RUNTIME_ERROR("accessing index " + to_string(idx) + " from vector of size " +
+                    to_string(m_size));
         }
 #else
         (void)idx;
@@ -120,8 +124,8 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(idx < 0)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("accessing negative index " + std::to_string(idx) +
-                        " from vector of size " + std::to_string(m_size)));
+            VGL_THROW_RUNTIME_ERROR("accessing negative index " + to_string(idx) + " from vector of size " +
+                    to_string(m_size));
         }
 #endif
         accessCheck(static_cast<unsigned>(idx));

@@ -2,6 +2,7 @@
 #define VGL_TEXTURE_FORMAT_HPP
 
 #if defined(USE_LD)
+#include "vgl_string.hpp"
 #include <ios>
 #endif
 
@@ -89,6 +90,18 @@ public:
 
 public:
 #if defined(USE_LD)
+    /// Converts TextureFormat to a string.
+    ///
+    /// \param op Input.
+    /// \return String output.
+    friend string to_string(const TextureFormat& op)
+    {
+        std::stringstream sstr;
+        sstr << std::hex << "TextureFormat(0x" << op.m_format << ", 0x" << op.m_internal_format << ", 0x" <<
+            op.m_type << ", " << op.m_type_size << ")";
+        return string(sstr.str().c_str());
+    }
+
     /// Output to stream.
     ///
     /// \param lhs Left-hand-side operand.
@@ -96,11 +109,7 @@ public:
     /// \return Output stream.
     friend std::ostream& operator<<(std::ostream& lhs, const TextureFormat& rhs)
     {
-        std::ios::fmtflags stored_flags = lhs.flags();
-        lhs << std::hex << "TextureFormat(0x" << rhs.m_format << ", 0x" << rhs.m_internal_format << ", 0x" <<
-            rhs.m_type;
-        lhs.flags(stored_flags);
-        return lhs << ", " << rhs.m_type_size << ")";
+        return lhs << to_string(rhs);
     }
 #endif
 };
@@ -163,7 +172,7 @@ private:
 
 #if defined(USE_LD)
         default:
-            BOOST_THROW_EXCEPTION(std::runtime_error("invalid color channel count: " + std::to_string(channels)));
+            VGL_THROW_RUNTIME_ERROR("invalid color channel count: " + to_string(channels));
 #endif
         }
     }
@@ -195,7 +204,7 @@ private:
 
 #if defined(USE_LD)
         default:
-            BOOST_THROW_EXCEPTION(std::runtime_error("invalid color channel count: " + std::to_string(channels)));
+            VGL_THROW_RUNTIME_ERROR("invalid color channel count: " + to_string(channels));
 #endif
         }
     }
@@ -236,7 +245,7 @@ private:
 
 #if defined(USE_LD)
         default:
-            BOOST_THROW_EXCEPTION(std::runtime_error("invalid bytes per channel for R format: " + std::to_string(bpc)));
+            VGL_THROW_RUNTIME_ERROR("invalid bytes per channel for R format: " + to_string(bpc));
 #endif
         }
     }
@@ -277,7 +286,7 @@ private:
 
 #if defined(USE_LD)
         default:
-            BOOST_THROW_EXCEPTION(std::runtime_error("invalid bytes per channel for RG format: " + std::to_string(bpc)));
+            VGL_THROW_RUNTIME_ERROR("invalid bytes per channel for RG format: " + to_string(bpc));
 #endif
         }
     }
@@ -326,7 +335,7 @@ private:
 
 #if defined(USE_LD)
         default:
-            BOOST_THROW_EXCEPTION(std::runtime_error("invalid bytes per channel for RGB format: " + std::to_string(bpc)));
+            VGL_THROW_RUNTIME_ERROR("invalid bytes per channel for RGB format: " + to_string(bpc));
 #endif
         }
     }
@@ -367,7 +376,7 @@ private:
 
 #if defined(USE_LD)
         default:
-            BOOST_THROW_EXCEPTION(std::runtime_error("invalid bytes per channel for RGBA format: " + std::to_string(bpc)));
+            VGL_THROW_RUNTIME_ERROR("invalid bytes per channel for RGBA format: " + to_string(bpc));
 #endif
         }
     }
@@ -397,7 +406,7 @@ private:
                 return GL_UNSIGNED_SHORT_5_6_5;
             }
 #if defined(USE_LD)
-            BOOST_THROW_EXCEPTION(std::runtime_error("invalid channel count for special packed format: " + std::to_string(channels)));
+            VGL_THROW_RUNTIME_ERROR("invalid channel count for special packed format: " + to_string(channels));
 #endif
 
         case 1:
@@ -408,7 +417,7 @@ private:
 
 #if defined(USE_LD)
         default:
-            BOOST_THROW_EXCEPTION(std::runtime_error("bytes per channel for determining type: " + std::to_string(bpc)));
+            VGL_THROW_RUNTIME_ERROR("bytes per channel for determining type: " + to_string(bpc));
 #endif
         }
     }
@@ -476,7 +485,7 @@ private:
 
 #if defined(USE_LD)
         default:
-            BOOST_THROW_EXCEPTION(std::runtime_error("invalid bytes per channel for depth format: " + std::to_string(bpc)));
+            VGL_THROW_RUNTIME_ERROR("invalid bytes per channel for depth format: " + to_string(bpc));
 #endif
         }
     }
@@ -507,7 +516,7 @@ private:
 
 #if defined(USE_LD)
         default:
-            BOOST_THROW_EXCEPTION(std::runtime_error("invalid bytes per channel for depth format: " + std::to_string(bpc)));
+            VGL_THROW_RUNTIME_ERROR("invalid bytes per channel for depth format: " + to_string(bpc));
 #endif
         }
     }

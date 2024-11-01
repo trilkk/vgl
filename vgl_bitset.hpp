@@ -113,8 +113,7 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(idx >= N)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("accessing bit index " + std::to_string(idx) +
-                        " from " + std::to_string(N) + "-bit set"));
+            VGL_THROW_RUNTIME_ERROR("accessing bit index " + to_string(idx) + " from " + to_string(N) + "-bit set");
         }
 #else
         (void)idx;
@@ -128,8 +127,8 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(idx < 0)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("accessing negative bit index " +
-                        std::to_string(idx) + " from " + std::to_string(N) + "-bit set"));
+            VGL_THROW_RUNTIME_ERROR("accessing negative bit index " + to_string(idx) + " from " + to_string(N) +
+                    "-bit set");
         }
 #endif
         accessCheck(static_cast<unsigned>(idx));
@@ -141,8 +140,8 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(m_data & (!mask()))
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("bitset value " + std::to_string(m_data) +
-                        " has bits outside " + std::to_string(N) + "-bit range"));
+            VGL_THROW_RUNTIME_ERROR("bitset value " + to_string(m_data) + " has bits outside " + to_string(N) +
+                    "-bit range");
         }
 #endif
     }

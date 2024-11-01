@@ -200,7 +200,7 @@ public:
         {
             if(vv == op)
             {
-                BOOST_THROW_EXCEPTION(std::runtime_error("trying to add duplicate face references"));
+                VGL_THROW_RUNTIME_ERROR("trying to add duplicate face references");
             }
         }
 #endif
@@ -228,7 +228,7 @@ public:
 #if defined(USE_LD) && defined(DEBUG)
                 if(face_found)
                 {
-                    BOOST_THROW_EXCEPTION(std::runtime_error("face reference found multiple times"));
+                    VGL_THROW_RUNTIME_ERROR("face reference found multiple times");
                 }
 #endif
                 if(ii < (m_face_references.size() - 1))

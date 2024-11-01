@@ -65,9 +65,7 @@ public:
 #if defined(USE_LD)
         if((m_width <= 0) || (m_height <= 0))
         {
-            std::ostringstream sstr;
-            sstr << "invalid framebuffer dimensions: " << width << "x" << height;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("invalid framebuffer dimensions: " + to_string(width) + "x" + to_string(height));
         }
 #endif
 
@@ -100,8 +98,8 @@ public:
         if(status != GL_FRAMEBUFFER_COMPLETE)
         {
             std::ostringstream sstr;
-            sstr << *this << " not complete: " << std::hex << status << std::endl;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            sstr << *this << " is not complete: " << std::hex << status << std::endl;
+            VGL_THROW_RUNTIME_ERROR(sstr.str().c_str());
         }
 #endif
 

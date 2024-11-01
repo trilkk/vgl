@@ -1,16 +1,15 @@
 #ifndef VGL_OPTIONAL_HPP
 #define VGL_OPTIONAL_HPP
 
+#include "vgl_cstddef.hpp"
 #include "vgl_type_traits.hpp"
 #include "vgl_utility.hpp"
 
-#include <cstddef>
 #include <cstdint>
 #include <optional>
 
 #if defined(USE_LD)
-#include <stdexcept>
-#include <boost/throw_exception.hpp>
+#include "vgl_throw_exception.hpp"
 #endif
 
 namespace vgl
@@ -234,7 +233,7 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(!has_value())
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("optional value is uninitialized"));
+            VGL_THROW_RUNTIME_ERROR("optional value is uninitialized");
         }
 #endif
     }
@@ -269,6 +268,19 @@ public:
     {
         accessCheck();
         return *base_type::getPtr();
+    }
+
+    /// Returns the contained value or an alternative.
+    ///
+    /// \param op Alternative value.
+    /// \return Contained value or passed value if this object is empty.
+    template<typename U> constexpr T value_or(U&& op) const
+    {
+        if(has_value())
+        {
+            return value();
+        }
+        return op;
     }
 
     /// Constructs a member in-place.

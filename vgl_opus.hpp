@@ -8,9 +8,14 @@
 #if !defined(VGL_DISABLE_OGG)
 #include "ogg/ogg.h"
 #endif
+
 #if !defined(VGL_DISABLE_OPUS)
 #include "vgl_vector.hpp"
 #include "opus.h"
+#endif
+
+#if defined(USE_LD)
+#include "vgl_throw_exception.hpp"
 #endif
 
 namespace vgl
@@ -91,7 +96,7 @@ public:
 #if defined(USE_LD)
             if(err)
             {
-                BOOST_THROW_EXCEPTION(std::runtime_error("ogg_sync_wrote() failed: " + std::to_string(err)));
+                VGL_THROW_RUNTIME_ERROR("ogg_sync_wrote() failed: " + to_string(err));
             }
 #else
             (void)err;
@@ -123,7 +128,7 @@ public:
 #if defined(USE_LD)
             if(!err)
             {
-                BOOST_THROW_EXCEPTION(std::runtime_error("OggStream input did not contain even one page"));
+                VGL_THROW_RUNTIME_ERROR("OggStream input did not contain even one page");
             }
 #else
             (void)err;
@@ -137,7 +142,7 @@ public:
             int err = ogg_page_bos(&page);
             if(!err)
             {
-                BOOST_THROW_EXCEPTION(std::runtime_error("ogg_page_bos(): first page was not beginning of stream"));
+                VGL_THROW_RUNTIME_ERROR("ogg_page_bos(): first page was not beginning of stream");
             }
         }
 #endif
@@ -147,7 +152,7 @@ public:
 #if defined(USE_LD)
             if(err)
             {
-                BOOST_THROW_EXCEPTION(std::runtime_error("ogg_stream_init() failed: " + std::to_string(err)));
+                VGL_THROW_RUNTIME_ERROR("ogg_stream_init() failed: " + to_string(err));
             }
 #else
             (void)err;
@@ -164,7 +169,7 @@ public:
         int err = ogg_stream_clear(&m_stream_state);
         if(err)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("ogg_stream_clear() returned nonzero value: " + std::to_string(err)));
+            VGL_THROW_RUNTIME_ERROR("ogg_stream_clear() returned nonzero value: " + to_string(err));
         }
 #endif
     }
@@ -192,7 +197,7 @@ public:
 #if defined(USE_LD)
             if(err != 1)
             {
-                BOOST_THROW_EXCEPTION(std::runtime_error("ogg_stream_packetout() error: " + std::to_string(err)));
+                VGL_THROW_RUNTIME_ERROR("ogg_stream_packetout() error: " + to_string(err));
             }
 #endif
             return true;
@@ -208,7 +213,7 @@ private:
 #if defined(USE_LD)
         if(err)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("ogg_stream_pagein() packet submission error: " + std::to_string(err)));
+            VGL_THROW_RUNTIME_ERROR("ogg_stream_pagein() packet submission error: " + to_string(err));
         }
 #else
         (void)err;
@@ -227,7 +232,7 @@ unsigned opus_read_ogg_header(OggStream& stream)
 #if defined(USE_LD)
     if(!err)
     {
-        BOOST_THROW_EXCEPTION(std::runtime_error("could not read opus header"));
+        VGL_THROW_RUNTIME_ERROR("could not read opus header");
     }
 #else
     (void)err;
@@ -240,7 +245,7 @@ unsigned opus_read_ogg_header(OggStream& stream)
 #if defined(USE_LD)
     if(!err)
     {
-        BOOST_THROW_EXCEPTION(std::runtime_error("could not read opus comment"));
+        VGL_THROW_RUNTIME_ERROR("could not read opus comment");
     }
 #endif
 
@@ -271,7 +276,7 @@ vector<float> opus_read_ogg_memory(const void* input, unsigned size, int channel
 #if defined(USE_LD)
     if(err != OPUS_OK)
     {
-        BOOST_THROW_EXCEPTION(std::runtime_error("opus_decoder_create() failed: " + std::to_string(err)));
+        VGL_THROW_RUNTIME_ERROR("opus_decoder_create() failed: " + to_string(err));
     }
 #endif
 
@@ -290,7 +295,7 @@ vector<float> opus_read_ogg_memory(const void* input, unsigned size, int channel
 #if defined(USE_LD)
         if(err <= 0)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("opus_decode_float() error: " + std::to_string(err)));
+            VGL_THROW_RUNTIME_ERROR("opus_decode_float() error: " + to_string(err));
         }
         else
 #endif
@@ -333,7 +338,7 @@ vector<float> opus_read_raw_memory(const void* input, unsigned size, int channel
 #if defined(USE_LD)
     if(err != OPUS_OK)
     {
-        BOOST_THROW_EXCEPTION(std::runtime_error("opus_decoder_create() failed: " + std::to_string(err)));
+        VGL_THROW_RUNTIME_ERROR("opus_decoder_create() failed: " + to_string(err));
     }
 #endif
 
@@ -351,7 +356,7 @@ vector<float> opus_read_raw_memory(const void* input, unsigned size, int channel
 #if defined(USE_LD)
         if(err <= 0)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("opus_decode_float() error: " + std::to_string(err)));
+            VGL_THROW_RUNTIME_ERROR("opus_decode_float() error: " + to_string(err));
         }
         else
 #endif

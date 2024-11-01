@@ -1,19 +1,16 @@
 #include "vgl_wave.hpp"
 
-#include <utility>
+#include "vgl_filesystem.hpp"
+
+//#include <utility>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/wave/cpp_context.hpp>
 #include <boost/wave/cpplexer/cpp_lex_iterator.hpp>
 
-namespace fs = boost::filesystem;
 using wave_token = boost::wave::cpplexer::lex_token<>;
 using wave_cpplex_iterator = boost::wave::cpplexer::lex_iterator<wave_token>;
 using wave_context = boost::wave::context<std::string::const_iterator, wave_cpplex_iterator>;
-
-//######################################
-// Local ###############################
-//######################################
 
 namespace
 {
@@ -334,9 +331,10 @@ std::string convert_glesv2_gl(std::string_view op)
 namespace vgl
 {
 
-std::string wave_preprocess_glsl(std::string_view op)
+string wave_preprocess_glsl(string_view op)
 {
-    std::string input_source = read_file_locate(op);
+    std::string input_source = read_file_locate(op).c_str();
+
 #if !defined(DNLOAD_GLESV2)
     input_source = convert_glesv2_gl(input_source);
 #endif

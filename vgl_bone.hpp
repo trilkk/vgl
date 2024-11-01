@@ -43,9 +43,7 @@ private:
 #if defined(USE_LD)
         if(m_parent)
         {
-            std::ostringstream sstr;
-            sstr << "bone " << this << " already has parent: " << m_parent;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("bone " + to_string(this) + " already has parent: " + to_string(m_parent));
         }
 #endif
         m_parent = op;

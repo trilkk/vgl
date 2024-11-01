@@ -88,8 +88,8 @@ protected:
 #if defined(USE_LD)
         if(m_data.size() != op.size())
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("replacing data size " + std::to_string(op.size()) +
-                        " does not match data size " + std::to_string(m_data.size())));
+            VGL_THROW_RUNTIME_ERROR("replacing data size " + to_string(op.size()) + " does not match data size " +
+                    to_string(m_data.size()));
         }
 #endif
         m_data = move(op);
@@ -105,9 +105,8 @@ public:
 #if defined(USE_LD)
         if(channel > m_channel_count)
         {
-            std::ostringstream sstr;
-            sstr << "trying to clear channel " << channel << " in " << (m_channel_count + 1) << "-channel image";
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("trying to clear channel " + to_string(channel) + " in " +
+                    to_string(m_channel_count + 1) + "-channel image");
         }
 #endif
         for(unsigned ii = channel, ee = getElementCount(); (ii < ee); ii += m_channel_count)
@@ -156,7 +155,7 @@ public:
 #if defined(USE_LD)
         if(bpc != 1)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("invalid bpc value for UNORM conversion: " + std::to_string(bpc)));
+            VGL_THROW_RUNTIME_ERROR("invalid bpc value for UNORM conversion: " + to_string(bpc));
         }
 #endif
 

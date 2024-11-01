@@ -543,16 +543,14 @@ void LogicalMesh::csgReadData(const int16_t* data)
 
 #if defined(USE_LD)
         default:
-            {
-                BOOST_THROW_EXCEPTION(std::runtime_error("invalid CSG command: " + std::to_string(static_cast<int>(command))));
-            }
+            VGL_THROW_RUNTIME_ERROR("invalid CSG command: " + to_string(static_cast<int>(command)));
 #endif
         }
     }
 }
 
-void LogicalMesh::csgReadRaw(const int16_t *vertices, const uint8_t *bones, const uint16_t* faces, unsigned vertices_amount,
-        unsigned faces_amount, float scale)
+void LogicalMesh::csgReadRaw(const int16_t *vertices, const uint8_t *bones, const uint16_t* faces,
+        unsigned vertices_amount, unsigned faces_amount, float scale)
 {
     // Store logical vertex count before adding raw data.
     unsigned index_base = getLogicalVertexCount();

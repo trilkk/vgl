@@ -29,44 +29,42 @@ OpenGlDiagnosticsState OpenGlDiagnosticsState::g_opengl_diagnostics_state;
 
 #if defined(USE_LD)
 
-std::string to_string(OperationMode op)
+string to_string(OperationMode op)
 {
     switch(op)
     {
     case DISABLED:
-        return std::string("DISABLED");
+        return string("DISABLED");
 
     case ADDITIVE:
-        return std::string("ADDITIVE");
+        return string("ADDITIVE");
 
     case PREMULTIPLIED:
-        return std::string("PREMULTIPLIED");
+        return string("PREMULTIPLIED");
 
     case CARMACK:
-        return std::string("CARMACK");
+        return string("CARMACK");
 
     default:
         break;
     }
 
-    std::ostringstream sstr;
-    sstr << "invalid OperationMode value: '" << static_cast<int>(op) << "'";
-    BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+    VGL_THROW_RUNTIME_ERROR("invalid OperationMode value: '" + to_string(static_cast<int>(op)) + "'");
 }
 
-std::string gl_get_string(GLenum op)
+string gl_get_string(GLenum op)
 {
     const GLubyte* ret = glGetString(op);
     if(!ret)
     {
-        return std::string();
+        return string();
     }
-    return std::string(reinterpret_cast<const char*>(ret));
+    return string(reinterpret_cast<const char*>(ret));
 }
 
-std::string gl_extension_string(unsigned align, unsigned indent)
+string gl_extension_string(unsigned align, unsigned indent)
 {
-    std::string extension_string = gl_get_string(GL_EXTENSIONS);
+    string extension_string = gl_get_string(GL_EXTENSIONS);
     string_view extension_view(extension_string.data(), static_cast<unsigned>(extension_string.length()));
     vector<string_view> extensions;
     for(unsigned ii = 0; (ii < extension_view.length());)
@@ -90,14 +88,14 @@ std::string gl_extension_string(unsigned align, unsigned indent)
         extensions.emplace_back(extension_view);
     }
 
-    std::string istr;
+    string istr;
     for(unsigned ii = 0; (ii < indent); ++ii)
     {
         istr += " ";
     }
 
-    std::string ret;
-    std::string line;
+    string ret;
+    string line;
     for(const auto& vv : extensions)
     {
         // If line would exceed length, append it to return value.
@@ -120,12 +118,12 @@ std::string gl_extension_string(unsigned align, unsigned indent)
             }
             else
             {
-                line += istr + std::string(vv);
+                line += istr + string(vv);
             }
         }
         else
         {
-            line += " " + std::string(vv);
+            line += " " + string(vv);
         }
     }
 
@@ -142,12 +140,12 @@ std::string gl_extension_string(unsigned align, unsigned indent)
     return ret;
 }
 
-std::string gl_vendor_string()
+string gl_vendor_string()
 {
     return gl_get_string(GL_VENDOR) + " " + gl_get_string(GL_RENDERER);
 }
 
-std::string gl_version_string()
+string gl_version_string()
 {
     return gl_get_string(GL_VERSION) + " GLSL " + gl_get_string(GL_SHADING_LANGUAGE_VERSION);
 }
@@ -164,7 +162,7 @@ void error_check(const char* str)
             sstr << " at '" << str << "'";
         }
         sstr << ": " << gl_error_string(err);
-        BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+        VGL_THROW_RUNTIME_ERROR(sstr.str().c_str());
     }
 }
 

@@ -24,7 +24,11 @@ public:
     /// \param hdata Hierarchy data.
     /// \param hierarchy_amount Element count of hierarchy data.
     /// \param scale Scale to multiply with.
-    explicit Armature(const int16_t *bdata, const uint8_t *hdata, unsigned bones_amount, unsigned hierarchy_amount,
+    explicit Armature(
+            const int16_t *bdata,
+            const uint8_t *hdata,
+            unsigned bones_amount,
+            unsigned hierarchy_amount,
             float scale)
     {
         readRaw(bdata, hdata, bones_amount, hierarchy_amount, scale);
@@ -38,12 +42,17 @@ private:
     /// \param hdata Hierarchy data.
     /// \param hierarchy_amount Element count of hierarchy data.
     /// \param scale Scale to multiply with.
-    void readRaw(const int16_t *bdata, const uint8_t *hdata, unsigned bones_amount, unsigned hierarchy_amount, float scale)
+    void readRaw(
+            const int16_t *bdata,
+            const uint8_t *hdata,
+            unsigned bones_amount,
+            unsigned hierarchy_amount,
+            float scale)
     {
 #if defined(USE_LD)
         if(!m_bones.empty())
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error("trying to init non-empty armature from data"));
+            VGL_THROW_RUNTIME_ERROR("trying to init non-empty armature from data");
         }
 #endif
         for(unsigned ii = 0, idx = 0; (ii < bones_amount); ii += 3, ++idx)
@@ -71,10 +80,8 @@ private:
 #if defined(USE_LD)
             if(hdata + hierarchy_amount != iter)
             {
-                std::ostringstream sstr;
-                sstr << "reference data inconsistency: " << static_cast<unsigned>(iter - hdata) << " vs. " <<
-                    hierarchy_amount;
-                BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+                VGL_THROW_RUNTIME_ERROR("reference data inconsistency: " +
+                        to_string(static_cast<unsigned>(iter - hdata)) + " vs. " + to_string(hierarchy_amount));
             }
 #else
             (void)hierarchy_amount;
@@ -141,8 +148,12 @@ public:
     /// \param hdata Hierarchy data.
     /// \param hierarchy_amount Element count of hierarchy data.
     /// \param scale Scale to multiply with.
-    static unique_ptr<Armature> create(const int16_t *bdata, const uint8_t *hdata, unsigned bones_amount,
-            unsigned hierarchy_amount, float scale)
+    static unique_ptr<Armature> create(
+            const int16_t *bdata,
+            const uint8_t *hdata,
+            unsigned bones_amount,
+            unsigned hierarchy_amount,
+            float scale)
     {
         return unique_ptr<Armature>(new Armature(bdata, hdata, bones_amount, hierarchy_amount, scale));
     }

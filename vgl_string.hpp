@@ -6,6 +6,7 @@
 
 #if defined(USE_LD)
 #include "vgl_utility.hpp"
+#include <ostream>
 #endif
 
 namespace vgl
@@ -71,6 +72,7 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(idx >= m_length)
         {
+            // Can't use vgl_throw_exception.hpp yet.
             BOOST_THROW_EXCEPTION(std::runtime_error("accessing index " + std::to_string(idx) +
                         " from string of length " + std::to_string(m_length)));
         }
@@ -86,6 +88,7 @@ private:
 #if defined(USE_LD) && defined(DEBUG)
         if(idx < 0)
         {
+            // Can't use vgl_throw_exception.hpp yet.
             BOOST_THROW_EXCEPTION(std::runtime_error("accessing negative index " + std::to_string(idx) +
                         " from string of length " + std::to_string(m_length)));
         }
@@ -132,6 +135,27 @@ public:
         return (m_length <= 0);
     }
 
+    /// Accessor.
+    ///
+    /// \return String length (without terminating zero).
+    constexpr unsigned length() const noexcept
+    {
+        return m_length;
+    }
+
+    /// Returns the internal data pointer.
+    ///
+    /// \return Data pointer.
+    constexpr const T* data() const noexcept
+    {
+        if(m_data)
+        {
+            return m_data;
+        }
+        return reinterpret_cast<const T*>("");
+    }
+
+#if defined(USE_LD)
     /// Finds the occurrance of another substring.
     ///
     /// \param rhs Right-hand side operand.
@@ -152,26 +176,6 @@ public:
             }
         }
         return npos;
-    }
-
-    /// Accessor.
-    ///
-    /// \return String length (without terminating zero).
-    constexpr unsigned length() const noexcept
-    {
-        return m_length;
-    }
-
-    /// Returns the internal data pointer.
-    ///
-    /// \return Data pointer.
-    constexpr const T* data() const noexcept
-    {
-        if(m_data)
-        {
-            return m_data;
-        }
-        return reinterpret_cast<const T*>("");
     }
 
     /// Tells if the string starts with given substring.
@@ -219,6 +223,7 @@ private:
         }
         return true;
     }
+#endif
 
 public:
     /// Access operator.
@@ -254,29 +259,6 @@ public:
         return m_data[idx];
     }
 
-    /// Less than operator.
-    ///
-    /// \param rhs Right-hand-side operand.
-    /// \return True if this is less than rhs, false otherwise.
-    template<typename R> constexpr bool operator<(const string_data<R>& rhs) const noexcept
-    {
-        unsigned common_length = min(length(), rhs.length());
-        for(unsigned ii = 0; (ii < common_length); ++ii)
-        {
-            auto ccl = m_data[ii];
-            auto ccr = rhs.m_data[ii];
-            if(ccl < ccr)
-            {
-                return true;
-            }
-            else if(ccl > ccr)
-            {
-                return false;
-            }
-        }
-        return length() < rhs.length();
-    }
-
     /// Equals operator.
     ///
     /// \param rhs Right-hand-side operand.
@@ -306,6 +288,31 @@ public:
     {
         return !(*this == rhs);
     }
+
+#if defined(USE_LD)
+    /// Less than operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return True if this is less than rhs, false otherwise.
+    template<typename R> constexpr bool operator<(const string_data<R>& rhs) const noexcept
+    {
+        unsigned common_length = min(length(), rhs.length());
+        for(unsigned ii = 0; (ii < common_length); ++ii)
+        {
+            auto ccl = m_data[ii];
+            auto ccr = rhs.m_data[ii];
+            if(ccl < ccr)
+            {
+                return true;
+            }
+            else if(ccl > ccr)
+            {
+                return false;
+            }
+        }
+        return length() < rhs.length();
+    }
+#endif
 
 public:
 #if defined(USE_LD)
@@ -355,8 +362,10 @@ public:
 
     /// Constructor.
     ///
+    /// Intentionally not explicit.
+    ///
     /// \param op C string input.
-    explicit string(const char* op)
+    string(const char* op)
     {
         assign(op);
     }
@@ -379,6 +388,17 @@ public:
     }
 
 #if defined(USE_LD)
+    /// Constructor from std::string.
+    ///
+    /// Intentionally not explicit.
+    ///
+    /// \param op String data input.
+    string(const std::string& op) :
+        base_type()
+    {
+        assign(op.data(), static_cast<unsigned>(op.length()));
+    }
+
     /// Consructor from iterators.
     ///
     /// \param first First iterator to insert.
@@ -563,12 +583,29 @@ public:
 #endif
 
 public:
+    /// Assignment operator.
+    ///
+    /// \param op Input data.
+    /// \return This object.
+    string& operator=(const char* op)
+    {
+        return assign(op);
+    }
+    /// Assignment operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return This object.
+    template<typename T> string& operator=(const detail::string_data<T>& rhs)
+    {
+        return assign(rhs.data(), rhs.length());
+    }
+
 #if defined(USE_LD)
     /// Addition operator.
     ///
     /// \param rhs Right-hand-side operand.
     /// \return Concatenated string.
-    string operator+(const string& rhs) const
+    template<typename T> string operator+(const detail::string_data<T>& rhs) const
     {
         string ret;
         auto new_size = length() + rhs.length();
@@ -586,6 +623,7 @@ public:
         }
         return ret;
     }
+
     /// Addition operator.
     ///
     /// \param rhs Right-hand-side operand.
@@ -609,27 +647,41 @@ public:
         }
         return ret;
     }
-#endif
 
-    /// Assignment operator.
-    ///
-    /// \param op Input data.
-    /// \return This object.
-    string& operator=(const char* op)
-    {
-        return assign(op);
-    }
-    /// Assignment operator.
+    /// Addition into operator.
     ///
     /// \param rhs Right-hand-side operand.
     /// \return This object.
-    string& operator=(const string_data<const char>& rhs)
+    template<typename T> string& operator+=(const detail::string_data<T>& rhs)
     {
-        return assign(rhs.data());
+        if(rhs.length())
+        {
+            auto old_size = length();
+            auto new_size = old_size + rhs.length();
+            resize(new_size);
+            detail::internal_memcpy(base_type::m_data + old_size, rhs.data(), rhs.length());
+        }
+        return *this;
+    }
+
+    /// Addition into operator.
+    ///
+    /// \param rhs Right-hand-side operand.
+    /// \return This object.
+    string& operator+=(const char* rhs)
+    {
+        auto rhs_len = detail::internal_strlen(rhs);
+        if(rhs_len)
+        {
+            auto old_size = length();
+            auto new_size = old_size + rhs_len;
+            resize(new_size);
+            detail::internal_memcpy(base_type::m_data + old_size, rhs, rhs_len);
+        }
+        return *this;
     }
 
 public:
-#if defined(USE_LD)
     /// Addition operator.
     ///
     /// \param lhs Left-hand-side operand.
@@ -654,18 +706,271 @@ public:
         }
         return ret;
     }
-
-    /// Stream output operator.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return Output stream.
-    friend std::ostream& operator<<(std::ostream& lhs, const string& rhs)
-    {
-        return lhs << rhs.c_str();
-    }
 #endif
 };
+
+#if defined(USE_LD)
+namespace detail
+{
+
+/// Integer to maximum character count -transformation.
+/// \return Maximum integer character count.
+template<unsigned> constexpr unsigned int_character_width();
+/// \cond
+template<> constexpr unsigned int_character_width<1>()
+{
+    return 4;
+}
+template<> constexpr unsigned int_character_width<2>()
+{
+    return 6;
+}
+template<> constexpr unsigned int_character_width<4>()
+{
+    return 11;
+}
+template<> constexpr unsigned int_character_width<8>()
+{
+    return 20;
+}
+/// \endcond
+
+/// Unsigned integer to maximum character count -transformation.
+/// \return Maximum unsigned integer character count.
+template<unsigned> constexpr unsigned unsigned_character_width();
+/// \cond
+template<> constexpr unsigned unsigned_character_width<1>()
+{
+    return 3;
+}
+template<> constexpr unsigned unsigned_character_width<2>()
+{
+    return 5;
+}
+template<> constexpr unsigned unsigned_character_width<4>()
+{
+    return 10;
+}
+template<> constexpr unsigned unsigned_character_width<8>()
+{
+    return 20;
+}
+/// \endcond
+
+/// Converts an integer to a string.
+/// \param op Integer to convert.
+/// \return String representation.
+template<typename T> string int_to_string(T op)
+{
+    if(op == 0)
+    {
+        const char ZERO[] =
+        {
+            '0',
+        };
+        return string(ZERO, 1);
+    }
+
+    const unsigned CHARW = int_character_width<sizeof(T)>();
+    char data[CHARW];
+
+    unsigned iter = CHARW;
+    if(op < 0)
+    {
+        do {
+            --iter;
+            data[iter] = static_cast<char>('0' + (-(op % 10)));
+            op /= 10;
+        } while(op < 0);
+        --iter;
+        data[iter] = '-';
+    }
+    else
+    {
+        do {
+            --iter;
+            data[iter] = static_cast<char>('0' + (op % 10));
+            op /= 10;
+        } while(op > 0);
+    }
+    return string(data + iter, CHARW - iter);
+}
+
+/// Converts an unsigned integer to a string.
+///
+/// \param op Unsigned integer to convert.
+/// \return String representation.
+template<typename T> string unsigned_to_string(T op)
+{
+    if(op == 0)
+    {
+        return string("0");
+    }
+
+    const unsigned CHARW = unsigned_character_width<sizeof(T)>();
+    char data[CHARW];
+
+    unsigned iter = CHARW;
+    do {
+        --iter;
+        data[iter] = static_cast<char>('0' + (op % 10));
+        op /= 10;
+    } while(op > 0);
+    return string(data + iter, CHARW - iter);
+}
+
+/// Converts a pointer number to a string.
+///
+/// \param op Pointer to convert.
+/// \return String representation.
+template<typename T> string pointer_to_string(T op)
+{
+    auto intToHexChar = [](size_t val) -> char
+    {
+        if(val < 10)
+        {
+            return static_cast<char>('0' + val);
+        }
+        return static_cast<char>('A' + (val - 10));
+    };
+
+    const unsigned CHARW = static_cast<unsigned>(sizeof(T) * 2);
+    char data[CHARW + 2];
+
+    data[0] = '0';
+    data[1] = 'x';
+
+    unsigned iter = CHARW + 2;
+    auto val = static_cast<size_t>(op);
+    do {
+        --iter;
+        data[iter] = intToHexChar(val % 16);
+        val /= 16;
+    } while(iter > 2);
+    return string(data, CHARW + 2);
+}
+
+/// Converts a floating-point number to a string.
+///
+/// Intentionally uses the standard library.
+///
+/// \param op Floating-point number to convert.
+/// \return String representation.
+template<typename T> string float_to_string(T op)
+{
+    return string(std::to_string(op));
+}
+
+}
+
+/// String conversion from integer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(int8_t op)
+{
+    return detail::int_to_string(op);
+}
+
+/// String conversion from unsigned integer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(uint8_t op)
+{
+    return detail::unsigned_to_string(op);
+}
+
+/// String conversion from integer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(int16_t op)
+{
+    return detail::int_to_string(op);
+}
+
+/// String conversion from unsigned integer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(uint16_t op)
+{
+    return detail::unsigned_to_string(op);
+}
+
+/// String conversion from integer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(int32_t op)
+{
+    return detail::int_to_string(op);
+}
+
+/// String conversion from unsigned integer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(uint32_t op)
+{
+    return detail::unsigned_to_string(op);
+}
+
+/// String conversion from integer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(int64_t op)
+{
+    return detail::int_to_string(op);
+}
+
+/// String conversion from unsigned integer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(uint64_t op)
+{
+    return detail::unsigned_to_string(op);
+}
+
+/// String conversion from pointer.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(void* op)
+{
+    return detail::pointer_to_string(reinterpret_cast<size_t>(op));
+}
+
+/// String conversion from floating-point number.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(float op)
+{
+    return detail::float_to_string(op);
+}
+
+/// String conversion from floating-point number.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(double op)
+{
+    return detail::float_to_string(op);
+}
+
+/// String conversion from floating-point number.
+///
+/// \param op Value.
+/// \return String representation.
+inline string to_string(long double op)
+{
+    return detail::float_to_string(op);
+}
+#endif
 
 }
 

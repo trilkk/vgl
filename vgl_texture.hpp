@@ -4,8 +4,7 @@
 #include "vgl_extern_opengl.hpp"
 
 #if defined(USE_LD)
-#include <sstream>
-#include <boost/throw_exception.hpp>
+#include "vgl_throw_exception.hpp"
 #endif
 
 namespace vgl
@@ -223,9 +222,8 @@ public:
 #if defined(USE_LD)
         if(op >= MAX_TEXTURE_UNITS)
         {
-            std::ostringstream sstr;
-            sstr << "trying to bind to texture unit index " << op << " of maximum " << MAX_TEXTURE_UNITS;
-            BOOST_THROW_EXCEPTION(std::runtime_error(sstr.str()));
+            VGL_THROW_RUNTIME_ERROR("trying to bind to texture unit index " + to_string(op) + " of maximum " +
+                    to_string(MAX_TEXTURE_UNITS));
         }
 #endif
 

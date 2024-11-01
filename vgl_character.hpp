@@ -146,7 +146,7 @@ public:
     }
 
 public:
-    /// Bool operator.
+    /// Conversion to bool.
     ///
     /// \return Flag signifying if the character has been created.
     constexpr operator bool() const noexcept
@@ -170,9 +170,6 @@ public:
         return *this;
     }
 };
-
-/// Convenience typedef.
-typedef unique_ptr<Character> CharacterUptr;
 
 }
 

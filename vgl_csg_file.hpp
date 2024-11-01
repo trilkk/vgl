@@ -3,7 +3,7 @@
 
 #if defined(USE_LD)
 
-#include "vgl_extern_boost_filesystem.hpp"
+#include "vgl_filesystem.hpp"
 
 namespace vgl
 {
@@ -13,20 +13,21 @@ class CsgFile
 {
 private:
     /// Base filename.
-    std::string m_basename;
+    string m_basename;
 
     /// Full filename path.
-    boost::filesystem::path m_filename;
+    path m_filename;
 
     /// Contents.
-    std::string m_contents;
+    string m_contents;
 
 public:
     /// Constructor.
     ///
     /// \param filename Basename of the file to read.
-    explicit CsgFile(std::string_view filename);
+    explicit CsgFile(string_view filename);
 
+public:
     /// Update the file if it's different from given input.
     ///
     /// \param data Input data to compare to file contents.
@@ -37,7 +38,7 @@ public:
     /// Accessor.
     ///
     /// \return Filename.
-    const boost::filesystem::path& getFilename() const
+    const path& getFilename() const
     {
         return m_filename;
     }
@@ -66,7 +67,7 @@ private:
     /// \param data Input data.
     /// \param count Number of data elements.
     /// \return Header data generated from the data.
-    static std::string generate_contents(std::string_view filename, const int16_t* data, unsigned count);
+    static string generate_contents(string_view filename, const int16_t* data, unsigned count);
 };
 
 }

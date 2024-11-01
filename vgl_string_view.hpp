@@ -41,24 +41,24 @@ public:
     /// Intentionally not explicit.
     ///
     /// \param op C string input.
-    constexpr string_view(const string_data<char>& op) noexcept :
+    constexpr string_view(const string& op) noexcept :
         base_type(op.data(), op.length())
     {
     }
 
-    /// Constructor.
+    /// Copy constructor.
     ///
-    /// \param op C string input.
-    constexpr string_view(const string_view& op) noexcept :
-        base_type(op.data(), op.length())
+    /// \param other Source object.
+    constexpr string_view(const string_view& other) noexcept :
+        base_type(other.data(), other.length())
     {
     }
 
     /// Move constructor.
     ///
-    /// \param op C string input.
-    constexpr string_view(string_view&& op) noexcept :
-        base_type(op.m_data, op.m_length)
+    /// \param other Source object.
+    constexpr string_view(string_view&& other) noexcept :
+        base_type(other.m_data, other.m_length)
     {
     }
 

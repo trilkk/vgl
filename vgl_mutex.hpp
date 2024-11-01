@@ -9,9 +9,8 @@
 #endif
 
 #if defined(USE_LD)
-#include <boost/throw_exception.hpp>
+#include "vgl_throw_exception.hpp"
 #include <ostream>
-#include <stdexcept>
 #endif
 
 namespace vgl
@@ -54,7 +53,7 @@ public:
 #elif defined(USE_LD) && defined(DEBUG)
         if(!m_mutex)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error(std::string("Mutex::Mutex(): ") + SDL_GetError()));
+            VGL_THROW_RUNTIME_ERROR(string("Mutex::Mutex(): ") + SDL_GetError());
         }
 #endif
     }
@@ -131,7 +130,7 @@ public:
 #if defined(USE_LD) && defined(DEBUG)
         if(err)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error(std::string("internal_mutex_acquire(): ") + SDL_GetError()));
+            VGL_THROW_RUNTIME_ERROR(string("internal_mutex_acquire(): ") + SDL_GetError());
         }
 #else
         (void)err;
@@ -151,7 +150,7 @@ public:
 #if defined(USE_LD) && defined(DEBUG)
         if(err)
         {
-            BOOST_THROW_EXCEPTION(std::runtime_error(std::string("internal_mutex_release(): ") + SDL_GetError()));
+            VGL_THROW_RUNTIME_ERROR(string("internal_mutex_release(): ") + SDL_GetError());
         }
 #else
         (void)err;
