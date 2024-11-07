@@ -136,7 +136,7 @@ private:
     {
         if(!is_trivially_destructible<T>::value)
         {
-            for(T &vv : *this)
+            for(T& vv : *this)
             {
                 vv.~T();
             }
@@ -167,7 +167,20 @@ private:
     /// \param cnt New size.
     void resizeInternal(unsigned cnt)
     {
-        m_data = array_new(m_data, cnt);
+        if(is_trivially_destructible<T>::value)
+        {
+            m_data = array_new(m_data, cnt);
+        }
+        else
+        {
+            T* new_data = array_new(static_cast<T*>(nullptr), cnt);
+            for(unsigned ii = 0; (ii < m_size); ++ii)
+            {
+                new(new_data + ii) T(move(m_data[ii]));
+            }
+            array_delete(m_data);
+            m_data = new_data;
+        }
         m_capacity = cnt;
     }
 

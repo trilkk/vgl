@@ -12,6 +12,9 @@ using wave_token = boost::wave::cpplexer::lex_token<>;
 using wave_cpplex_iterator = boost::wave::cpplexer::lex_iterator<wave_token>;
 using wave_context = boost::wave::context<std::string::const_iterator, wave_cpplex_iterator>;
 
+namespace vgl
+{
+
 namespace
 {
 
@@ -21,7 +24,7 @@ namespace
 /// \return Pair of strings, GLSL shader compiler preprocessor input and rest of the source.
 std::pair<std::string, std::string> glsl_split(std::string_view source)
 {
-    std::vector<std::string> lines;
+    vector<std::string> lines;
 
     boost::split(lines, source, boost::is_any_of("\n"));
 
@@ -327,9 +330,6 @@ std::string convert_glesv2_gl(std::string_view op)
 #endif
 
 }
-
-namespace vgl
-{
 
 string wave_preprocess_glsl(string_view op)
 {
