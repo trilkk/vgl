@@ -85,6 +85,8 @@ public:
     }
 };
 
+}
+
 /// Wrapper for BOOST_THROW_EXCEPTION macro.
 ///
 /// \param op Exception to throw.
@@ -93,9 +95,7 @@ public:
 /// Constructs and throws a runtime_error.
 ///
 /// \param op String input.
-#define VGL_THROW_RUNTIME_ERROR(op) VGL_THROW_EXCEPTION(runtime_error(op))
-
-}
+#define VGL_THROW_RUNTIME_ERROR(op) VGL_THROW_EXCEPTION(vgl::runtime_error(op))
 
 #endif
 
