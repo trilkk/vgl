@@ -587,6 +587,11 @@ public:
     /// \param end_iter Ending iterator to erase to.
     iterator erase(const_iterator start_iter, const_iterator end_iter)
     {
+        VGL_ASSERT(start_iter >= begin());
+        VGL_ASSERT(start_iter <= end());
+        VGL_ASSERT(end_iter >= begin());
+        VGL_ASSERT(end_iter <= end());
+        VGL_ASSERT(end_iter >= start_iter);
         unsigned new_length = length() - static_cast<unsigned>(end_iter - start_iter);
         value_type* new_data = array_new(static_cast<value_type*>(nullptr), new_length + 1);
         value_type* insertion_iter = new_data;
@@ -617,6 +622,9 @@ public:
     /// \param end_iter End iterator to insert.
     template<class IteratorType> void insert(const_iterator pos, IteratorType start_iter, IteratorType end_iter)
     {
+        VGL_ASSERT(pos >= begin());
+        VGL_ASSERT(pos <= end());
+        VGL_ASSERT(end_iter >= start_iter);
         unsigned new_length = length() + static_cast<unsigned>(end_iter - start_iter);
         value_type* new_data = array_new(static_cast<value_type*>(nullptr), new_length + 1);
         value_type* insertion_iter = new_data;
