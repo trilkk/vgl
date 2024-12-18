@@ -6,7 +6,7 @@ namespace vgl
 namespace detail
 {
 
-OpenGlBufferState OpenGlBufferState::g_opengl_buffer_state;
+OpenGlVertexArrayObjectState OpenGlVertexArrayObjectState::g_opengl_vertex_array_object_state;
 
 }
 

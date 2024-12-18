@@ -10,7 +10,7 @@
 
 #include "vgl_extern_stdlib.hpp"
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 #include <stdexcept>
 #include <boost/throw_exception.hpp>
 #endif

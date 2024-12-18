@@ -1,6 +1,7 @@
 #ifndef VGL_STRING_HPP
 #define VGL_STRING_HPP
 
+#include "vgl_assert.hpp"
 #include "vgl_limits.hpp"
 #include "vgl_realloc.hpp"
 
@@ -33,6 +34,8 @@ constexpr unsigned internal_strlen(const char* op)
 template<typename T> class string_data
 {
 public:
+    /// Value type.
+    using value_type = T;
     /// Iterator type.
     using iterator = T*;
     /// Const iterator type.
@@ -382,7 +385,7 @@ public:
     /// Constructor.
     ///
     /// \param op String data input.
-    explicit string(const string_data<const char>& op)
+    explicit string(const string_data<const value_type>& op)
     {
         assign(op);
     }
@@ -475,6 +478,7 @@ public:
     /// \return This object.
     string& assign(const char* data, unsigned len)
     {
+        VGL_ASSERT(data || (len == 0));
 #if defined(USE_LD)
         if(length() == len)
         {
@@ -487,7 +491,7 @@ public:
         {
             base_type::m_data = array_new(base_type::m_data, len + 1);
             detail::internal_memcpy(base_type::m_data, data, len);
-            base_type::m_data[len] = 0;
+            base_type::m_data[len] = static_cast<value_type>(0);
         }
         else
         {
@@ -512,7 +516,7 @@ public:
     ///
     /// \param op Input data.
     /// \return This object.
-    string& assign(const string_data<const char>& op)
+    string& assign(const string_data<const value_type>& op)
     {
         return assign(op.data(), op.length());
     }
@@ -520,7 +524,7 @@ public:
     ///
     /// \param op Input data.
     /// \return This object.
-    string& assign(const string_data<char>& op)
+    string& assign(const string_data<value_type>& op)
     {
         return assign(const_cast<const char*>(op.data()), op.length());
     }
@@ -549,7 +553,7 @@ public:
     void resize(unsigned new_size)
     {
         base_type::m_data = array_new(base_type::m_data, new_size + 1);
-        base_type::m_data[new_size] = static_cast<char>(0);
+        base_type::m_data[new_size] = static_cast<value_type>(0);
         base_type::m_length = new_size;
     }
     /// Resizes the string.
@@ -558,7 +562,7 @@ public:
     ///
     /// \param new_size New size.
     /// \param value Value for new elements.
-    void resize(unsigned new_size, char value)
+    void resize(unsigned new_size, value_type value)
     {
         unsigned old_size = length();
 
@@ -572,6 +576,55 @@ public:
     }
 
 #if defined(USE_LD)
+    /// Insert into the string.
+    ///
+    /// \param pos Insertion position.
+    /// \param start_iter Start iterator to insert.
+    /// \param end_iter End iterator to insert.
+    template<class IteratorType> void insert(const_iterator pos, IteratorType start_iter, IteratorType end_iter)
+    {
+        unsigned new_length = length() + static_cast<unsigned>(end_iter - start_iter);
+        value_type* new_data = array_new(static_cast<value_type*>(nullptr), new_length + 1);
+        value_type* insertion_iter = new_data;
+
+        for(const_iterator ii = cbegin(); (ii < pos); ++ii)
+        {
+            *insertion_iter = *ii;
+            ++insertion_iter;
+        }
+        for(IteratorType ii = start_iter; (ii < end_iter); ++ii)
+        {
+            *insertion_iter = static_cast<value_type>(*ii);
+            ++insertion_iter;
+        }
+        for(const_iterator ii = pos, ee = cend(); (ii < ee); ++ii)
+        {
+            *insertion_iter = *ii;
+            ++insertion_iter;
+        }
+        *insertion_iter = static_cast<value_type>(0);
+
+        array_delete(base_type::m_data);
+        base_type::m_data = new_data;
+        base_type::m_length = new_length;
+    }
+
+    /// Returns a substring of this string.
+    ///
+    /// \param pos Position to start from.
+    /// \param count Number of entries or \e npos to copy until end of string.
+    /// \return Copy of a part of this string.
+    string substr(unsigned pos, unsigned count = npos)
+    {
+        VGL_ASSERT(pos < length());
+        if (count == npos)
+        {
+            return string(base_type::m_data + pos, length() - pos);
+        }
+        VGL_ASSERT((pos + count) <= length());
+        return string(base_type::m_data + pos, count);
+    }
+
     /// Swap with another object.
     ///
     /// \param other Object to swap with.

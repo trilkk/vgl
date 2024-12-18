@@ -8,12 +8,12 @@
 #include <boost/wave/cpp_context.hpp>
 #include <boost/wave/cpplexer/cpp_lex_iterator.hpp>
 
+namespace vgl
+{
+
 using wave_token = boost::wave::cpplexer::lex_token<>;
 using wave_cpplex_iterator = boost::wave::cpplexer::lex_iterator<wave_token>;
 using wave_context = boost::wave::context<std::string::const_iterator, wave_cpplex_iterator>;
-
-namespace vgl
-{
 
 namespace
 {
@@ -22,18 +22,18 @@ namespace
 ///
 /// \param source Source input.
 /// \return Pair of strings, GLSL shader compiler preprocessor input and rest of the source.
-std::pair<std::string, std::string> glsl_split(std::string_view source)
+std::pair<string, string> glsl_split(string_view source)
 {
-    vector<std::string> lines;
+    vector<string> lines;
 
     boost::split(lines, source, boost::is_any_of("\n"));
 
-    std::vector<std::string> glsl_list;
-    std::vector<std::string> cpp_list;
+    vector<string> glsl_list;
+    vector<string> cpp_list;
 
     for(const auto& vv : lines)
     {
-        std::string ii = boost::trim_copy(vv);
+        string ii = boost::trim_copy(vv);
 
         if(boost::starts_with(ii, "#"))
         {
@@ -50,8 +50,8 @@ std::pair<std::string, std::string> glsl_split(std::string_view source)
         cpp_list.push_back(vv);
     }
 
-    std::string glsl_ret = boost::algorithm::join(glsl_list, "\n");
-    std::string cpp_ret = boost::algorithm::join(cpp_list, "\n");
+    string glsl_ret = boost::algorithm::join(glsl_list, "\n");
+    string cpp_ret = boost::algorithm::join(cpp_list, "\n");
 
     if(!glsl_ret.empty())
     {
@@ -333,7 +333,7 @@ std::string convert_glesv2_gl(std::string_view op)
 
 string wave_preprocess_glsl(string_view op)
 {
-    std::string input_source = read_file_locate(op).c_str();
+    string input_source = read_file_locate(op).c_str();
 
 #if !defined(DNLOAD_GLESV2)
     input_source = convert_glesv2_gl(input_source);

@@ -270,9 +270,6 @@ private:
     GLuint m_id = 0;
 
 public:
-    /// Currently bound geometry buffer.
-    static const GeometryBuffer* g_current_geometry_buffer;
-
     /// Currently active program.
     static const GlslProgram* g_current_program;
 
@@ -510,9 +507,6 @@ public:
         {
             dnload_glUseProgram(m_id);
             g_current_program = this;
-
-            // Must also clear current geometry buffer.
-            g_current_geometry_buffer = nullptr;
         }
     }
 

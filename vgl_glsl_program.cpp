@@ -3,7 +3,6 @@
 namespace vgl
 {
 
-const GeometryBuffer* GlslProgram::g_current_geometry_buffer = nullptr;
 const GlslProgram* GlslProgram::g_current_program = nullptr;
 
 #if defined(USE_LD)

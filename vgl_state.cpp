@@ -9,7 +9,6 @@ namespace vgl
 namespace detail
 {
 
-OpenGlAttribState OpenGlAttribState::g_opengl_attrib_state;
 OpenGlBlendState OpenGlBlendState::g_opengl_blend_state;
 OpenGlClearState OpenGlClearState::g_opengl_clear_state;
 OpenGlColorWriteState OpenGlColorWriteState::g_opengl_color_write_state;
