@@ -581,6 +581,35 @@ public:
     }
 
 #if defined(USE_LD)
+    /// Erase a part of the string.
+    ///
+    /// \param start_iter Starting iterator to erase from.
+    /// \param end_iter Ending iterator to erase to.
+    iterator erase(const_iterator start_iter, const_iterator end_iter)
+    {
+        unsigned new_length = length() - static_cast<unsigned>(end_iter - start_iter);
+        value_type* new_data = array_new(static_cast<value_type*>(nullptr), new_length + 1);
+        value_type* insertion_iter = new_data;
+
+        for(const_iterator ii = cbegin(); (ii < start_iter); ++ii)
+        {
+            *insertion_iter = *ii;
+            ++insertion_iter;
+        }
+        iterator ret = insertion_iter;
+        for(const_iterator ii = end_iter, ee = cend(); (ii < ee); ++ii)
+        {
+            *insertion_iter = *ii;
+            ++insertion_iter;
+        }
+        *insertion_iter = static_cast<value_type>(0);
+
+        array_delete(base_type::m_data);
+        base_type::m_data = new_data;
+        base_type::m_length = new_length;
+        return ret;
+    }
+
     /// Insert into the string.
     ///
     /// \param pos Insertion position.

@@ -91,10 +91,10 @@ string glsl_tidy(string_view source)
 /// \param bb String iterator.
 /// \param ee String endpoint.
 /// \return Iterator to end of match or original iterator if no match.
-static std::string::const_iterator regex_line_comment(std::string::const_iterator bb,
-        const std::string::const_iterator &ee)
+string::const_iterator regex_line_comment(string::const_iterator bb,
+        const string::const_iterator &ee)
 {
-    std::string::const_iterator ii = bb;
+    string::const_iterator ii = bb;
 
     if((ii == ee) || ('/' != *ii))
     {
@@ -126,10 +126,10 @@ static std::string::const_iterator regex_line_comment(std::string::const_iterato
 /// \param bb String iterator.
 /// \param ee String endpoint.
 /// \return Iterator to end of match or original iterator if no match.
-static std::string::const_iterator regex_block_comment(std::string::const_iterator bb,
-        const std::string::const_iterator &ee)
+string::const_iterator regex_block_comment(string::const_iterator bb,
+        const string::const_iterator &ee)
 {
-    std::string::const_iterator ii = bb;
+    string::const_iterator ii = bb;
     bool allow_return = false;
 
     if((ii == ee) || ('/' != *ii))
@@ -170,10 +170,10 @@ static std::string::const_iterator regex_block_comment(std::string::const_iterat
 /// \param bb String iterator.
 /// \param ee String endpoint.
 /// \return Iterator to end of match or original iterator if no match.
-static std::string::const_iterator regex_comment(std::string::const_iterator bb,
-        const std::string::const_iterator &ee)
+string::const_iterator regex_comment(string::const_iterator bb,
+        const string::const_iterator &ee)
 {
-    std::string::const_iterator ii = regex_line_comment(bb, ee);
+    string::const_iterator ii = regex_line_comment(bb, ee);
     if(ii != bb)
     {
         return ii;
@@ -186,10 +186,10 @@ static std::string::const_iterator regex_comment(std::string::const_iterator bb,
 /// \param bb String iterator.
 /// \param ee String endpoint.
 /// \return Iterator at the end of whitespace.
-static std::string::const_iterator regex_whitespace(std::string::const_iterator bb,
-        const std::string::const_iterator ee)
+string::const_iterator regex_whitespace(string::const_iterator bb,
+        const string::const_iterator ee)
 {
-    for(std::string::const_iterator ii = bb; (ii != ee); ++ii)
+    for(string::const_iterator ii = bb; (ii != ee); ++ii)
     {
         if(!isspace(static_cast<int>(*ii)))
         {
@@ -205,10 +205,10 @@ static std::string::const_iterator regex_whitespace(std::string::const_iterator 
 /// \param ee String endpoint.
 /// \param word Word to match.
 /// \return Iterator to end of match or original iterator if no match.
-static std::string::const_iterator regex_word_whitespace(std::string::const_iterator bb,
-        const std::string::const_iterator ee, std::string_view word)
+string::const_iterator regex_word_whitespace(string::const_iterator bb,
+        const string::const_iterator ee, string_view word)
 {
-    std::string::const_iterator ii = bb;
+    string::const_iterator ii = bb;
     unsigned jj = 0;
 
     while(word.length() > jj)
@@ -234,10 +234,10 @@ static std::string::const_iterator regex_word_whitespace(std::string::const_iter
 /// \param bb String iterator.
 /// \param ee String endpoint.
 /// \return Iterator to end of match or original iterator if no match.
-static std::string::const_iterator regex_precision_whitespace(std::string::const_iterator bb,
-        const std::string::const_iterator ee)
+string::const_iterator regex_precision_whitespace(string::const_iterator bb,
+        const string::const_iterator ee)
 {
-    std::string::const_iterator ii = regex_word_whitespace(bb, ee, "lowp");
+    string::const_iterator ii = regex_word_whitespace(bb, ee, "lowp");
     if(ii != bb)
     {
         return regex_whitespace(ii, ee);
@@ -261,16 +261,16 @@ static std::string::const_iterator regex_precision_whitespace(std::string::const
 /// \param bb String iterator.
 /// \param ee String endpoint.
 /// \return Iterator to end of match or original iterator if no match.
-static std::string::const_iterator regex_glesv2(std::string::const_iterator bb,
-        const std::string::const_iterator ee)
+string::const_iterator regex_glesv2(string::const_iterator bb,
+        const string::const_iterator ee)
 {
-    std::string::const_iterator ii = bb;
+    string::const_iterator ii = bb;
 
     // Try "precision" statement."
-    std::string::const_iterator jj = regex_word_whitespace(ii, ee, "precision");
+    string::const_iterator jj = regex_word_whitespace(ii, ee, "precision");
     if(jj != ii)
     {
-        std::string::const_iterator kk = jj;
+        string::const_iterator kk = jj;
         jj = regex_precision_whitespace(kk, ee);
         if(jj != kk)
         {
@@ -298,15 +298,15 @@ static std::string::const_iterator regex_glesv2(std::string::const_iterator bb,
     return bb;
 }
 
-std::string convert_glesv2_gl(std::string_view op)
+string convert_glesv2_gl(string_view op)
 {
-    std::string ret(op);
-    std::string::const_iterator ii = cbegin(ret);
-    std::string::const_iterator ee = cend(ret);
+    string ret(op);
+    string::const_iterator ii = cbegin(ret);
+    string::const_iterator ee = cend(ret);
 
     while(ii != ee)
     {
-        std::string::const_iterator jj = regex_glesv2(ii, ee);
+        string::const_iterator jj = regex_glesv2(ii, ee);
         if(jj != ii)
         {
             ii = ret.erase(ii, jj);
