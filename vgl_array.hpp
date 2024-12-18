@@ -1,6 +1,8 @@
 #ifndef VGL_ARRAY_HPP
 #define VGL_ARRAY_HPP
 
+#include "vgl_config.hpp"
+
 #if defined(USE_LD)
 #include "vgl_throw_exception.hpp"
 #endif
