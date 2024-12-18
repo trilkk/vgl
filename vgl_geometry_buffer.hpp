@@ -1,9 +1,9 @@
 #ifndef VGL_GEOMETRY_BUFFER_HPP
 #define VGL_GEOMETRY_BUFFER_HPP
 
-#include "vgl_buffer.hpp"
 #include "vgl_mesh_data.hpp"
 #include "vgl_unique_ptr.hpp"
+#include "vgl_vertex_array_object.hpp"
 
 namespace vgl
 {
@@ -14,6 +14,75 @@ namespace vgl
 class GeometryBuffer
 {
 private:
+    /// Program to vertex array object mapping.
+    class VaoMapping
+    {
+    private:
+        /// Associated program.
+        const GlslProgram* m_program = nullptr;
+
+        /// Associated vertex array object.
+        VertexArrayObject m_vertex_array_object;
+
+    public:
+        /// Constructor.
+        ///
+        /// \param program Program to associate with.
+        /// \param vertex_buffer Vertex buffer to use.
+        /// \param index_buffer Index buffer to use.
+        /// \param data Data to use for format.
+        explicit VaoMapping(
+                const GlslProgram& program,
+                const VertexBuffer& vertex_buffer,
+                const IndexBuffer& index_buffer,
+                const MeshData& data) :
+            m_program(&program),
+            m_vertex_array_object(program, vertex_buffer, index_buffer, data)
+        {
+        }
+
+        /// Move constructor.
+        ///
+        /// \param other Source object.
+        VaoMapping(VaoMapping&& other) :
+            m_program(other.m_program),
+            m_vertex_array_object(move(other.m_vertex_array_object))
+        {
+        }
+
+    public:
+        /// Bind the contained vertex array object into use.
+        ///
+        /// \return Vertex array object.
+        void bind() const
+        {
+            m_vertex_array_object.bind();
+        }
+
+        /// Match check.
+        ///
+        /// \param op Program to check against.
+        /// \return Program.
+        bool matches(const GlslProgram& op) const
+        {
+            VGL_ASSERT(m_program);
+            return (m_program == &op);
+        }
+
+    public:
+        /// Move operator.
+        ///
+        /// \param other Source object.
+        /// \return This object.
+        VaoMapping& operator=(VaoMapping&& other)
+        {
+            m_program = other.m_program;
+            m_vertex_array_object = move(other.m_vertex_array_object);
+            return *this;
+        }
+    };
+
+private:
     /// Internal mesh data (for uploading).
     MeshData m_data;
 
@@ -22,6 +91,9 @@ private:
 
     /// Index buffer.
     IndexBuffer m_index_buffer;
+
+    /// Vertex array objects.
+    vector<VaoMapping> m_vao_mapping;
 
 public:
     /// Default constructor.
@@ -38,16 +110,6 @@ public:
         update();
 #if defined(USE_LD)
         detail::increment_buffer_data_sizes(op);
-#endif
-    }
-
-    ~GeometryBuffer()
-    {
-#if defined(USE_LD)
-        if(GlslProgram::g_current_geometry_buffer == this)
-        {
-            GlslProgram::g_current_geometry_buffer = nullptr;
-        }
 #endif
     }
 
@@ -101,15 +163,19 @@ public:
     /// Bind this geometry buffer for drawing.
     ///
     /// \param op Program to bind with.
-    void bind(const GlslProgram& op) const
+    void bind(const GlslProgram& op)
     {
-        if(GlslProgram::g_current_geometry_buffer != this)
+        for(const auto& vv : m_vao_mapping)
         {
-            m_vertex_buffer.bind();
-            m_index_buffer.bind();
-            m_data.bindAttributes(op);
-            GlslProgram::g_current_geometry_buffer = this;
+            if(vv.matches(op))
+            {
+                vv.bind();
+                return;
+            }
         }
+
+        // Creating new VAO leaves it bound.
+        m_vao_mapping.emplace_back(op, m_vertex_buffer, m_index_buffer, m_data);
     }
 
 public:
@@ -136,7 +202,7 @@ namespace detail
 ///
 /// \param geometry_buffer Geometry buffer to bind.
 /// \param prog Program to bind with.
-inline void geometry_buffer_bind(const GeometryBuffer& geometry_buffer, const GlslProgram& prog)
+inline void geometry_buffer_bind(GeometryBuffer& geometry_buffer, const GlslProgram& prog)
 {
     geometry_buffer.bind(prog);
 }
@@ -148,6 +214,26 @@ inline void geometry_buffer_bind(const GeometryBuffer& geometry_buffer, const Gl
 inline void geometry_handle_update_mesh_data(const GeometryHandle& handle, const MeshData& mesh_data)
 {
     mesh_data.update(handle.getBuffer().getVertexBuffer(), handle.getVertexOffset());
+}
+
+/// Updates mesh data.
+///
+/// \param vertex_array_object Vertex array object to setup.
+/// \param program Program associated with the vertex array object.
+/// \param vertex_buffer Vertex buffer to use.
+/// \param index_buffer Index buffer to use.
+/// \param data Data to use for format.
+inline void setup_vertex_array_object(
+        const VertexArrayObject& vertex_array_object,
+        const GlslProgram& program,
+        const VertexBuffer& vertex_buffer,
+        const IndexBuffer& index_buffer,
+        const MeshData& data)
+{
+    vertex_array_object.bind();
+    vertex_buffer.bind();
+    index_buffer.bind();
+    data.bindAttributes(program);
 }
 
 }

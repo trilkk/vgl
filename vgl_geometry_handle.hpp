@@ -15,7 +15,7 @@ namespace detail
 {
 
 /// \cond
-void geometry_buffer_bind(const GeometryBuffer& geometry_buffer, const GlslProgram& prog);
+void geometry_buffer_bind(GeometryBuffer& geometry_buffer, const GlslProgram& prog);
 /// \endcond
 
 }

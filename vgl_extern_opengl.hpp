@@ -1,10 +1,11 @@
 #ifndef VGL_EXTERN_OPENGL_HPP
 #define VGL_EXTERN_OPENGL_HPP
 
-/// \file
-/// \brief External include: OpenGL
+/// \file External include: OpenGL
 
-#if defined(USE_LD)
+#include "vgl_config.hpp"
+
+#if defined(VGL_USE_LD)
 
 #if defined(_WIN32) || defined(_WIN64)
 #define _USE_MATH_DEFINES
@@ -12,7 +13,11 @@
 #include "windows.h"
 #endif
 
-#if defined(VGL_ENABLE_GTK)
+#if defined(VGL_USE_GLES)
+#define GL_GLEXT_PROTOTYPES
+#include "GLES3/gl3.h"
+#include "GLES2/gl2ext.h"
+#elif defined(VGL_ENABLE_GTK)
 #define GL_GLEXT_PROTOTYPES
 #include "GL/gl.h"
 #include "GL/glext.h"
@@ -38,6 +43,9 @@
 #endif
 #if !defined(dnload_glBindTexture)
 #define dnload_glBindTexture glBindTexture
+#endif
+#if !defined(dnload_glBindVertexArray)
+#define dnload_glBindVertexArray glBindVertexArray
 #endif
 #if !defined(dnload_glBlendFuncSeparate)
 #define dnload_glBlendFuncSeparate glBlendFuncSeparate
@@ -128,6 +136,9 @@
 #endif
 #if !defined(dnload_glGenTextures)
 #define dnload_glGenTextures glGenTextures
+#endif
+#if !defined(dnload_glGenVertexArrays)
+#define dnload_glGenVertexArrays glGenVertexArrays
 #endif
 #if !defined(dnload_glGetAttribLocation)
 #define dnload_glGetAttribLocation glGetAttribLocation

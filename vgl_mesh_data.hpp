@@ -85,7 +85,8 @@ public:
             {
                 unsigned idx = static_cast<unsigned>(ret);
                 const void* offset = reinterpret_cast<const void*>(m_offset);
-                attrib_array_enable(idx);
+                VGL_ASSERT(detail::OpenGlVertexArrayObjectState::g_opengl_vertex_array_object_state.getCurrentVao() != 0);
+                dnload_glEnableVertexAttribArray(idx);
                 dnload_glVertexAttribPointer(idx, m_element_count, m_type, m_normalized, stride, offset);
             }
             return ret;
@@ -345,9 +346,8 @@ public:
     void bindAttributes(const GlslProgram& op) const
     {
 #if defined(USE_LD) && defined(DEBUG)
-        bitset<detail::OpenGlAttribState::MAX_ATTRIB_ARRAYS> bound_attributes;
-#else
-        unsigned disable_attribs = 0;
+        constexpr unsigned MAX_ATTRIB_ARRAYS = 8;
+        bitset<MAX_ATTRIB_ARRAYS> bound_attributes;
 #endif
 
         for(const auto& vv : m_channels)
@@ -356,33 +356,29 @@ public:
             if(idx >= 0)
             {
 #if defined(USE_LD) && defined(DEBUG)
+                VGL_ASSERT(static_cast<unsigned>(idx) < MAX_ATTRIB_ARRAYS);
                 bound_attributes[idx] = true;
-#else
-                disable_attribs = max(disable_attribs, static_cast<unsigned>(idx) + 1);
 #endif
             }
         }
 
 #if defined(USE_LD) && defined(DEBUG)
-        unsigned disable_attribs = 0;
-        optional<unsigned> disabled_location;
-        for(unsigned ii = 0; (ii < detail::OpenGlAttribState::MAX_ATTRIB_ARRAYS); ++ii)
+        bool disabled_found = false;
+        for(unsigned ii = 0; (ii < MAX_ATTRIB_ARRAYS); ++ii)
         {
             if(bound_attributes[ii])
             {
-                if(disabled_location)
+                if(disabled_found)
                 {
-                    VGL_THROW_RUNTIME_ERROR("attribute binding gap at " + to_string(*disabled_location));
+                    VGL_THROW_RUNTIME_ERROR("attribute binding gap before " + to_string(ii));
                 }
-                disable_attribs = ii + 1;
             }
             else
             {
-                disabled_location = ii;
+                disabled_found = true;
             }
         }
 #endif
-        attrib_array_disable_from(disable_attribs);
     }
 
     /// Update to GPU.

@@ -1,6 +1,8 @@
 #ifndef VGL_LIMITS_HPP
 #define VGL_LIMITS_HPP
 
+#include "vgl_config.hpp"
+
 #include <limits>
 
 namespace vgl

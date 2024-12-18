@@ -10,70 +10,51 @@ namespace vgl
 namespace detail
 {
 
-/// OpenGL buffer state.
-class OpenGlBufferState
+/// Current state of vertex array object.
+class OpenGlVertexArrayObjectState
 {
 private:
-    /// Currently bound vertex buffer ID.
-    GLuint g_current_vertex_buffer = 0;
-
-    /// Currently bound index buffer ID.
-    GLuint g_current_index_buffer = 0;
+    /// Currently active VAO.
+    GLuint m_vao = 0;
 
 public:
     /// Global state.
-    static OpenGlBufferState g_opengl_buffer_state;
+    static OpenGlVertexArrayObjectState g_opengl_vertex_array_object_state;
 
 public:
-    /// Updates bound vertex buffer ID.
+    /// Binds given vertex array object.
     ///
-    /// \param op Buffer ID.
-    /// \return True if ID was changed.
-    constexpr bool updateBoundVertexBuffer(GLuint op)
+    /// \param op Vertex array object ID.
+    void bind(GLuint op)
     {
-        if(g_current_vertex_buffer == op)
+        if(m_vao != op)
         {
-            return false;
+            dnload_glBindVertexArray(op);
+            m_vao = op;
         }
-        g_current_vertex_buffer = op;
-        return true;
     }
 
-    /// Updates bound index buffer ID.
+#if defined(USE_LD)
+    /// Invalidates given vertex array object.
     ///
-    /// \param op Buffer ID.
-    /// \return True if ID was changed.
-    constexpr bool updateBoundIndexBuffer(GLuint op)
+    /// \param op Vertex array object ID.
+    void invalidate(GLuint op)
     {
-        if(g_current_index_buffer == op)
+        if(m_vao == op)
         {
-            return false;
+            m_vao = 0;
         }
-        g_current_index_buffer = op;
-        return true;
     }
 
-public:
-    /// Updates bound buffer ID.
+    /// Gets the currently bound vertex array object.
     ///
-    /// \param op Buffer ID.
-    /// \return True if ID was changed.
-    template<GLenum BufferType> static constexpr bool update_bound_buffer(GLuint op);
+    /// \return Vertex array object handle.
+    GLuint getCurrentVao()
+    {
+        return m_vao;
+    }
+#endif
 };
-
-/// \cond
-template<> constexpr bool OpenGlBufferState::update_bound_buffer<GL_ARRAY_BUFFER>(GLuint op)
-{
-    return g_opengl_buffer_state.updateBoundVertexBuffer(op);
-}
-/// \endcond
-
-/// \cond
-template<> constexpr bool OpenGlBufferState::update_bound_buffer<GL_ELEMENT_ARRAY_BUFFER>(GLuint op)
-{
-    return g_opengl_buffer_state.updateBoundIndexBuffer(op);
-}
-/// \endcond
 
 }
 
@@ -94,7 +75,7 @@ private:
 
 public:
     /// Constructor.
-    Buffer()
+    explicit Buffer()
     {
         dnload_glGenBuffers(1, &m_id);
     }
@@ -102,7 +83,9 @@ public:
     /// Destructor.
     ~Buffer()
     {
-        dnload_glDeleteBuffers(1, &m_id);
+#if defined(USE_LD)
+        glDeleteBuffers(1, &m_id);
+#endif
     }
 
 private:
@@ -112,6 +95,7 @@ private:
     /// \param count Number of bytes to update.
     void update(const void* ptr, unsigned count) const
     {
+        detail::OpenGlVertexArrayObjectState::g_opengl_vertex_array_object_state.bind(0);
         bind();
         dnload_glBufferData(BufferType, count, ptr, GL_STATIC_DRAW);
     }
@@ -123,6 +107,7 @@ private:
     /// \param offset Offset into the buffer.
     void update(const void* ptr, unsigned count, unsigned offset) const
     {
+        detail::OpenGlVertexArrayObjectState::g_opengl_vertex_array_object_state.bind(0);
         bind();
         dnload_glBufferSubData(BufferType, offset, count, ptr);
     }
@@ -138,15 +123,12 @@ public:
 
     /// Bind this buffer.
     ///
-    /// \return True if the buffer was bound, false if no action was necessary.
-    bool bind() const
+    /// There is no need to check for currently bound buffer.
+    /// During rendering, only the currently bound Vertex Array Object matters.
+    /// During updates, checking the bound buffer makes no sense.
+    void bind() const
     {
-        if(detail::OpenGlBufferState::update_bound_buffer<BufferType>(m_id))
-        {
-            dnload_glBindBuffer(BufferType, m_id);
-            return true;
-        }
-        return false;
+        dnload_glBindBuffer(BufferType, m_id);
     }
 
     /// Update data to GPU.

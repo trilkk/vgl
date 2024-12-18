@@ -1,6 +1,7 @@
 #ifndef VGL_STRING_HPP
 #define VGL_STRING_HPP
 
+#include "vgl_assert.hpp"
 #include "vgl_limits.hpp"
 #include "vgl_realloc.hpp"
 
@@ -33,10 +34,14 @@ constexpr unsigned internal_strlen(const char* op)
 template<typename T> class string_data
 {
 public:
+    /// Value type.
+    using value_type = T;
     /// Iterator type.
-    using iterator = T*;
+    using iterator = value_type*;
     /// Const iterator type.
-    using const_iterator = const T*;
+    using const_iterator = const value_type*;
+    /// Type of this class.
+    using this_type = string_data<value_type>;
 
 public:
     /// No-position.
@@ -44,7 +49,7 @@ public:
 
 protected:
     /// Internal data.
-    T* m_data = nullptr;
+    value_type* m_data = nullptr;
 
     /// String length.
     unsigned m_length = 0;
@@ -57,7 +62,7 @@ protected:
     ///
     /// \param data Data input.
     /// \param length Length.
-    constexpr explicit string_data(T* data, unsigned length) noexcept :
+    constexpr explicit string_data(value_type* data, unsigned length) noexcept :
         m_data(data),
         m_length(length)
     {
@@ -100,14 +105,14 @@ public:
     /// Iterator to the beginning.
     ///
     /// \return Iterator.
-    constexpr iterator begin() const noexcept
+    constexpr iterator begin() noexcept
     {
         return m_data;
     }
-    /// Iterator to the beginning.
+    /// Const iterator to the beginning.
     ///
-    /// \return Iterator.
-    constexpr const_iterator cbegin() const noexcept
+    /// \return Const iterator.
+    constexpr const_iterator begin() const noexcept
     {
         return m_data;
     }
@@ -115,14 +120,14 @@ public:
     /// Iterator to the end.
     ///
     /// \return Iterator.
-    constexpr iterator end() const noexcept
+    constexpr iterator end() noexcept
     {
         return m_data + m_length;
     }
-    /// Iterator to the end.
+    /// Const iterator to the end.
     ///
-    /// \return Iterator.
-    constexpr const_iterator cend() const noexcept
+    /// \return Const iterator.
+    constexpr const_iterator end() const noexcept
     {
         return m_data + m_length;
     }
@@ -146,7 +151,7 @@ public:
     /// Returns the internal data pointer.
     ///
     /// \return Data pointer.
-    constexpr const T* data() const noexcept
+    constexpr const value_type* data() const noexcept
     {
         if(m_data)
         {
@@ -161,7 +166,7 @@ public:
     /// \param rhs Right-hand side operand.
     /// \param pos Position to start search from.
     /// \return Found index or npos if not found.
-    constexpr unsigned find(const string_data& rhs, unsigned pos = 0) const noexcept
+    constexpr unsigned find(const this_type& rhs, unsigned pos = 0) const noexcept
     {
         if(rhs.length() > m_length)
         {
@@ -182,7 +187,7 @@ public:
     ///
     /// \param op Substring to test.
     /// \return True if starts with given substring, false otherwise.
-    constexpr bool starts_with(const T* op)
+    constexpr bool starts_with(const value_type* op)
     {
         for(unsigned ii = 0;;)
         {
@@ -212,7 +217,7 @@ private:
     /// \param rhs Right-hand side operand.
     /// \param pos Position to search from.
     /// \return True if found, false if not.
-    constexpr bool matchAtPosition(const string_data& rhs, unsigned pos) const noexcept
+    constexpr bool matchAtPosition(const this_type& rhs, unsigned pos) const noexcept
     {
         for(unsigned ii = 0; (ii < rhs.length()); ++ii)
         {
@@ -229,7 +234,7 @@ public:
     /// Access operator.
     ///
     /// \return Element reference.
-    constexpr T& operator[](unsigned idx)
+    constexpr value_type& operator[](unsigned idx)
     {
         accessCheck(idx);
         return m_data[idx];
@@ -237,7 +242,7 @@ public:
     /// Const access operator.
     ///
     /// \return Element reference.
-    constexpr const T& operator[](unsigned idx) const
+    constexpr const value_type& operator[](unsigned idx) const
     {
         accessCheck(idx);
         return m_data[idx];
@@ -245,7 +250,7 @@ public:
     /// Access operator.
     ///
     /// \return Element reference.
-    constexpr T& operator[](int idx)
+    constexpr value_type& operator[](int idx)
     {
         accessCheck(idx);
         return m_data[idx];
@@ -253,7 +258,7 @@ public:
     /// Const access operator.
     ///
     /// \return Element reference.
-    constexpr const T& operator[](int idx) const
+    constexpr const value_type& operator[](int idx) const
     {
         accessCheck(idx);
         return m_data[idx];
@@ -336,7 +341,7 @@ public:
     /// \param lhs Left-hand-side operand.
     /// \param rhs Right-hand-side operand.
     /// \return Output stream.
-    friend std::ostream& operator<<(std::ostream& lhs, const string_data<T>& rhs)
+    friend std::ostream& operator<<(std::ostream& lhs, const this_type& rhs)
     {
         for(const T& cc : rhs)
         {
@@ -345,6 +350,9 @@ public:
         return lhs;
     }
 #endif
+
+public:
+    VGL_ITERATOR_FUNCTIONS(this_type)
 };
 
 }
@@ -382,7 +390,7 @@ public:
     /// Constructor.
     ///
     /// \param op String data input.
-    explicit string(const string_data<const char>& op)
+    explicit string(const string_data<const value_type>& op)
     {
         assign(op);
     }
@@ -475,6 +483,7 @@ public:
     /// \return This object.
     string& assign(const char* data, unsigned len)
     {
+        VGL_ASSERT(data || (len == 0));
 #if defined(USE_LD)
         if(length() == len)
         {
@@ -487,7 +496,7 @@ public:
         {
             base_type::m_data = array_new(base_type::m_data, len + 1);
             detail::internal_memcpy(base_type::m_data, data, len);
-            base_type::m_data[len] = 0;
+            base_type::m_data[len] = static_cast<value_type>(0);
         }
         else
         {
@@ -512,7 +521,7 @@ public:
     ///
     /// \param op Input data.
     /// \return This object.
-    string& assign(const string_data<const char>& op)
+    string& assign(const string_data<const value_type>& op)
     {
         return assign(op.data(), op.length());
     }
@@ -520,7 +529,7 @@ public:
     ///
     /// \param op Input data.
     /// \return This object.
-    string& assign(const string_data<char>& op)
+    string& assign(const base_type::this_type& op)
     {
         return assign(const_cast<const char*>(op.data()), op.length());
     }
@@ -549,7 +558,7 @@ public:
     void resize(unsigned new_size)
     {
         base_type::m_data = array_new(base_type::m_data, new_size + 1);
-        base_type::m_data[new_size] = static_cast<char>(0);
+        base_type::m_data[new_size] = static_cast<value_type>(0);
         base_type::m_length = new_size;
     }
     /// Resizes the string.
@@ -558,7 +567,7 @@ public:
     ///
     /// \param new_size New size.
     /// \param value Value for new elements.
-    void resize(unsigned new_size, char value)
+    void resize(unsigned new_size, value_type value)
     {
         unsigned old_size = length();
 
@@ -572,6 +581,92 @@ public:
     }
 
 #if defined(USE_LD)
+    /// Erase a part of the string.
+    ///
+    /// \param start_iter Starting iterator to erase from.
+    /// \param end_iter Ending iterator to erase to.
+    iterator erase(const_iterator start_iter, const_iterator end_iter)
+    {
+        VGL_ASSERT(start_iter >= begin());
+        VGL_ASSERT(start_iter <= end());
+        VGL_ASSERT(end_iter >= begin());
+        VGL_ASSERT(end_iter <= end());
+        VGL_ASSERT(end_iter >= start_iter);
+        unsigned new_length = length() - static_cast<unsigned>(end_iter - start_iter);
+        value_type* new_data = array_new(static_cast<value_type*>(nullptr), new_length + 1);
+        value_type* insertion_iter = new_data;
+
+        for(const_iterator ii = cbegin(); (ii < start_iter); ++ii)
+        {
+            *insertion_iter = *ii;
+            ++insertion_iter;
+        }
+        iterator ret = insertion_iter;
+        for(const_iterator ii = end_iter, ee = cend(); (ii < ee); ++ii)
+        {
+            *insertion_iter = *ii;
+            ++insertion_iter;
+        }
+        *insertion_iter = static_cast<value_type>(0);
+
+        array_delete(base_type::m_data);
+        base_type::m_data = new_data;
+        base_type::m_length = new_length;
+        return ret;
+    }
+
+    /// Insert into the string.
+    ///
+    /// \param pos Insertion position.
+    /// \param start_iter Start iterator to insert.
+    /// \param end_iter End iterator to insert.
+    template<class IteratorType> void insert(const_iterator pos, IteratorType start_iter, IteratorType end_iter)
+    {
+        VGL_ASSERT(pos >= begin());
+        VGL_ASSERT(pos <= end());
+        VGL_ASSERT(end_iter >= start_iter);
+        unsigned new_length = length() + static_cast<unsigned>(end_iter - start_iter);
+        value_type* new_data = array_new(static_cast<value_type*>(nullptr), new_length + 1);
+        value_type* insertion_iter = new_data;
+
+        for(const_iterator ii = cbegin(); (ii < pos); ++ii)
+        {
+            *insertion_iter = *ii;
+            ++insertion_iter;
+        }
+        for(IteratorType ii = start_iter; (ii < end_iter); ++ii)
+        {
+            *insertion_iter = static_cast<value_type>(*ii);
+            ++insertion_iter;
+        }
+        for(const_iterator ii = pos, ee = cend(); (ii < ee); ++ii)
+        {
+            *insertion_iter = *ii;
+            ++insertion_iter;
+        }
+        *insertion_iter = static_cast<value_type>(0);
+
+        array_delete(base_type::m_data);
+        base_type::m_data = new_data;
+        base_type::m_length = new_length;
+    }
+
+    /// Returns a substring of this string.
+    ///
+    /// \param pos Position to start from.
+    /// \param count Number of entries or \e npos to copy until end of string.
+    /// \return Copy of a part of this string.
+    string substr(unsigned pos, unsigned count = npos)
+    {
+        VGL_ASSERT(pos < length());
+        if (count == npos)
+        {
+            return string(base_type::m_data + pos, length() - pos);
+        }
+        VGL_ASSERT((pos + count) <= length());
+        return string(base_type::m_data + pos, count);
+    }
+
     /// Swap with another object.
     ///
     /// \param other Object to swap with.

@@ -1,7 +1,9 @@
 #ifndef VGL_ASSERT_HPP
 #define VGL_ASSERT_HPP
 
-#if defined(USE_LD) && defined(DEBUG)
+#include "vgl_config.hpp"
+
+#if defined(VGL_USE_LD) && defined(DEBUG)
 #include <boost/assert.hpp>
 /// Assertion macro (enabled).
 #define VGL_ASSERT(expr) BOOST_ASSERT(expr)

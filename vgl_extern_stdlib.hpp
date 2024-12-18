@@ -1,8 +1,9 @@
 #ifndef VGL_EXTERN_STDLIB_HPP
 #define VGL_EXTERN_STDLIB_HPP
 
-/// \file
-/// \brief External include: stdlib
+/// \file External include: stdlib
+
+#include "vgl_config.hpp"
 
 #include <cstdlib>
 

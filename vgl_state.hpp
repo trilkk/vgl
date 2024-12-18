@@ -44,65 +44,6 @@ string to_string(OperationMode op);
 namespace detail
 {
 
-/// OpenGL attribute array state abstraction.
-class OpenGlAttribState
-{
-public:
-    /// Maximum number of attribute arrays.
-    static const unsigned MAX_ATTRIB_ARRAYS = 6u;
-
-private:
-    /// Attribute array enabled statuses.
-    bool m_attrib_arrays_enabled[MAX_ATTRIB_ARRAYS] =
-    {
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-    };
-
-public:
-    /// Global state.
-    static OpenGlAttribState g_opengl_attrib_state;
-
-public:
-    /// Enable one vertex attribute.
-    ///
-    /// \param op Index of array to enable.
-    void enableAttribArray(unsigned op)
-    {
-#if defined(USE_LD)
-        if((MAX_ATTRIB_ARRAYS <= op))
-        {
-            VGL_THROW_RUNTIME_ERROR("enabling attribute index " + to_string(op) + " (" +
-                    to_string(MAX_ATTRIB_ARRAYS) + " supported)");
-        }
-#endif
-        if(!m_attrib_arrays_enabled[op])
-        {
-            dnload_glEnableVertexAttribArray(op);
-            m_attrib_arrays_enabled[op] = true;
-        }
-    }
-
-    /// Disable extra vertex attribute arrays.
-    ///
-    /// \param op Index of first array to disable.
-    void disableAttribArraysFrom(unsigned op)
-    {
-        for(unsigned ii = op; (ii < MAX_ATTRIB_ARRAYS); ++ii)
-        {
-            if(m_attrib_arrays_enabled[ii])
-            {
-                dnload_glDisableVertexAttribArray(ii);
-                m_attrib_arrays_enabled[ii] = false;
-            }
-        }
-    }
-};
-
 /// OpenGL blend state abstraction.
 class OpenGlBlendState
 {
@@ -577,22 +518,6 @@ public:
 
 #endif
 
-}
-
-/// Enable one vertex attribute.
-///
-/// \param op Index of array to enable.
-inline void attrib_array_enable(unsigned op)
-{
-    detail::OpenGlAttribState::g_opengl_attrib_state.enableAttribArray(op);
-}
-
-/// Disable extra vertex attribute arrays.
-///
-/// \param op Index of first array to disable.
-inline void attrib_array_disable_from(unsigned op)
-{
-    detail::OpenGlAttribState::g_opengl_attrib_state.disableAttribArraysFrom(op);
 }
 
 /// Set blending mode.
