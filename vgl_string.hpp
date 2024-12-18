@@ -37,9 +37,11 @@ public:
     /// Value type.
     using value_type = T;
     /// Iterator type.
-    using iterator = T*;
+    using iterator = value_type*;
     /// Const iterator type.
-    using const_iterator = const T*;
+    using const_iterator = const value_type*;
+    /// Type of this class.
+    using this_type = string_data<value_type>;
 
 public:
     /// No-position.
@@ -47,7 +49,7 @@ public:
 
 protected:
     /// Internal data.
-    T* m_data = nullptr;
+    value_type* m_data = nullptr;
 
     /// String length.
     unsigned m_length = 0;
@@ -60,7 +62,7 @@ protected:
     ///
     /// \param data Data input.
     /// \param length Length.
-    constexpr explicit string_data(T* data, unsigned length) noexcept :
+    constexpr explicit string_data(value_type* data, unsigned length) noexcept :
         m_data(data),
         m_length(length)
     {
@@ -103,14 +105,14 @@ public:
     /// Iterator to the beginning.
     ///
     /// \return Iterator.
-    constexpr iterator begin() const noexcept
+    constexpr iterator begin() noexcept
     {
         return m_data;
     }
-    /// Iterator to the beginning.
+    /// Const iterator to the beginning.
     ///
-    /// \return Iterator.
-    constexpr const_iterator cbegin() const noexcept
+    /// \return Const iterator.
+    constexpr const_iterator begin() const noexcept
     {
         return m_data;
     }
@@ -118,14 +120,14 @@ public:
     /// Iterator to the end.
     ///
     /// \return Iterator.
-    constexpr iterator end() const noexcept
+    constexpr iterator end() noexcept
     {
         return m_data + m_length;
     }
-    /// Iterator to the end.
+    /// Const iterator to the end.
     ///
-    /// \return Iterator.
-    constexpr const_iterator cend() const noexcept
+    /// \return Const iterator.
+    constexpr const_iterator end() const noexcept
     {
         return m_data + m_length;
     }
@@ -149,7 +151,7 @@ public:
     /// Returns the internal data pointer.
     ///
     /// \return Data pointer.
-    constexpr const T* data() const noexcept
+    constexpr const value_type* data() const noexcept
     {
         if(m_data)
         {
@@ -164,7 +166,7 @@ public:
     /// \param rhs Right-hand side operand.
     /// \param pos Position to start search from.
     /// \return Found index or npos if not found.
-    constexpr unsigned find(const string_data& rhs, unsigned pos = 0) const noexcept
+    constexpr unsigned find(const this_type& rhs, unsigned pos = 0) const noexcept
     {
         if(rhs.length() > m_length)
         {
@@ -185,7 +187,7 @@ public:
     ///
     /// \param op Substring to test.
     /// \return True if starts with given substring, false otherwise.
-    constexpr bool starts_with(const T* op)
+    constexpr bool starts_with(const value_type* op)
     {
         for(unsigned ii = 0;;)
         {
@@ -215,7 +217,7 @@ private:
     /// \param rhs Right-hand side operand.
     /// \param pos Position to search from.
     /// \return True if found, false if not.
-    constexpr bool matchAtPosition(const string_data& rhs, unsigned pos) const noexcept
+    constexpr bool matchAtPosition(const this_type& rhs, unsigned pos) const noexcept
     {
         for(unsigned ii = 0; (ii < rhs.length()); ++ii)
         {
@@ -232,7 +234,7 @@ public:
     /// Access operator.
     ///
     /// \return Element reference.
-    constexpr T& operator[](unsigned idx)
+    constexpr value_type& operator[](unsigned idx)
     {
         accessCheck(idx);
         return m_data[idx];
@@ -240,7 +242,7 @@ public:
     /// Const access operator.
     ///
     /// \return Element reference.
-    constexpr const T& operator[](unsigned idx) const
+    constexpr const value_type& operator[](unsigned idx) const
     {
         accessCheck(idx);
         return m_data[idx];
@@ -248,7 +250,7 @@ public:
     /// Access operator.
     ///
     /// \return Element reference.
-    constexpr T& operator[](int idx)
+    constexpr value_type& operator[](int idx)
     {
         accessCheck(idx);
         return m_data[idx];
@@ -256,7 +258,7 @@ public:
     /// Const access operator.
     ///
     /// \return Element reference.
-    constexpr const T& operator[](int idx) const
+    constexpr const value_type& operator[](int idx) const
     {
         accessCheck(idx);
         return m_data[idx];
@@ -339,7 +341,7 @@ public:
     /// \param lhs Left-hand-side operand.
     /// \param rhs Right-hand-side operand.
     /// \return Output stream.
-    friend std::ostream& operator<<(std::ostream& lhs, const string_data<T>& rhs)
+    friend std::ostream& operator<<(std::ostream& lhs, const this_type& rhs)
     {
         for(const T& cc : rhs)
         {
@@ -348,6 +350,9 @@ public:
         return lhs;
     }
 #endif
+
+public:
+    VGL_ITERATOR_FUNCTIONS(this_type)
 };
 
 }
@@ -524,7 +529,7 @@ public:
     ///
     /// \param op Input data.
     /// \return This object.
-    string& assign(const string_data<value_type>& op)
+    string& assign(const base_type::this_type& op)
     {
         return assign(const_cast<const char*>(op.data()), op.length());
     }

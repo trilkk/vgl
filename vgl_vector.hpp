@@ -188,14 +188,14 @@ public:
     /// Iterator to the beginning.
     ///
     /// \return Iterator.
-    constexpr iterator begin() const noexcept
+    constexpr iterator begin() noexcept
     {
         return m_data;
     }
-    /// Iterator to the beginning.
+    /// Const iterator to the beginning.
     ///
-    /// \return Iterator.
-    constexpr const_iterator cbegin() const noexcept
+    /// \return Const iterator.
+    constexpr const_iterator begin() const noexcept
     {
         return m_data;
     }
@@ -203,14 +203,14 @@ public:
     /// Iterator to the end.
     ///
     /// \return Iterator.
-    constexpr iterator end() const noexcept
+    constexpr iterator end() noexcept
     {
         return m_data + m_size;
     }
-    /// Iterator to the end.
+    /// Const iterator to the end.
     ///
-    /// \return Iterator.
-    constexpr const_iterator cend() const noexcept
+    /// \return Const iterator.
+    constexpr const_iterator end() const noexcept
     {
         return m_data + m_size;
     }
@@ -473,6 +473,9 @@ public:
     {
         return (0 < m_size);
     }
+
+public:
+    VGL_ITERATOR_FUNCTIONS(vector<T>)
 };
 
 }

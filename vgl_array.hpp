@@ -12,17 +12,18 @@ namespace vgl
 template<typename T, unsigned N> class array
 {
 public:
-    /// Convenience typedef.
+    /// Value type.
     using value_type = T;
-
     /// Iterator type.
-    using iterator = T*;
+    using iterator = value_type*;
     /// Const iterator type.
-    using const_iterator = const T*;
+    using const_iterator = const value_type*;
+    /// Type of this class.
+    using this_type = array<value_type, N>;
 
 public:
     /// Array data.
-    T m_data[N];
+    value_type m_data[N];
 
 private:
     /// Boundary check.
@@ -62,17 +63,10 @@ public:
     {
         return m_data;
     }
-    /// Iterator to the beginning.
+    /// Const iterator to the beginning.
     ///
     /// \return Iterator.
     constexpr const_iterator begin() const noexcept
-    {
-        return m_data;
-    }
-    /// Iterator to the beginning.
-    ///
-    /// \return Iterator.
-    constexpr const_iterator cbegin() const noexcept
     {
         return m_data;
     }
@@ -84,17 +78,10 @@ public:
     {
         return m_data + N;
     }
-    /// Iterator to the end.
+    /// Const iterator to the end.
     ///
-    /// \return Iterator.
+    /// \return Const iterator.
     constexpr const_iterator end() const noexcept
-    {
-        return m_data + N;
-    }
-    /// Iterator to the end.
-    ///
-    /// \return Iterator.
-    constexpr const_iterator cend() const noexcept
     {
         return m_data + N;
     }
@@ -193,6 +180,9 @@ public:
         accessCheck(idx);
         return m_data[idx];
     }
+
+public:
+    VGL_ITERATOR_FUNCTIONS(this_type)
 };
 
 }

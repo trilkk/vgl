@@ -2,8 +2,6 @@
 
 #include "vgl_filesystem.hpp"
 
-//#include <utility>
-
 #include <boost/algorithm/string.hpp>
 #include <boost/wave/cpp_context.hpp>
 #include <boost/wave/cpplexer/cpp_lex_iterator.hpp>
@@ -13,7 +11,7 @@ namespace vgl
 
 using wave_token = boost::wave::cpplexer::lex_token<>;
 using wave_cpplex_iterator = boost::wave::cpplexer::lex_iterator<wave_token>;
-using wave_context = boost::wave::context<std::string::const_iterator, wave_cpplex_iterator>;
+using wave_context = boost::wave::context<string::const_iterator, wave_cpplex_iterator>;
 
 namespace
 {
@@ -65,17 +63,17 @@ std::pair<string, string> glsl_split(string_view source)
 ///
 /// \prarm source Source input.
 /// \return Source with preprocessor lines removed.
-std::string glsl_tidy(std::string_view source)
+string glsl_tidy(string_view source)
 {
-    std::vector<std::string> lines;
+    vector<string> lines;
 
     boost::split(lines, source, boost::is_any_of("\n"));
 
-    std::vector<std::string> accepted;
+    vector<string> accepted;
 
     for(const auto& vv : lines)
     {
-        std::string ii = boost::trim_copy(vv);
+        string ii = boost::trim_copy(vv);
 
         if(!boost::starts_with(ii, "#"))
         {
@@ -340,7 +338,7 @@ string wave_preprocess_glsl(string_view op)
 #endif
 
     // Split into GLSL preprocess code and the rest.
-    std::pair<std::string, std::string> source = glsl_split(input_source);
+    std::pair<string, string> source = glsl_split(input_source);
 
     // Preprocess with wave.
     std::ostringstream preprocessed;
@@ -351,7 +349,7 @@ string wave_preprocess_glsl(string_view op)
         preprocessed << vv.get_value();
     }
 
-    return source.first + glsl_tidy(preprocessed.str());
+    return source.first + glsl_tidy(string_view(preprocessed.str().c_str()));
 }
 
 }
