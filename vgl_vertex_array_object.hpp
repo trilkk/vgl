@@ -59,7 +59,7 @@ public:
     /// Destructor.
     ~VertexArrayObject()
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(m_id)
         {
             detail::OpenGlVertexArrayObjectState::g_opengl_vertex_array_object_state.invalidate(m_id);
@@ -71,10 +71,10 @@ public:
     /// Move constructor.
     ///
     /// \param other Source object.
-    VertexArrayObject(VertexArrayObject&& other) :
+    constexpr VertexArrayObject(VertexArrayObject&& other) :
         m_id(other.m_id)
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         other.m_id = 0;
 #endif
     }
@@ -83,7 +83,7 @@ public:
     /// Accessor.
     ///
     /// \return Identifier.
-    GLuint getId() const
+    constexpr GLuint getId() const
     {
         return m_id;
     }
@@ -99,10 +99,10 @@ public:
     ///
     /// \param other Source object.
     /// \return This object.
-    VertexArrayObject& operator=(VertexArrayObject&& other)
+    constexpr VertexArrayObject& operator=(VertexArrayObject&& other)
     {
         m_id = other.m_id;
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         other.m_id = 0;
 #endif
         return *this;

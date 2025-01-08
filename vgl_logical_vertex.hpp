@@ -5,7 +5,7 @@
 #include "vgl_mesh.hpp"
 #include "vgl_vector.hpp"
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 #include "vgl_bitset.hpp"
 #endif
 
@@ -195,7 +195,7 @@ public:
     /// \param op Face.
     void addFaceReference(LogicalFace *op)
     {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         for(const auto& vv : m_face_references)
         {
             if(vv == op)
@@ -218,14 +218,14 @@ public:
     /// \param op face.
     void removeFaceReference(LogicalFace* op)
     {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         bool face_found = false;
 #endif
         for(unsigned ii = 0; (ii < m_face_references.size());)
         {
             if(m_face_references[ii] == op)
             {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
                 if(face_found)
                 {
                     VGL_THROW_RUNTIME_ERROR("face reference found multiple times");
@@ -236,7 +236,7 @@ public:
                     m_face_references[ii] = m_face_references.back();
                 }
                 m_face_references.pop_back();
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
                 continue;
 #else
                 return;
@@ -402,29 +402,33 @@ public:
     /// Write this vertex into a mesh.
     ///
     /// \param op Mesh to write to.
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     bitset<static_cast<unsigned>(GeometryChannel::COUNT)>
 #else
         void
 #endif
         write(Mesh& op) const
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         bitset<GeometryChannel::COUNT> ret(GeometryChannel::POSITION);
 #endif
         op.write(GeometryChannel::POSITION, m_position);
 
         if(m_normal)
         {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
             ret.set(GeometryChannel::NORMAL);
 #endif
+#if defined(VGL_ENABLE_VERTEX_NORMAL_PACKING)
             op.write(GeometryChannel::NORMAL, ivec3(*m_normal));
+#else
+            op.write(GeometryChannel::NORMAL, *m_normal);
+#endif
         }
 
         if(m_texcoord)
         {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
             ret.set(GeometryChannel::TEXCOORD);
 #endif
             op.write(GeometryChannel::TEXCOORD, *m_texcoord);
@@ -432,7 +436,7 @@ public:
 
         if(m_color)
         {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
             ret.set(GeometryChannel::COLOR);
 #endif
             op.write(GeometryChannel::COLOR, *m_color);
@@ -440,7 +444,7 @@ public:
 
         if(m_bone_ref)
         {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
             ret.set(GeometryChannel::BONE_WEIGHT);
             ret.set(GeometryChannel::BONE_REF);
 #endif
@@ -450,7 +454,7 @@ public:
 
         op.endVertex();
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         return ret;
 #endif
     }
@@ -471,7 +475,7 @@ public:
     }
 
 public:
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Stream output operator.
     ///
     /// \param ostr Output stream.

@@ -64,22 +64,6 @@ private:
     }
 
 public:
-#if defined(USE_LD)
-    /// Output to stream.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return Output stream.
-    friend std::ostream& operator<<(std::ostream& lhs, const mat3& rhs)
-    {
-        return lhs << "[ " <<
-            rhs[0u] << " ; " << rhs[3u] << " ; " << rhs[6u] << "\n  " <<
-            rhs[1u] << " ; " << rhs[4u] << " ; " << rhs[7u] << "\n  " <<
-            rhs[2u] << " ; " << rhs[5u] << " ; " << rhs[8u] << " ]";
-    }
-#endif
-
-public:
     /// Create an identity matrix.
     ///
     /// \return Result matrix.
@@ -135,6 +119,22 @@ public:
     {
         return rotation_zxy(pitch, yaw, roll);
     }
+
+#if defined(VGL_USE_LD)
+public:
+    /// Output to stream.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Output stream.
+    friend std::ostream& operator<<(std::ostream& lhs, const mat3& rhs)
+    {
+        return lhs << "[ " <<
+            rhs[0u] << " ; " << rhs[3u] << " ; " << rhs[6u] << "\n  " <<
+            rhs[1u] << " ; " << rhs[4u] << " ; " << rhs[7u] << "\n  " <<
+            rhs[2u] << " ; " << rhs[5u] << " ; " << rhs[8u] << " ]";
+    }
+#endif
 };
 
 /// Transpose a matrix.

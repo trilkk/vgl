@@ -3,7 +3,7 @@
 
 #include "vgl_config.hpp"
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 #include "vgl_throw_exception.hpp"
 #endif
 
@@ -33,7 +33,7 @@ private:
     /// \param idx Index to check.
     constexpr void accessCheck(unsigned idx) const
     {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         if(idx >= N)
         {
             VGL_THROW_RUNTIME_ERROR("accessing index " + to_string(idx) + " from array of size " + to_string(N));
@@ -47,7 +47,7 @@ private:
     /// \param idx Index to check.
     constexpr void accessCheck(int idx) const
     {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         if(idx < 0)
         {
             VGL_THROW_RUNTIME_ERROR("accessing negative index " + to_string(idx) + " from array of size " +

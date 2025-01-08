@@ -25,7 +25,7 @@ private:
     /// Bounding box for the mesh.
     BoundingBox m_box;
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Name of the mesh, for debugging.
     string m_name;
 #endif
@@ -90,7 +90,7 @@ public:
     /// \param op Program to draw with.
     void draw(const GlslProgram& op) const
     {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         if(!m_handle)
         {
             VGL_THROW_RUNTIME_ERROR("cannot draw mesh with invalid geometry handle");
@@ -115,6 +115,8 @@ public:
         m_data.write(op);
     }
 
+#if defined(VGL_ENABLE_VERTEX_NORMAL_PACKING)
+
     /// Write vertex data with semantic.
     ///
     /// \param channel Associated channel.
@@ -123,6 +125,8 @@ public:
     {
         m_data.write(channel, data);
     }
+
+#endif
 
     /// Write vertex data with semantic.
     ///
@@ -182,7 +186,7 @@ public:
         m_handle = GeometryHandle(*(g_geometry_buffers.back()), 0, 0);
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Accessor.
     ///
     /// \return Name.
@@ -220,7 +224,7 @@ constexpr unsigned get_num_geometry_buffers()
 
 }
 
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
 #include "vgl_mesh.cpp"
 #endif
 

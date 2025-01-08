@@ -29,7 +29,7 @@ private:
 
     /// Face normal.
     vec3 m_normal
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         = vec3(0.0f, 0.0f, 0.0f)
 #endif
         ;
@@ -204,7 +204,7 @@ private:
       /// \param idx Index to check.
       constexpr void accessCheck(unsigned idx) const
       {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
           if(idx >= m_num_corners)
           {
               VGL_THROW_RUNTIME_ERROR("accessing index " + to_string(idx) + " of a " + to_string(m_num_corners) +
@@ -220,7 +220,7 @@ private:
       /// \param idx Index to remove.
       constexpr void removeCorner(unsigned idx)
       {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
           if(m_num_corners <= 3)
           {
               VGL_THROW_RUNTIME_ERROR("cannot degrade triangle by removing a corner");
@@ -394,7 +394,7 @@ public:
             }
         }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(isQuad() && ((m_indices[0] == m_indices[2]) || (m_indices[1] == m_indices[3])))
         {
             VGL_THROW_RUNTIME_ERROR("degenerate trapezoid quad");
@@ -414,7 +414,7 @@ public:
     /// \param op Target mesh.
     void write(Mesh& op) const
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if((m_num_corners != 3) && (m_num_corners != 4))
         {
             VGL_THROW_RUNTIME_ERROR("don't know how to write face with " + to_string(m_num_corners) + " corners");
@@ -449,8 +449,8 @@ public:
         return *this;
     }
 
+#if defined(VGL_USE_LD)
 public:
-#if defined(USE_LD)
     /// Stream output operator.
     ///
     /// \param ostr Output stream.

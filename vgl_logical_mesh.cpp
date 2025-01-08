@@ -3,7 +3,7 @@
 namespace vgl
 {
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 unsigned int LogicalMesh::g_vertices_erased = 0;
 #endif
 
@@ -20,7 +20,7 @@ namespace
 vec3 perpendiculate(const vec3& dir, const vec3& ref)
 {
     vec3 unit_dir = normalize(dir);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     // Rotate direction vector components once if it's perpendicular to the reference vector.
     float dot_result = dot(unit_dir, normalize(ref));
     if(abs(dot_result) >= 0.999f)
@@ -417,7 +417,7 @@ void LogicalMesh::csgReadData(const int16_t* data)
         switch(command)
         {
         case CsgCommand::VERTEX:
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
         default:
 #endif
             {
@@ -541,7 +541,7 @@ void LogicalMesh::csgReadData(const int16_t* data)
             }
             break;
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         default:
             VGL_THROW_RUNTIME_ERROR("invalid CSG command: " + to_string(static_cast<int>(command)));
 #endif

@@ -6,7 +6,7 @@
 #include "vgl_scoped_acquire.hpp"
 #include "vgl_unique_ptr.hpp"
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 #include "vgl_throw_exception.hpp"
 #include <iostream>
 #endif
@@ -49,7 +49,7 @@ public:
     explicit FenceData() = default;
 
 public:
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Accessor.
     ///
     /// \return Internal implementation.
@@ -104,7 +104,7 @@ public:
     }
 
 public:
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Stream output operator.
     ///
     /// \param lhs Left-hand-side operand.
@@ -165,7 +165,7 @@ public:
     /// \return Return value from the function.
     void* getReturnValue()
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(!m_fence_data)
         {
             VGL_THROW_RUNTIME_ERROR("fence data has already been cleared");
@@ -210,7 +210,7 @@ private:
         if(m_fence_data)
         {
             void* ret = detail::internal_fence_wait(*this);
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
             if(ret)
             {
                 std::cerr << "Fence::destruct(): unhandled return value '" << ret << "'" << std::endl;
@@ -244,8 +244,8 @@ public:
         return m_fence_data->isActive();
     }
 
-#if defined(USE_LD)
 
+#if defined(VGL_USE_LD)
 public:
     /// Stream output operator.
     ///
@@ -256,7 +256,6 @@ public:
     {
         return lhs << "Fence(" << rhs.m_fence_data->getCondImpl() << ")";
     }
-
 #endif
 };
 

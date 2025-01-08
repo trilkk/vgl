@@ -16,7 +16,14 @@ namespace detail
 /// \return Element value.
 constexpr int16_t normalized_float_to_ivec3_element(float op) noexcept
 {
-    return static_cast<int16_t>(iround((op + 1.0f) * (65535.0f / 2.0f)) - 32768);
+    auto ret = iround((op + 1.0f) * (65535.0f / 2.0f)) - 32768;
+#if defined(VGL_USE_LD) && defined(DEBUG)
+    if((ret < -32768) || (ret > 32767))
+    {
+        VGL_THROW_RUNTIME_ERROR("float " + to_string(op) + " mapping outside int16_t range: " + to_string(ret));
+    }
+#endif
+    return static_cast<int16_t>(ret);
 }
 
 }
@@ -154,7 +161,7 @@ public:
         return !(*this == rhs);
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Stream output operator.
     ///
     /// \param lhs Left-hand-side operand.
@@ -178,7 +185,7 @@ public:
     /// \param rhs Right-hand-side operand.
     /// \param ratio Mixing ratio.
     /// \return Result color.
-    friend ivec3 mix(const ivec3& lhs, const ivec3& rhs, float ratio) noexcept
+    friend constexpr ivec3 mix(const ivec3& lhs, const ivec3& rhs, float ratio) noexcept
     {
         return ivec3(mix(lhs[0], rhs[0], ratio),
                 mix(lhs[1], rhs[1], ratio),

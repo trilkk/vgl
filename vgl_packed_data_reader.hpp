@@ -77,7 +77,7 @@ public:
     /// \return Reference to type stored in the packed data.
     template<typename T> constexpr const T& read(unsigned op = 1) noexcept
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(remaining() < sizeof(T))
         {
             VGL_THROW_RUNTIME_ERROR("cannot read value of size " + to_string(sizeof(T)) + ": " +

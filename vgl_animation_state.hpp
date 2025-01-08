@@ -19,7 +19,7 @@ private:
 
 public:
     /// Empty constructor.
-    explicit AnimationState() noexcept = default;
+    constexpr explicit AnimationState() noexcept = default;
 
     /// Initializing constructor.
     ///
@@ -43,7 +43,7 @@ public:
     /// Accessor.
     ///
     /// \return Matrix data.
-    const mat4* getBoneData() const
+    constexpr const mat4* getBoneData() const
     {
         return m_matrices.data();
     }
@@ -51,12 +51,12 @@ public:
     /// Accessor.
     ///
     /// \return Matrix count.
-    unsigned getBoneCount() const
+    constexpr unsigned getBoneCount() const
     {
         return m_matrices.size();
     }
 
-    /// Create identiry frame.
+    /// Create identity frame.
     ///
     /// \param op Number of identity matrices.
     void identityFrame(unsigned op)
@@ -67,7 +67,7 @@ public:
             m_matrices[ii] = mat4::identity();
         }
     }
-    /// Create identiry frame.
+    /// Create identity frame.
     ///
     /// \param op Animation to extract number of identity matrices from.
     void identityFrame(const Animation& op)
@@ -84,7 +84,7 @@ public:
     void interpolateFrom(const Animation &anim, float current_time)
     {
         unsigned frame_count = anim.getFrameCount();
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(0 >= frame_count)
         {
             VGL_THROW_RUNTIME_ERROR("can't animate animation without frames");
@@ -107,7 +107,7 @@ public:
                 const AnimationFrame &rr = anim.getFrame(ii);
                 float rtime = rr.getTime();
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
                 if(ll.getTime() >= rtime)
                 {
                     VGL_THROW_RUNTIME_ERROR("animation index " + to_string(ii) + " has time " +
@@ -123,7 +123,7 @@ public:
                 }
 
                 ++ii;
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
                 if(ii >= frame_count)
                 {
                     VGL_THROW_RUNTIME_ERROR("could not find frames to interpolate for time " +

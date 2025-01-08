@@ -3,7 +3,7 @@
 namespace vgl
 {
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 
 /// Get human-readable string corresponding to a channel
 ///

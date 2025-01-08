@@ -49,7 +49,7 @@ private:
             unsigned hierarchy_amount,
             float scale)
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(!m_bones.empty())
         {
             VGL_THROW_RUNTIME_ERROR("trying to init non-empty armature from data");
@@ -77,7 +77,7 @@ private:
                 }
             }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
             if(hdata + hierarchy_amount != iter)
             {
                 VGL_THROW_RUNTIME_ERROR("reference data inconsistency: " +
@@ -158,8 +158,8 @@ public:
         return unique_ptr<Armature>(new Armature(bdata, hdata, bones_amount, hierarchy_amount, scale));
     }
 
+#if defined(VGL_USE_LD)
 public:
-#if defined(USE_LD)
     /// Output to stream.
     ///
     /// \param ostr Output stream.

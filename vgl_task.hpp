@@ -115,7 +115,7 @@ public:
         {
             m_fence_data->setReturnValue(ret);
         }
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         else if(ret)
         {
             std::cerr << "Task::operator(): unhandled return value '" << ret << "'" << std::endl;

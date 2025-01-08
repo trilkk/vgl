@@ -24,7 +24,7 @@ public:
     /// Destructor.
     ~FencePool()
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         while(!m_pool.empty())
         {
             FenceData* data = m_pool.front();

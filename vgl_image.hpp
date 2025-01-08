@@ -6,7 +6,7 @@
 #include "vgl_rand.hpp"
 #include "vgl_vector.hpp"
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 #include <sstream>
 #endif
 
@@ -85,7 +85,7 @@ protected:
     /// \param op New data.
     constexpr void replaceData(vector<float>&& op) noexcept
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(m_data.size() != op.size())
         {
             VGL_THROW_RUNTIME_ERROR("replacing data size " + to_string(op.size()) + " does not match data size " +
@@ -102,7 +102,7 @@ public:
     /// \param value Value to clear to (default: 0.0f).
     void clear(unsigned channel, float value = 0.0f)
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(channel > m_channel_count)
         {
             VGL_THROW_RUNTIME_ERROR("trying to clear channel " + to_string(channel) + " in " +
@@ -152,7 +152,7 @@ public:
             return ret;
         }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(bpc != 1)
         {
             VGL_THROW_RUNTIME_ERROR("invalid bpc value for UNORM conversion: " + to_string(bpc));
@@ -228,7 +228,6 @@ public:
     }
 
 #if !defined(VGL_DISABLE_RAND)
-
     /// Fill image with noise.
     ///
     /// \param nfloor Noise floor.
@@ -240,7 +239,6 @@ public:
             m_data[ii] = frand(nfloor, nceil);
         }
     }
-
 #endif
 };
 

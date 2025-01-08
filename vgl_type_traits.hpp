@@ -1,6 +1,8 @@
 #ifndef VGL_TYPE_TRAITS_HPP
 #define VGL_TYPE_TRAITS_HPP
 
+#include "vgl_config.hpp"
+
 #include <type_traits>
 
 #if __cplusplus > 201703L && !defined(__clang__)

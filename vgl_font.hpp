@@ -3,7 +3,7 @@
 
 #include "vgl_character.hpp"
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 #include "vgl_filesystem.hpp"
 #endif
 
@@ -17,7 +17,7 @@ private:
     /// FreeType library reference.
     static FT_Library g_freetype_library;
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Number of fonts initialized.
     static unsigned g_freetype_count;
 #endif
@@ -50,7 +50,7 @@ public:
 
         for(const char **iter = fnames; true; ++iter)
         {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
             if(!(*iter))
             {
                 std::ostringstream sstr;
@@ -69,7 +69,7 @@ public:
         }
 
         FT_Error err = dnload_FT_Set_Pixel_Sizes(m_face, 0, m_font_size);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(err)
         {
             VGL_THROW_RUNTIME_ERROR("could not set font size to " + to_string(m_font_size) + " on " +
@@ -83,7 +83,7 @@ public:
     /// Destructor.
     ~Font()
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(m_face)
         {
             FT_Done_Face(m_face);
@@ -102,7 +102,7 @@ private:
     bool load(const char* fname)
     {
         FT_Error err;
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         path pth = find_file(fname);
         if(pth.empty())
         {
@@ -122,7 +122,7 @@ public:
     void createCharacter(unsigned unicode)
     {
         unsigned idx = dnload_FT_Get_Char_Index(m_face, unicode);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(0 >= idx)
         {
             VGL_THROW_RUNTIME_ERROR("no character " + to_string(unicode)+ " found in font");
@@ -130,7 +130,7 @@ public:
 #endif
 
         FT_Error err = dnload_FT_Load_Glyph(m_face, idx, FT_LOAD_DEFAULT);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(err)
         {
             VGL_THROW_RUNTIME_ERROR("error loading character " + to_string(unicode) + " at index " + to_string(idx) +
@@ -144,7 +144,7 @@ public:
         if(glyph->format != FT_GLYPH_FORMAT_BITMAP)
         {
             err = dnload_FT_Render_Glyph(glyph, FT_RENDER_MODE_NORMAL);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
             if(err)
             {
                 VGL_THROW_RUNTIME_ERROR("error rendering glyph " + to_string(unicode) + " at index " +
@@ -174,7 +174,7 @@ public:
     /// \return Reference to the character.
     const Character& getCharacter(unsigned unicode) const
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(m_characters.size() <= unicode)
         {
             VGL_THROW_RUNTIME_ERROR("unicode index outside of range: " + to_string(unicode));
@@ -198,7 +198,7 @@ public:
         FT_Vector delta;
 
         FT_Error err = dnload_FT_Get_Kerning(m_face, prev, next, FT_KERNING_DEFAULT, &delta);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(err)
         {
             VGL_THROW_RUNTIME_ERROR("could not get kerning information for " + to_string(prev) + " and " +
@@ -218,7 +218,7 @@ private:
     /// If this is the first call, initialize FreeType.
     static void freetype_increment()
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         VGL_ASSERT(static_cast<bool>(g_freetype_count) == static_cast<bool>(g_freetype_library));
         ++g_freetype_count;
 #endif
@@ -228,7 +228,7 @@ private:
         }
 
         FT_Error err = dnload_FT_Init_FreeType(&g_freetype_library);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(0 != err)
         {
             VGL_THROW_RUNTIME_ERROR("could not init FreeType: " + to_string(err));
@@ -249,7 +249,7 @@ public:
         return unique_ptr<Font>(new Font(fs, fnames));
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Decrement FreeType usage count.
     ///
     /// Deinitialize FreeType if the usage count reaches zero.
@@ -280,7 +280,7 @@ using FontUptr = unique_ptr<Font>;
 
 }
 
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
 #include "vgl_font.cpp"
 #endif
 

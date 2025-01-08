@@ -78,7 +78,7 @@ private:
                 return;
             }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
             if(!m_program)
             {
                 VGL_THROW_RUNTIME_ERROR("cannot apply mesh before a program has been set");
@@ -114,7 +114,7 @@ private:
         /// \return Uniform location.
         GLint getUniformLocation(PackedDataReader& iter)
         {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
             if(!m_program)
             {
                 VGL_THROW_RUNTIME_ERROR("cannot get uniform locations before a program has been read");
@@ -301,21 +301,21 @@ private:
     PackedData m_data;
 
     /// Current camera settings.
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     optional<mat4> m_camera_matrix;
 #else
     mat4 m_camera_matrix;
 #endif
 
     /// Current projection + camera settings.
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     optional<mat4> m_projection_camera_matrix;
 #else
     mat4 m_projection_camera_matrix;
 #endif
 
     /// Current camera position.
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     optional<vec3> m_camera_position;
 #else
     vec3 m_camera_position;
@@ -376,7 +376,7 @@ public:
     void clear()
     {
         m_data.clear();
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         m_camera_matrix = nullopt;
         m_projection_camera_matrix = nullopt;
         m_camera_position = nullopt;
@@ -409,7 +409,7 @@ public:
         m_data.push(&msh);
         m_data.push(modelview);
         m_data.push(normalify(modelview));
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         m_data.push((*m_camera_matrix) * modelview);
         m_data.push((*m_projection_camera_matrix) * modelview);
 #else
@@ -436,7 +436,7 @@ public:
     {
         mat4 camera = viewify(cam);
         m_camera_matrix = camera;
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         m_projection_camera_matrix = proj * (*m_camera_matrix);
 #else
         m_projection_camera_matrix = proj * m_camera_matrix;
@@ -446,7 +446,7 @@ public:
         pushCommand<&RenderState::commandView>();
         m_data.push(proj);
         m_data.push(range);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         m_data.push(*m_camera_matrix);
         m_data.push(*m_projection_camera_matrix);
         m_data.push(*m_camera_position);

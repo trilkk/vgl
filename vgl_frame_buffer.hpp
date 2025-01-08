@@ -62,7 +62,7 @@ public:
         m_width(width),
         m_height(height)
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if((m_width <= 0) || (m_height <= 0))
         {
             VGL_THROW_RUNTIME_ERROR("invalid framebuffer dimensions: " + to_string(width) + "x" + to_string(height));
@@ -93,7 +93,7 @@ public:
 #endif
         }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
         if(status != GL_FRAMEBUFFER_COMPLETE)
         {
@@ -110,7 +110,7 @@ public:
     /// Destructor.
     ~FrameBuffer()
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(m_id)
         {
             glDeleteFramebuffers(1, &m_id);
@@ -267,7 +267,7 @@ public:
     }
 
 public:
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Output to stream.
     ///
     /// \param lhs Left-hand-side operand.
@@ -289,7 +289,7 @@ using FrameBufferUptr = unique_ptr<FrameBuffer>;
 
 }
 
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
 #include "vgl_frame_buffer.cpp"
 #endif
 

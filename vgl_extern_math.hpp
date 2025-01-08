@@ -4,9 +4,11 @@
 /// \file
 /// \brief External include: math
 
+#include "vgl_config.hpp"
+
 #include <cmath>
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 
 /// \cond
 #if !defined(dnload_ceilf)

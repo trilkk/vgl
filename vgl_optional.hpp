@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <optional>
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 #include "vgl_throw_exception.hpp"
 #endif
 
@@ -230,7 +230,7 @@ private:
     /// Throws an error if the optional value is not initialized.
     constexpr void accessCheck() const
     {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         if(!has_value())
         {
             VGL_THROW_RUNTIME_ERROR("optional value is uninitialized");

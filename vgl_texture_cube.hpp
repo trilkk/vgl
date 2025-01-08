@@ -1,11 +1,11 @@
-#ifndef VERBATIM_TEXTURE_CUBE_HPP
-#define VERBATIM_TEXTURE_CUBE_HPP
+#ifndef VGL_TEXTURE_CUBE_HPP
+#define VGL_TEXTURE_CUBE_HPP
 
 /// Cube map  texture.
 class TextureCube : public Texture
 {
 private:
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Side size in pixels.
     unsigned int m_side = 0;
 #endif
@@ -27,7 +27,7 @@ private:
         TextureFormat format(img.getChannelCount(), bpc, reinterpret_cast<void*>(1u));
 
         unsigned width = img.getWidth();
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         {
             unsigned height = img.getHeight();
             if(width != height)

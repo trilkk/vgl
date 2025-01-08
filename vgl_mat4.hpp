@@ -312,8 +312,8 @@ public:
         return translation(pos[0u], pos[1u], pos[2u]);
     }
 
+#if defined(VGL_USE_LD)
 public:
-#if defined(USE_LD)
     /// Output to stream.
     ///
     /// \param lhs Left-hand-side operand.

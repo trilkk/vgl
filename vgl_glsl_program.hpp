@@ -74,7 +74,7 @@ enum class UniformSemantic
     SKELETON,
 };
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 
 /// Get human-readable string corresponding to a channel
 ///
@@ -125,7 +125,7 @@ public:
         return m_location;
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Is this location entry valid?
     ///
     /// \return True if location >= 0, false otherwise.
@@ -173,7 +173,7 @@ public:
         return m_channel;
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Refresh name
     ///
     /// \param op Program ID to refresh for.
@@ -221,7 +221,7 @@ public:
         return m_semantic;
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Refresh name
     ///
     /// \param op Program ID to refresh for.
@@ -232,7 +232,7 @@ public:
 #endif
 };
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 
 /// Get program info log.
 ///
@@ -353,7 +353,7 @@ private:
         {
             return m_vert;
         }
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(type != GL_FRAGMENT_SHADER)
         {
             VGL_THROW_RUNTIME_ERROR("invalid shader type: " + to_string(type));
@@ -370,7 +370,7 @@ private:
         dnload_glAttachShader(id, vert);
         dnload_glAttachShader(id, frag);
         dnload_glLinkProgram(id);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(!detail::get_program_link_status(id))
         {
             std::cout << detail::get_program_info_log(id);
@@ -381,7 +381,7 @@ private:
         return id;
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Refresh attribute and uniform locations.
     void refreshLocations()
     {
@@ -412,7 +412,7 @@ public:
     /// \param name Name of the attribute.
     void addAttribute(GeometryChannel channel, const char* name)
     {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         for(const auto& vv : m_attributes)
         {
             if(vv.getChannel() == channel)
@@ -423,7 +423,7 @@ public:
         }
 #endif
         m_attributes.emplace_back(m_id, channel, name);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(!m_attributes.back().isValid())
         {
             VGL_THROW_RUNTIME_ERROR("cannot add attribute '" + string(name) + "' to program " + to_string(m_id));
@@ -451,7 +451,7 @@ public:
     void addUniform(UniformSemantic semantic, const char* name)
     {
         m_uniforms.emplace_back(m_id, semantic, name);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(!m_attributes.back().isValid())
         {
             VGL_THROW_RUNTIME_ERROR("cannot add uniform '" + string(name) + "' with semantic " + to_string(semantic) +
@@ -480,7 +480,7 @@ public:
                 return vv.getLocation();
             }
         }
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         std::cerr << "WARNING: program " << m_id << " has no uniform " << op << std::endl;
 #endif
         return -1;
@@ -538,7 +538,7 @@ public:
         linkCheck();
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Re-link the program.
     bool relink()
     {
@@ -563,7 +563,7 @@ public:
     template<typename...Args> void uniform(string_view name, Args&&... args)
     {
         GLint location = getUniformLocation(name);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(location >= 0)
 #endif
         {
@@ -761,7 +761,7 @@ public:
 
 }
 
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
 #include "vgl_glsl_program.cpp"
 #endif
 

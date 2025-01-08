@@ -16,7 +16,14 @@ namespace detail
 /// \return Element value.
 constexpr uint8_t normalized_float_to_uvec4_element(float op) noexcept
 {
-    return static_cast<uint8_t>(iround(op * 255.0f));
+    auto ret = iround(op * 255.0f);
+#if defined(VGL_USE_LD) && defined(DEBUG)
+    if((ret < 0) || (ret > 255))
+    {
+        VGL_THROW_RUNTIME_ERROR("float " + to_string(op) + " mapping outside uint8_t range: " + to_string(ret));
+    }
+#endif
+    return static_cast<uint8_t>(ret);
 }
 
 }
@@ -177,7 +184,35 @@ public:
         return !(*this == rhs);
     }
 
-#if defined(USE_LD)
+public:
+    /// Mix two vectors.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \param ratio Mixing ratio.
+    /// \return Result color.
+    friend constexpr uvec4 mix(const uvec4& lhs, const uvec4& rhs, float ratio) noexcept
+    {
+        return uvec4(mix(lhs[0], rhs[0], ratio),
+                mix(lhs[1], rhs[1], ratio),
+                mix(lhs[2], rhs[2], ratio),
+                mix(lhs[3], rhs[3], ratio));
+    }
+
+    /// Modulate two vectors.
+    ///
+    /// \param lhs Left-hand-side operand.
+    /// \param rhs Right-hand-side operand.
+    /// \return Result color.
+    friend constexpr uvec4 modulate(const uvec4& lhs, const uvec4& rhs) noexcept
+    {
+        return uvec4(modulate(lhs[0], rhs[0]),
+                modulate(lhs[1], rhs[1]),
+                modulate(lhs[2], rhs[2]),
+                modulate(lhs[3], rhs[3]));
+    }
+
+#if defined(VGL_USE_LD)
     /// Stream output operator.
     ///
     /// \param lhs Left-hand-side operand.
@@ -193,34 +228,6 @@ public:
         return lhs << " ]";
     }
 #endif
-
-public:
-    /// Mix two vectors.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \param ratio Mixing ratio.
-    /// \return Result color.
-    friend uvec4 mix(const uvec4& lhs, const uvec4& rhs, float ratio) noexcept
-    {
-        return uvec4(mix(lhs[0], rhs[0], ratio),
-                mix(lhs[1], rhs[1], ratio),
-                mix(lhs[2], rhs[2], ratio),
-                mix(lhs[3], rhs[3], ratio));
-    }
-
-    /// Modulate two vectors.
-    ///
-    /// \param lhs Left-hand-side operand.
-    /// \param rhs Right-hand-side operand.
-    /// \return Result color.
-    friend uvec4 modulate(const uvec4& lhs, const uvec4& rhs) noexcept
-    {
-        return uvec4(modulate(lhs[0], rhs[0]),
-                modulate(lhs[1], rhs[1]),
-                modulate(lhs[2], rhs[2]),
-                modulate(lhs[3], rhs[3]));
-    }
 };
 
 }
