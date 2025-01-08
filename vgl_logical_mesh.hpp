@@ -166,7 +166,7 @@ private:
     vector<LogicalFace> m_faces;
 
 private:
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Number of vertices erased during logical mesh generation.
     static unsigned int g_vertices_erased;
 #endif
@@ -273,7 +273,7 @@ private:
         unsigned ret = cloneVertex(idx);
         m_vertices[ret].addFaceReference(face);
         bool success = face.replaceVertexIndex(idx, ret);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(!success)
         {
             VGL_THROW_RUNTIME_ERROR("replacing a new vertex turned a face degenerate");
@@ -298,7 +298,7 @@ private:
     /// \param op Vertex index.
     void eraseOrphanedVertex(unsigned op)
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(!isOrphanedVertex(op))
         {
             VGL_THROW_RUNTIME_ERROR("cannot erase non-orphaned vertex " + to_string(op));
@@ -309,7 +309,7 @@ private:
         {
             m_vertices[op] = move(m_vertices.back());
             unsigned erase_count = replaceVertexIndex(m_vertices.size() - 1, op);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
             if(erase_count)
             {
                 VGL_THROW_RUNTIME_ERROR("erasing orphaned vertex turned a face degenerate");
@@ -351,7 +351,7 @@ private:
             }
         }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         // Clear face references to mark vertex really as orphan.
         LogicalVertex& srcVertex = m_vertices[src];
         srcVertex.clearFaceReferences();
@@ -425,7 +425,7 @@ public:
     /// \return Mesh.
     MeshUptr compile(bool removeIdentical = true)
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         // Clear all face references to destroy state.
         for(auto& vv : m_vertices)
         {
@@ -562,17 +562,17 @@ public:
 
         /// Write vertex data.
         {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
             bitset<GeometryChannel::COUNT> channels;
 #endif
 
             for(auto& vertex : m_vertices)
             {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
                 bitset<GeometryChannel::COUNT> written =
 #endif
                     vertex.write(*ret);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
                 if(channels && (channels != written))
                 {
                     VGL_THROW_RUNTIME_ERROR("channel mismatch between vertices");
@@ -779,8 +779,8 @@ private:
         return static_cast<LogicalMesh*>(op)->createMesh();
     }
 
+#if defined(VGL_USE_LD)
 public:
-#if defined(USE_LD)
     /// Move operator.
     ///
     /// \param other Source object.
@@ -793,8 +793,8 @@ public:
     }
 #endif
 
+#if defined(VGL_USE_LD)
 public:
-#if defined(USE_LD)
     /// Stream output operator.
     ///
     /// \param lhs Left-hand-side operand.
@@ -809,7 +809,7 @@ public:
 
 }
 
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
 #include "vgl_logical_mesh.cpp"
 #endif
 

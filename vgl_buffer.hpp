@@ -34,7 +34,7 @@ public:
         }
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Invalidates given vertex array object.
     ///
     /// \param op Vertex array object ID.
@@ -83,7 +83,7 @@ public:
     /// Destructor.
     ~Buffer()
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         glDeleteBuffers(1, &m_id);
 #endif
     }
@@ -172,7 +172,7 @@ using IndexBuffer = Buffer<GL_ELEMENT_ARRAY_BUFFER>;
 
 }
 
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
 #include "vgl_buffer.cpp"
 #endif
 

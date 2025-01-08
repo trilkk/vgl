@@ -5,7 +5,7 @@
 #include "vgl_limits.hpp"
 #include "vgl_realloc.hpp"
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 #include "vgl_utility.hpp"
 #include <ostream>
 #endif
@@ -74,7 +74,7 @@ private:
     /// \param idx Index to check.
     constexpr void accessCheck(unsigned idx) const
     {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         if(idx >= m_length)
         {
             // Can't use vgl_throw_exception.hpp yet.
@@ -90,7 +90,7 @@ private:
     /// \param idx Index to check.
     constexpr void accessCheck(int idx) const
     {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         if(idx < 0)
         {
             // Can't use vgl_throw_exception.hpp yet.
@@ -160,7 +160,7 @@ public:
         return reinterpret_cast<const T*>("");
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Finds the occurrance of another substring.
     ///
     /// \param rhs Right-hand side operand.
@@ -294,7 +294,7 @@ public:
         return !(*this == rhs);
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Less than operator.
     ///
     /// \param rhs Right-hand-side operand.
@@ -319,8 +319,8 @@ public:
     }
 #endif
 
+#if defined(VGL_USE_LD)
 public:
-#if defined(USE_LD)
     /// Conversion to STL string operator.
     ///
     /// \return STL string.
@@ -335,7 +335,10 @@ public:
     {
         return std::string_view(data(), length());
     }
+#endif
 
+#if defined(VGL_USE_LD)
+public:
     /// Stream output operator.
     ///
     /// \param lhs Left-hand-side operand.
@@ -395,7 +398,7 @@ public:
         assign(op);
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Constructor from std::string.
     ///
     /// Intentionally not explicit.
@@ -463,7 +466,7 @@ public:
         base_type::m_data = op.m_data;
         base_type::m_length = op.m_length;
         op.m_data = nullptr;
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         op.m_length = 0;
 #endif
         return *this;
@@ -484,7 +487,7 @@ public:
     string& assign(const char* data, unsigned len)
     {
         VGL_ASSERT(data || (len == 0));
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(length() == len)
         {
             detail::internal_memcpy(base_type::m_data, data, len);
@@ -580,7 +583,7 @@ public:
         }
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Erase a part of the string.
     ///
     /// \param start_iter Starting iterator to erase from.
@@ -695,7 +698,7 @@ public:
         return assign(rhs.data(), rhs.length());
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Addition operator.
     ///
     /// \param rhs Right-hand-side operand.
@@ -804,7 +807,7 @@ public:
 #endif
 };
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 namespace detail
 {
 

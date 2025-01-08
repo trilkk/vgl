@@ -200,8 +200,8 @@ public:
         return *this;
     }
 
+#if defined(VGL_USE_LD)
 public:
-#if defined(USE_LD)
     /// Stream output operator.
     ///
     /// \param lhs Left-hand-side operand.

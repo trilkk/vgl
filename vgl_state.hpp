@@ -5,7 +5,7 @@
 #include "vgl_optional.hpp"
 #include "vgl_uvec4.hpp"
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 #include <sstream>
 #endif
 
@@ -31,7 +31,7 @@ enum OperationMode
     CARMACK,
 };
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 
 /// Converts an operation mode to string.
 ///
@@ -87,7 +87,7 @@ public:
                 }
                 else // Default is premultiplied.
                 {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
                     if(op != PREMULTIPLIED)
                     {
                         VGL_THROW_RUNTIME_ERROR("invalid blend mode: '" + to_string(op) + "'");
@@ -413,7 +413,7 @@ public:
             }
             else // Default is nothing.
             {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
                 if(op != DISABLED)
                 {
                     VGL_THROW_RUNTIME_ERROR("invalid stencil operation: '" + to_string(op) + "'");
@@ -428,7 +428,7 @@ public:
 
 #endif
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 
 /// OpenGL state abstraction.
 class OpenGlDiagnosticsState
@@ -616,7 +616,7 @@ inline void stencil_operation(OperationMode op)
 
 #endif
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 
 #if !defined(VGL_DISABLE_EDGE)
 
@@ -749,7 +749,7 @@ void error_check(const char* str = NULL);
 
 }
 
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
 #include "vgl_state.cpp"
 #endif
 

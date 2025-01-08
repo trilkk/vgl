@@ -1,5 +1,5 @@
-#ifndef VERBATIM_INDEX_BLOCK
-#define VERBATIM_INDEX_BLOCK
+#ifndef VGL_INDEX_BLOCK_HPP
+#define VGL_INDEX_BLOCK_HPP
 
 namespace vgl
 {

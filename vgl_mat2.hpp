@@ -33,7 +33,7 @@ public:
     /// Create an identity matrix.
     ///
     /// \return Result matrix.
-    static mat2 identity() noexcept
+    constexpr static mat2 identity() noexcept
     {
         return mat2(1.0f, 0.0f,
                 0.0f, 1.0f);
@@ -42,7 +42,7 @@ public:
     /// Create a rotation matrix.
     ///
     /// \param op Rotation.
-    static mat2 rotation(float op)
+    VGL_MATH_CONSTEXPR static mat2 rotation(float op)
     {
         float sr = sin(op);
         float cr = cos(op);
@@ -51,8 +51,8 @@ public:
                 -sr, cr);
     }
 
+#if defined(VGL_USE_LD)
 public:
-#if defined(USE_LD)
     /// Output to stream.
     ///
     /// \param lhs Left-hand-side operand.

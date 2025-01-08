@@ -91,7 +91,7 @@ public:
     /// \param stamp Timestamp.
     void addPoint(const vec3 &pos, float stamp)
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(0.0f > stamp)
         {
             VGL_THROW_RUNTIME_ERROR("tried to add spline point with invalid timestamp: " + to_string(stamp));
@@ -136,7 +136,7 @@ public:
     /// \param stamp Timestamp to get position for.
     constexpr vec3 resolvePosition(float stamp)
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(m_points.empty())
         {
             VGL_THROW_RUNTIME_ERROR("incorrect spline data");

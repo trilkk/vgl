@@ -40,7 +40,7 @@ public:
     {
 #if defined(VGL_ENABLE_GTK)
         dnload_g_cond_init(m_cond);
-#elif defined(USE_LD) && defined(DEBUG)
+#elif defined(VGL_USE_LD) && defined(DEBUG)
         if(!m_cond)
         {
             VGL_THROW_RUNTIME_ERROR(string("Cond::Cond(): ") + SDL_GetError());
@@ -72,7 +72,7 @@ public:
     }
 
 public:
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Accessor.
     ///
     /// \return Internal implementation.
@@ -89,7 +89,7 @@ public:
         dnload_g_cond_broadcast(m_cond);
 #else
         int err = dnload_SDL_CondBroadcast(m_cond);
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         if(err)
         {
             VGL_THROW_RUNTIME_ERROR(string("Cond::broadcast(): ") + SDL_GetError());
@@ -107,7 +107,7 @@ public:
         dnload_g_cond_broadcast(m_cond);
 #else
         int err = dnload_SDL_CondSignal(m_cond);
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         if(err)
         {
             VGL_THROW_RUNTIME_ERROR(string("Cond::signal(): ") + SDL_GetError());
@@ -158,7 +158,7 @@ private:
         dnload_g_cond_wait(m_cond, mutex);
 #else
         int err = dnload_SDL_CondWait(m_cond, mutex);
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         if(err)
         {
             VGL_THROW_RUNTIME_ERROR(string("internal_cond_wait(): ") + SDL_GetError());
@@ -182,8 +182,8 @@ public:
         return *this;
     }
 
+#if defined(VGL_USE_LD)
 public:
-#if defined(USE_LD)
     /// Stream output operator.
     ///
     /// \param lhs Left-hand-side operand.

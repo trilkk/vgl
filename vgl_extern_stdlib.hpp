@@ -7,7 +7,7 @@
 
 #include <cstdlib>
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 
 /// \cond
 #if !defined(dnload_free)

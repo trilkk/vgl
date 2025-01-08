@@ -211,7 +211,7 @@ public:
         return rhs * lhs;
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Output to stream.
     ///
     /// \param lhs Left-hand-side operand.

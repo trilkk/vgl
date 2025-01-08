@@ -4,7 +4,7 @@
 #include "vgl_extern_opengl.hpp"
 #include "vgl_string_view.hpp"
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 #include "vgl_vector.hpp"
 #include "vgl_wave.hpp"
 #include <iostream>
@@ -16,7 +16,7 @@ namespace vgl
 namespace detail
 {
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 
 /// Get shader info log.
 ///
@@ -38,7 +38,7 @@ bool get_shader_compile_status(GLuint op);
 class GlslShader
 {
 private:
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Vector containing all source files.
     vector<string> m_files;
 #endif
@@ -84,7 +84,7 @@ public:
     ///
     /// \param op Source shader.
     constexpr GlslShader(GlslShader&& op) noexcept :
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         m_files(move(op.m_files)),
 #endif
         m_type(op.m_type),
@@ -111,7 +111,7 @@ private:
         GLuint id = dnload_glCreateShader(type);
         dnload_glShaderSource(id, static_cast<GLsizei>(count), sources, NULL);
         dnload_glCompileShader(id);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         static const char* shader_delim = "----\n";
         if(!detail::get_shader_compile_status(id))
         {
@@ -143,7 +143,7 @@ private:
     /// \return Compiled source.
     GLuint compile(string_view op)
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         m_files.clear();
         m_files.emplace_back(op);
         return compile(m_files);
@@ -163,7 +163,7 @@ private:
     /// \return Compiled source.
     GLuint compile(string_view op1, string_view op2)
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         m_files.clear();
         m_files.emplace_back(op1);
         m_files.emplace_back(op2);
@@ -177,7 +177,7 @@ private:
 #endif
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Compile from a source file vector.
     ///
     /// \param source_files Source files.
@@ -207,7 +207,7 @@ public:
         return m_id;
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Recompile from existing source files.
     ///
     /// \return Compiled source.
@@ -226,7 +226,7 @@ public:
     /// \return This object.
     constexpr GlslShader& operator=(GlslShader&& op) noexcept
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         m_files = move(op.m_files);
 #endif
         m_type = op.m_type;

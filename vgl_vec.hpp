@@ -435,7 +435,7 @@ public:
         return !(lhs == rhs);
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Stream output operator.
     ///
     /// \param lhs Left-hand-side operand.

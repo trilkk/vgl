@@ -62,7 +62,7 @@ constexpr void* internal_memset(void* ptr, int value, unsigned count)
 /// \return (re)Allocated pointer.
 inline void* array_new_internal(void* ptr, size_t new_size)
 {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     if(!new_size)
     {
         // Can't use vgl_throw_exception.hpp yet.
@@ -70,7 +70,7 @@ inline void* array_new_internal(void* ptr, size_t new_size)
     }
 #endif
     void* ret = dnload_realloc(ptr, new_size);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     if(!ret)
     {
         // Can't use vgl_throw_exception.hpp yet.
@@ -110,7 +110,7 @@ template <typename T> inline T* array_new(T* ptr, size_t count)
 
 }
 
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
 #include "vgl_realloc.cpp"
 #endif
 

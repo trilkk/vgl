@@ -3,7 +3,7 @@
 
 #include "vgl_extern_opengl.hpp"
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 #include "vgl_throw_exception.hpp"
 #endif
 
@@ -35,7 +35,7 @@ enum GeometryChannel
     COUNT = 6,
 };
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 
 /// Get human-readable string corresponding to a channel
 ///
@@ -66,12 +66,12 @@ constexpr GLint geometry_channel_element_count(GeometryChannel op)
     case COLOR:
     case BONE_WEIGHT:
     case BONE_REF:
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
     default:
 #endif
         return 4;
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     default:
         VGL_THROW_RUNTIME_ERROR("no element count defined for channel " + to_string(static_cast<int>(op)));
 #endif
@@ -87,23 +87,28 @@ constexpr GLenum geometry_channel_element_type(GeometryChannel op)
     switch(op)
     {
     case POSITION:
+#if !defined(VGL_ENABLE_VERTEX_NORMAL_PACKING)
+    case NORMAL:
+#endif
     case TEXCOORD:
         return GL_FLOAT;
 
+#if defined(VGL_ENABLE_VERTEX_NORMAL_PACKING)
     case NORMAL:
         return GL_SHORT;
+#endif
 
     case COLOR:
     case BONE_WEIGHT:
     case BONE_REF:
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
     default:
 #endif
         return GL_UNSIGNED_BYTE;
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     default:
-        VGL_THROW_RUNTIME_ERROR("no element count defined for channel " + to_string(static_cast<int>(op)));
+        VGL_THROW_RUNTIME_ERROR("no element type defined for channel " + to_string(static_cast<int>(op)));
 #endif
     }
 }
@@ -117,19 +122,24 @@ constexpr GLboolean geometry_channel_element_normalized(GeometryChannel op)
     switch(op)
     {
     case POSITION:
+#if !defined(VGL_ENABLE_VERTEX_NORMAL_PACKING)
+    case NORMAL:
+#endif
     case TEXCOORD:
     case BONE_REF:
         return GL_FALSE;
 
+#if defined(VGL_ENABLE_VERTEX_NORMAL_PACKING)
     case NORMAL:
+#endif
     case COLOR:
     case BONE_WEIGHT:
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
     default:
 #endif
         return GL_TRUE;
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     default:
         VGL_THROW_RUNTIME_ERROR("no element normalized status defined for channel " +
                 to_string(static_cast<int>(op)));

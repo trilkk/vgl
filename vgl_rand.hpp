@@ -25,7 +25,7 @@ float frand(float lo, float hi);
 
 }
 
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
 #include "vgl_rand.cpp"
 #endif
 

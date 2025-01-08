@@ -40,7 +40,7 @@ private:
     /// \param op New parent.
     void setParent(Bone* op)
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(m_parent)
         {
             VGL_THROW_RUNTIME_ERROR("bone " + to_string(this) + " already has parent: " + to_string(m_parent));

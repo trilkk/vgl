@@ -6,7 +6,7 @@
 #include "vgl_type_traits.hpp"
 #include "vgl_utility.hpp"
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 #include "vgl_throw_exception.hpp"
 #endif
 
@@ -65,7 +65,7 @@ public:
         }
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Consructor from iterators.
     ///
     /// \param first First iterator to insert.
@@ -106,7 +106,7 @@ private:
     /// \param idx Index to check.
     constexpr void accessCheck(unsigned idx) const
     {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         if(idx >= m_size)
         {
             VGL_THROW_RUNTIME_ERROR("accessing index " + to_string(idx) + " from vector of size " +
@@ -121,7 +121,7 @@ private:
     /// \param idx Index to check.
     constexpr void accessCheck(int idx) const
     {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         if(idx < 0)
         {
             VGL_THROW_RUNTIME_ERROR("accessing negative index " + to_string(idx) + " from vector of size " +
@@ -375,7 +375,7 @@ public:
         m_size = cnt;
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Swap with another object.
     ///
     /// \param other Object to swap with.

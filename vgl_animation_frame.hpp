@@ -12,14 +12,14 @@ class AnimationFrame
 {
 private:
     /// Timestamp.
-    float m_time;
+    float m_time = 0.0f;
 
     /// Bone data.
     vector<BoneState> m_bones;
 
 public:
     /// Empty constructor.
-    explicit AnimationFrame() noexcept = default;
+    constexpr explicit AnimationFrame() noexcept = default;
 
     /// Constructor.
     ///
@@ -41,7 +41,7 @@ private:
     {
         m_time = fixed_8_8_to_float(data[0]);
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if((frame_amount % 7) != 0)
         {
             VGL_THROW_RUNTIME_ERROR("invalid frame amount: " + to_string(frame_amount));
@@ -119,7 +119,7 @@ public:
     void interpolateFrom(const AnimationFrame &lhs, const AnimationFrame &rhs, float current_time)
     {
         unsigned bone_count = lhs.getBoneCount();
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(rhs.getBoneCount() != bone_count)
         {
             VGL_THROW_RUNTIME_ERROR("cannot interpolate between frames of size " + to_string(bone_count) + " and " +
@@ -142,8 +142,8 @@ public:
         }
     }
 
+#if defined(VGL_USE_LD)
 public:
-#if defined(USE_LD)
     /// Output to stream.
     ///
     /// \param ostr Output stream.

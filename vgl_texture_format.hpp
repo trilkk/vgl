@@ -1,7 +1,7 @@
 #ifndef VGL_TEXTURE_FORMAT_HPP
 #define VGL_TEXTURE_FORMAT_HPP
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 #include "vgl_string.hpp"
 #include <ios>
 #endif
@@ -28,7 +28,7 @@ protected:
     /// OpenGL type.
     GLenum m_type;
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Size of one texel in bytes.
     unsigned m_type_size = 0;
 #endif
@@ -71,7 +71,7 @@ public:
         return m_type;
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Accessor.
     ///
     /// \return Data size multiplier.
@@ -89,7 +89,7 @@ public:
 #endif
 
 public:
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Converts TextureFormat to a string.
     ///
     /// \param op Input.
@@ -126,7 +126,7 @@ public:
     constexpr explicit TextureFormatColor(unsigned channels, unsigned bpc, void* data) :
         TextureFormat(determine_format(channels), determine_internal_format(channels, bpc, data), determine_type(channels, bpc, data))
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if (m_type == GL_UNSIGNED_SHORT_5_6_5)
         {
             m_type_size = 2;
@@ -165,12 +165,12 @@ private:
             return GL_RGB;
 
         case 4:
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
         default:
 #endif
             return GL_RGBA;
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         default:
             VGL_THROW_RUNTIME_ERROR("invalid color channel count: " + to_string(channels));
 #endif
@@ -197,12 +197,12 @@ private:
             return determine_internal_format_rgb(bpc, data);
 
         case 4:
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
         default:
 #endif
             return determine_internal_format_rgba(bpc, data);
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         default:
             VGL_THROW_RUNTIME_ERROR("invalid color channel count: " + to_string(channels));
 #endif
@@ -234,7 +234,7 @@ private:
 #endif
 
         case 1:
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
         default:
 #endif
 #if defined(DNLOAD_GLESV2)
@@ -243,7 +243,7 @@ private:
             return GL_R8;
 #endif
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         default:
             VGL_THROW_RUNTIME_ERROR("invalid bytes per channel for R format: " + to_string(bpc));
 #endif
@@ -275,7 +275,7 @@ private:
 #endif
 
         case 1:
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
         default:
 #endif
 #if defined(DNLOAD_GLESV2)
@@ -284,7 +284,7 @@ private:
             return GL_RG8;
 #endif
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         default:
             VGL_THROW_RUNTIME_ERROR("invalid bytes per channel for RG format: " + to_string(bpc));
 #endif
@@ -324,7 +324,7 @@ private:
 #endif
 
         case 1:
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
         default:
 #endif
 #if defined(DNLOAD_GLESV2)
@@ -333,7 +333,7 @@ private:
             return GL_RGB8;
 #endif
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         default:
             VGL_THROW_RUNTIME_ERROR("invalid bytes per channel for RGB format: " + to_string(bpc));
 #endif
@@ -365,7 +365,7 @@ private:
 #endif
 
         case 1:
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
         default:
 #endif
 #if defined(DNLOAD_GLESV2)
@@ -374,7 +374,7 @@ private:
             return GL_RGBA8;
 #endif
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         default:
             VGL_THROW_RUNTIME_ERROR("invalid bytes per channel for RGBA format: " + to_string(bpc));
 #endif
@@ -399,23 +399,23 @@ private:
 
             // Special case: packed data.
         case 0:
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
             if(channels == 3)
 #endif
             {
                 return GL_UNSIGNED_SHORT_5_6_5;
             }
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
             VGL_THROW_RUNTIME_ERROR("invalid channel count for special packed format: " + to_string(channels));
 #endif
 
         case 1:
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
         default:
 #endif
             return GL_UNSIGNED_BYTE;
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         default:
             VGL_THROW_RUNTIME_ERROR("bytes per channel for determining type: " + to_string(bpc));
 #endif
@@ -433,7 +433,7 @@ public:
     constexpr explicit TextureFormatDepth(unsigned bpc) :
         TextureFormat(determine_format(), determine_internal_format(bpc), determine_type(bpc))
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         m_type_size = bpc;
 #endif
     }
@@ -472,7 +472,7 @@ private:
 #endif
 
         case 4:
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
         default:
 #endif
 #if defined(DNLOAD_GLESV2) && !defined(VGL_DISABLE_DEPTH_TEXTURE)
@@ -483,7 +483,7 @@ private:
             return GL_DEPTH_COMPONENT32F;
 #endif
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         default:
             VGL_THROW_RUNTIME_ERROR("invalid bytes per channel for depth format: " + to_string(bpc));
 #endif
@@ -505,7 +505,7 @@ private:
             return GL_UNSIGNED_INT;
 
         case 4:
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
         default:
 #endif
 #if defined(DNLOAD_GLESV2) && !defined(VGL_DISABLE_DEPTH_TEXTURE)
@@ -514,7 +514,7 @@ private:
             return GL_FLOAT;
 #endif
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         default:
             VGL_THROW_RUNTIME_ERROR("invalid bytes per channel for depth format: " + to_string(bpc));
 #endif

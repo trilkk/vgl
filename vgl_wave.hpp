@@ -4,7 +4,9 @@
 /// \file boost::wave preprocessing functionality.
 /// This file only makes sense when not building size-minimized. It's not header-only.
 
-#if defined(USE_LD)
+#include "vgl_config.hpp"
+
+#if defined(VGL_USE_LD)
 
 #include "vgl_string_view.hpp"
 

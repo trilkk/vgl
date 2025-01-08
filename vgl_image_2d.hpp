@@ -38,7 +38,7 @@ private:
     /// \param ch Channel index.
     constexpr void accessCheck(unsigned px, unsigned py, unsigned ch) const
     {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         if((px >= m_width) || (py >= m_height) || (ch >= getChannelCount()))
         {
             VGL_THROW_RUNTIME_ERROR("image " + to_string(m_width) + ";" + to_string(m_height) + ";" +
@@ -132,7 +132,7 @@ public:
     /// \param op Kernel size.
     void filterLowpass(int op)
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(4 < getChannelCount())
         {
             VGL_THROW_RUNTIME_ERROR("cannot filter texture with " + to_string(getChannelCount()) + " channels");

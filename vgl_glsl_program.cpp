@@ -5,7 +5,7 @@ namespace vgl
 
 const GlslProgram* GlslProgram::g_current_program = nullptr;
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 
 string to_string(UniformSemantic op)
 {

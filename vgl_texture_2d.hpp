@@ -160,7 +160,7 @@ public:
                 static_cast<GLsizei>(width), static_cast<GLsizei>(height),
                 0, format.getFormat(), format.getType(), data);
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         unsigned data_size = width * height * format.getTypeSize();
         if(setFiltering(data, filtering))
         {
@@ -171,7 +171,7 @@ public:
 #endif
         setWrapMode(wrap);
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         vgl::increment_data_size_texture(data_size);
 #endif
 

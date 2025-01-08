@@ -20,13 +20,13 @@ OpenGlPolygonOffsetState OpenGlPolygonOffsetState::g_opengl_polygon_offset_state
 #if !defined(VGL_DISABLE_STENCIL)
 OpenGlStencilState OpenGlStencilState::g_opengl_stencil_state;
 #endif
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 OpenGlDiagnosticsState OpenGlDiagnosticsState::g_opengl_diagnostics_state;
 #endif
 
 }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 
 string to_string(OperationMode op)
 {

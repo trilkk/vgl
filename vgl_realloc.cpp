@@ -2,7 +2,7 @@
 
 #include <new>
 
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
 #include <iostream>
 #endif
 
@@ -21,7 +21,7 @@ void operator delete(void *ptr, size_t align) noexcept
 
 void* operator new(size_t sz)
 {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
     if(!sz)
     {
         std::cerr << "WARNING: call to new() with size 0" << std::endl;
@@ -32,7 +32,7 @@ void* operator new(size_t sz)
 
 void* operator new(size_t sz, size_t align)
 {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
     if(!sz)
     {
         std::cerr << "WARNING: call to new() with size 0" << std::endl;
@@ -42,7 +42,7 @@ void* operator new(size_t sz, size_t align)
     (void)align;
 }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 
 void operator delete[](void *ptr) noexcept
 {

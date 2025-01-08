@@ -41,7 +41,7 @@ public:
     void uninitialize()
     {
         m_cond.broadcast();
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         while(!m_tasks.empty())
         {
             m_tasks.pop();

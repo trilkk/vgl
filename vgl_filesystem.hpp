@@ -1,10 +1,12 @@
 #ifndef VGL_EXTERN_BOOST_FILESYSTEM_HPP
 #define VGL_EXTERN_BOOST_FILESYSTEM_HPP
 
-/// \file boost::filesystem locating and reading functionality.
+/// \file Filesystem locating and reading functionality.
 /// This file only makes sense when not building size-minimized. It's not header-only.
 
-#if defined(USE_LD)
+#include "vgl_config.hpp"
+
+#if defined(VGL_USE_LD)
 
 #include "vgl_optional.hpp"
 #include "vgl_string_view.hpp"

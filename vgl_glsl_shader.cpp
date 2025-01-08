@@ -6,7 +6,7 @@ namespace vgl
 namespace detail
 {
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 
 string get_shader_info_log(GLuint op)
 {

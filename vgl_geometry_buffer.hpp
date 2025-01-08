@@ -108,7 +108,7 @@ public:
         m_data(op)
     {
         update();
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         detail::increment_buffer_data_sizes(op);
 #endif
     }
@@ -122,7 +122,7 @@ private:
         GeometryHandle ret(*this, m_data.getVertexOffset(), m_data.getIndexOffset());
         m_data.append(op);
         update();
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         detail::increment_buffer_data_sizes(op);
 #endif
         return ret;
@@ -178,8 +178,8 @@ public:
         m_vao_mapping.emplace_back(op, m_vertex_buffer, m_index_buffer, m_data);
     }
 
+#if defined(VGL_USE_LD)
 public:
-#if defined(USE_LD)
     /// Stream output operator.
     ///
     /// \param lhs Left-hand-side operand.

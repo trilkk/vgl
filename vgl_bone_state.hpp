@@ -104,8 +104,8 @@ public:
 #endif
     }
 
+#if defined(VGL_USE_LD)
 public:
-#if defined(USE_LD)
     /// Output to stream.
     ///
     /// \param ostr Output stream.

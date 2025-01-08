@@ -6,7 +6,7 @@
 #include "vgl_thread.hpp"
 #include "vgl_vector.hpp"
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 #include <sstream>
 #endif
 
@@ -47,7 +47,7 @@ private:
     /// Number of threads waiting for tasks to execute.
     unsigned m_threads_waiting = 0;
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     /// Flag signifying the task queue is being destroyed.
     ///
     /// The flag is disabled for optimized build, because the program should never exit cleanly.
@@ -61,7 +61,7 @@ public:
     /// Destructor.
     ~InternalTaskDispatcher()
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 #if defined(DEBUG)
         if(!m_mutex.getMutexImpl())
         {
@@ -159,7 +159,7 @@ private:
     /// Thread that has not entered execution is considered waiting.
     void spawnThread()
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         string threadName = "InternalTaskDispatcher(" + to_string(m_threads.size()) + ")";
         m_threads.emplace_back(task_thread_func, this, threadName.c_str());
 #else
@@ -186,7 +186,7 @@ private:
         ScopedAcquire sa(m_mutex);
         --m_threads_waiting;
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         while(!m_quitting)
 #else
         for(;;)
@@ -236,7 +236,7 @@ public:
     {
         ScopedAcquire sa(m_mutex);
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         while(!m_quitting)
 #else
         for(;;)
@@ -278,7 +278,7 @@ public:
         // Fence may have turned inactive before the wait point is reached.
         if(op)
         {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
             if(isMainThread())
             {
                 VGL_THROW_RUNTIME_ERROR("cannot wait on main thread");
@@ -483,7 +483,7 @@ inline void* internal_fence_wait(Fence& op)
 
 }
 
-#if !defined(USE_LD)
+#if !defined(VGL_USE_LD)
 #include "vgl_task_dispatcher.cpp"
 #endif
 

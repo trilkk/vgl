@@ -8,7 +8,7 @@
 #include "vgl_extern_sdl.hpp"
 #endif
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 #include "vgl_throw_exception.hpp"
 #include <ostream>
 #endif
@@ -50,7 +50,7 @@ public:
     {
 #if defined(VGL_ENABLE_GTK)
         dnload_g_mutex_init(m_mutex);
-#elif defined(USE_LD) && defined(DEBUG)
+#elif defined(VGL_USE_LD) && defined(DEBUG)
         if(!m_mutex)
         {
             VGL_THROW_RUNTIME_ERROR(string("Mutex::Mutex(): ") + SDL_GetError());
@@ -127,7 +127,7 @@ public:
         dnload_g_mutex_lock(op);
 #else
         int err = dnload_SDL_LockMutex(op);
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         if(err)
         {
             VGL_THROW_RUNTIME_ERROR(string("internal_mutex_acquire(): ") + SDL_GetError());
@@ -147,7 +147,7 @@ public:
         dnload_g_mutex_unlock(op);
 #else
         int err = dnload_SDL_UnlockMutex(op);
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         if(err)
         {
             VGL_THROW_RUNTIME_ERROR(string("internal_mutex_release(): ") + SDL_GetError());
@@ -171,8 +171,8 @@ public:
         return *this;
     }
 
+#if defined(VGL_USE_LD)
 public:
-#if defined(USE_LD)
     /// Stream output operator.
     ///
     /// \param lhs Left-hand-side operand.

@@ -1,5 +1,5 @@
-#ifndef VERBATIM_TEXTURE_3D_HPP
-#define VERBATIM_TEXTURE_3D_HPP
+#ifndef VGL_TEXTURE_3D_HPP
+#define VGL_TEXTURE_3D_HPP
 
 #include "verbatim_image_3d.hpp"
 #include "verbatim_texture.hpp"
@@ -48,7 +48,7 @@ class Texture3D : public Texture
           static_cast<GLsizei>(width), static_cast<GLsizei>(height), static_cast<GLsizei>(depth),
           0, format.getFormat(), format.getType(), data);
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
       unsigned data_size = width * height * depth * format.getTypeSize();
       if(setFiltering(data, filtering))
       {
@@ -59,7 +59,7 @@ class Texture3D : public Texture
 #endif
       setWrapMode(wrap);
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
       vgl::increment_data_size_texture(data_size);
 #endif
 

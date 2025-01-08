@@ -1,7 +1,9 @@
 #ifndef VGL_THROW_EXCEPTION_HPP
 #define VGL_THROW_EXCEPTION_HPP
 
-#if defined(USE_LD)
+#include "vgl_config.hpp"
+
+#if defined(VGL_USE_LD)
 
 #include "vgl_string.hpp"
 

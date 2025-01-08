@@ -1,5 +1,7 @@
 #include "vgl_wave.hpp"
 
+#if defined(VGL_USE_LD)
+
 #include "vgl_filesystem.hpp"
 
 #include <boost/algorithm/string.hpp>
@@ -353,4 +355,6 @@ string wave_preprocess_glsl(string_view op)
 }
 
 }
+
+#endif
 

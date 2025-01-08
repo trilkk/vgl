@@ -1,10 +1,12 @@
-#ifndef VGL_EXTERN_FREEETYPE_HPP
-#define VGL_EXTERN_FREEETYPE_HPP
+#ifndef VGL_EXTERN_FREETYPE_HPP
+#define VGL_EXTERN_FREETYPE_HPP
 
 /// \file
 /// \brief External include: Freetype
 
-#if defined(USE_LD)
+#include "vgl_config.hpp"
+
+#if defined(VGL_USE_LD)
 
 #include "ft2build.h"
 #include FT_FREETYPE_H

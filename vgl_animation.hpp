@@ -48,7 +48,7 @@ private:
     {
         unsigned frame_amount = bone_amount * 7;
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(animation_data_size % (frame_amount + 1) != 0)
         {
             VGL_THROW_RUNTIME_ERROR("incompatible bone (" + to_string(bone_amount) + ") and animation (" +
@@ -66,14 +66,14 @@ public:
     /// Accessor.
     ///
     /// \param idx Index.
-    AnimationFrame& getFrame(unsigned idx)
+    constexpr AnimationFrame& getFrame(unsigned idx)
     {
         return m_frames[idx];
     }
     /// Const accessor.
     ///
     /// \param idx Index.
-    const AnimationFrame& getFrame(unsigned idx) const
+    constexpr const AnimationFrame& getFrame(unsigned idx) const
     {
         return m_frames[idx];
     }
@@ -81,7 +81,7 @@ public:
     /// Accessor.
     ///
     /// \return Bone count.
-    unsigned getBoneCount() const
+    constexpr unsigned getBoneCount() const
     {
         return m_frames.empty() ? 0 : m_frames[0].getBoneCount();
     }
@@ -89,7 +89,7 @@ public:
     /// Accessor.
     ///
     /// \return Frame count.
-    unsigned getFrameCount() const
+    constexpr unsigned getFrameCount() const
     {
         return m_frames.size();
     }
@@ -97,14 +97,14 @@ public:
     /// Tell if this animation is hierarchical.
     ///
     /// \return True if yes, false if no.
-    bool isHierarchical() const
+    constexpr bool isHierarchical() const
     {
         return m_hierarchical;
     }
     /// Set hierarchical status of this animation.
     ///
     /// \param op New hierarchical status.
-    void setHierarchical(bool op)
+    constexpr void setHierarchical(bool op)
     {
         m_hierarchical = op;
     }
@@ -124,8 +124,8 @@ public:
         return unique_ptr<Animation>(new Animation(data, bone_amount, animation_data_size, scale, hierarchical));
     }
 
+#if defined(VGL_USE_LD)
 public:
-#if defined(USE_LD)
     /// Output to stream.
     ///
     /// \param ostr Output stream.

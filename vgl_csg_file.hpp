@@ -1,7 +1,9 @@
 #ifndef VGL_CSG_FILE
 #define VGL_CSG_FILE
 
-#if defined(USE_LD)
+#include "vgl_config.hpp"
+
+#if defined(VGL_USE_LD)
 
 #include "vgl_filesystem.hpp"
 

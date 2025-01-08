@@ -14,7 +14,7 @@
 #include "opus.h"
 #endif
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
 #include "vgl_throw_exception.hpp"
 #endif
 
@@ -60,7 +60,7 @@ public:
     /// Destructor.
     ~OggReader()
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         ogg_sync_clear(&m_sync);
 #endif
     }
@@ -93,7 +93,7 @@ public:
             m_pos += increment;
 
             int err = dnload_ogg_sync_wrote(&m_sync, static_cast<long>(increment));
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
             if(err)
             {
                 VGL_THROW_RUNTIME_ERROR("ogg_sync_wrote() failed: " + to_string(err));
@@ -125,7 +125,7 @@ public:
         ogg_page page;
         {
             bool err = m_reader.read(page);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
             if(!err)
             {
                 VGL_THROW_RUNTIME_ERROR("OggStream input did not contain even one page");
@@ -137,7 +137,7 @@ public:
 
         // First page must correspond to the opus stream.
         int serial = dnload_ogg_page_serialno(&page);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         {
             int err = ogg_page_bos(&page);
             if(!err)
@@ -149,7 +149,7 @@ public:
 
         {
             int err = dnload_ogg_stream_init(&m_stream_state, serial);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
             if(err)
             {
                 VGL_THROW_RUNTIME_ERROR("ogg_stream_init() failed: " + to_string(err));
@@ -165,7 +165,7 @@ public:
     /// Destructor.
     ~OggStream()
     {
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         int err = ogg_stream_clear(&m_stream_state);
         if(err)
         {
@@ -194,7 +194,7 @@ public:
                 submitPage(page);
                 continue;
             }
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
             if(err != 1)
             {
                 VGL_THROW_RUNTIME_ERROR("ogg_stream_packetout() error: " + to_string(err));
@@ -210,7 +210,7 @@ private:
     void submitPage(ogg_page& page)
     {
         int err = dnload_ogg_stream_pagein(&m_stream_state, &page);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(err)
         {
             VGL_THROW_RUNTIME_ERROR("ogg_stream_pagein() packet submission error: " + to_string(err));
@@ -229,7 +229,7 @@ unsigned opus_read_ogg_header(OggStream& stream)
 {
     ogg_packet packet;
     bool err = stream.readPacket(packet);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     if(!err)
     {
         VGL_THROW_RUNTIME_ERROR("could not read opus header");
@@ -242,7 +242,7 @@ unsigned opus_read_ogg_header(OggStream& stream)
 
     // Comment packet is just discarded.
     err = stream.readPacket(packet);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     if(!err)
     {
         VGL_THROW_RUNTIME_ERROR("could not read opus comment");
@@ -273,7 +273,7 @@ vector<float> opus_read_ogg_memory(const void* input, unsigned size, int channel
 
     int err;
     OpusDecoder* decoder = dnload_opus_decoder_create(48000, channels, &err);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     if(err != OPUS_OK)
     {
         VGL_THROW_RUNTIME_ERROR("opus_decoder_create() failed: " + to_string(err));
@@ -292,7 +292,7 @@ vector<float> opus_read_ogg_memory(const void* input, unsigned size, int channel
 
         err = dnload_opus_decode_float(decoder, packet.packet, static_cast<opus_int32>(packet.bytes), output,
                 detail::OPUS_MAX_PACKET_SIZE_48000, 0);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(err <= 0)
         {
             VGL_THROW_RUNTIME_ERROR("opus_decode_float() error: " + to_string(err));
@@ -314,7 +314,7 @@ vector<float> opus_read_ogg_memory(const void* input, unsigned size, int channel
         }
     }
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     opus_decoder_destroy(decoder);
 #endif
     return ret;
@@ -335,7 +335,7 @@ vector<float> opus_read_raw_memory(const void* input, unsigned size, int channel
 
     int err;
     OpusDecoder* decoder = dnload_opus_decoder_create(48000, channels, &err);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     if(err != OPUS_OK)
     {
         VGL_THROW_RUNTIME_ERROR("opus_decoder_create() failed: " + to_string(err));
@@ -353,7 +353,7 @@ vector<float> opus_read_raw_memory(const void* input, unsigned size, int channel
         input_iter += 2;
 
         err = dnload_opus_decode_float(decoder, input_iter, bytes, output, detail::OPUS_MAX_PACKET_SIZE_48000, 0);
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
         if(err <= 0)
         {
             VGL_THROW_RUNTIME_ERROR("opus_decode_float() error: " + to_string(err));
@@ -379,7 +379,7 @@ vector<float> opus_read_raw_memory(const void* input, unsigned size, int channel
         VGL_ASSERT(input_iter <= iter_end);
     } while(input_iter != iter_end);
 
-#if defined(USE_LD)
+#if defined(VGL_USE_LD)
     opus_decoder_destroy(decoder);
 #endif
     return ret;

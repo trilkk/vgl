@@ -66,8 +66,8 @@ public:
             return m_ref.getInternal(m_index);
         }
 
+#if defined(VGL_USE_LD)
     public:
-#if defined(USE_LD)
         /// Stream output operator.
         ///
         /// \param lhs Left-hand-side operand.
@@ -110,7 +110,7 @@ private:
     /// \param idx Index to check.
     constexpr void accessCheck(unsigned idx) const
     {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         if(idx >= N)
         {
             VGL_THROW_RUNTIME_ERROR("accessing bit index " + to_string(idx) + " from " + to_string(N) + "-bit set");
@@ -124,7 +124,7 @@ private:
     /// \param idx Index to check.
     constexpr void accessCheck(int idx) const
     {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         if(idx < 0)
         {
             VGL_THROW_RUNTIME_ERROR("accessing negative bit index " + to_string(idx) + " from " + to_string(N) +
@@ -137,7 +137,7 @@ private:
     /// Assert that the data only has bits in the valid range.
     constexpr void assertData() const
     {
-#if defined(USE_LD) && defined(DEBUG)
+#if defined(VGL_USE_LD) && defined(DEBUG)
         if(m_data & (!mask()))
         {
             VGL_THROW_RUNTIME_ERROR("bitset value " + to_string(m_data) + " has bits outside " + to_string(N) +
