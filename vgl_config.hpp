@@ -48,8 +48,8 @@
 ///
 /// - VGL_ENABLE_VERTEX_NORMAL_PACKING
 ///
-///   Pack vertex normals into normalized integers. Increases code footprint but may also increase performance due to
-///   reduced memory usage. Performance may be decreased due to vertex attribute misalignment on some platforms.
+///   Pack vertex normals into normalized short integers. Increases code footprint but may increase performance due to
+///   reduced memory usage. May also decrease performance due to vertex attribute misalignment on some platforms.
 ///
 /// - VGL_USE_BONE_STATE_FULL_TRANSFORM
 ///
