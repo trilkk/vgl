@@ -62,7 +62,7 @@
 ///
 ///   Compile assuming a real linker is in use. Should be enabled whenever not doing minified builds.
 
-#if defined(USE_LD) && USE_LD
+#if defined(DNLOAD_USE_LD) && DNLOAD_USE_LD
 /// Compile expecting a linker will be used.
 #define VGL_USE_LD
 #endif
