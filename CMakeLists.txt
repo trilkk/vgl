@@ -15,7 +15,7 @@ find_sdl2()
 
 output_flags("DEBUG" on)
 
-add_definitions(-DUSE_LD)
+add_definitions(-DDNLOAD_USE_LD)
 
 include_directories("${PROJECT_SOURCE_DIR}")
 

@@ -8,14 +8,27 @@
 #if defined(VGL_USE_LD)
 
 #if defined(_WIN32) || defined(_WIN64)
+/// \cond
 #define _USE_MATH_DEFINES
 #define NOMINMAX
+/// \endcond
 #include "windows.h"
+#else
+/// \cond
+#define GL_GLEXT_PROTOTYPES
+/// \endcond
 #endif
 
 #if defined(VGL_USE_GLES)
-#define GL_GLEXT_PROTOTYPES
+#if VGL_USE_GLES >= 32
+#include "GLES3/gl32.h"
+#elif VGL_USE_GLES >= 31
+#include "GLES3/gl31.h"
+#elif VGL_USE_GLES >= 30
 #include "GLES3/gl3.h"
+#else
+#include "GLES2/gl2.h"
+#endif
 #include "GLES2/gl2ext.h"
 #elif defined(VGL_ENABLE_GTK)
 #define GL_GLEXT_PROTOTYPES

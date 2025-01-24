@@ -148,14 +148,14 @@ private:
         switch(channels)
         {
         case 1:
-#if defined(DNLOAD_GLESV2)
+#if defined(VGL_USE_GLES)
             return GL_LUMINANCE;
 #else
             return GL_RED;
 #endif
 
         case 2:
-#if defined(DNLOAD_GLESV2)
+#if defined(VGL_USE_GLES)
             return GL_LUMINANCE_ALPHA;
 #else
             return GL_RG;
@@ -219,14 +219,14 @@ private:
         switch(bpc)
         {
         case 4:
-#if defined(DNLOAD_GLESV2)
+#if defined(VGL_USE_GLES)
             return GL_LUMINANCE;
 #else
             return GL_R32F;
 #endif
 
         case 2:
-#if defined(DNLOAD_GLESV2)
+#if defined(VGL_USE_GLES)
             (void)data;
             return GL_LUMINANCE;
 #else
@@ -237,7 +237,7 @@ private:
 #if !defined(VGL_USE_LD)
         default:
 #endif
-#if defined(DNLOAD_GLESV2)
+#if defined(VGL_USE_GLES)
             return GL_LUMINANCE;
 #else
             return GL_R8;
@@ -260,14 +260,14 @@ private:
         switch(bpc)
         {
         case 4:
-#if defined(DNLOAD_GLESV2)
+#if defined(VGL_USE_GLES)
             return GL_LUMINANCE_ALPHA;
 #else
             return GL_RG32F;
 #endif
 
         case 2:
-#if defined(DNLOAD_GLESV2)
+#if defined(VGL_USE_GLES)
             (void)data;
             return GL_LUMINANCE_ALPHA;
 #else
@@ -278,7 +278,7 @@ private:
 #if !defined(VGL_USE_LD)
         default:
 #endif
-#if defined(DNLOAD_GLESV2)
+#if defined(VGL_USE_GLES)
             return GL_LUMINANCE_ALPHA;
 #else
             return GL_RG8;
@@ -301,14 +301,14 @@ private:
         switch(bpc)
         {
         case 4:
-#if defined(DNLOAD_GLESV2)
+#if defined(VGL_USE_GLES)
             return GL_RGB;
 #else
             return GL_RGB32F;
 #endif
 
         case 2:
-#if defined(DNLOAD_GLESV2)
+#if defined(VGL_USE_GLES)
             (void)data;
             return GL_RGB;
 #else
@@ -317,7 +317,7 @@ private:
 
             // Special case - packed 565 RGB texture.
         case 0:
-#if defined(DNLOAD_GLESV2)
+#if defined(VGL_USE_GLES)
             return GL_RGB;
 #else
             return GL_RGB565;
@@ -327,7 +327,7 @@ private:
 #if !defined(VGL_USE_LD)
         default:
 #endif
-#if defined(DNLOAD_GLESV2)
+#if defined(VGL_USE_GLES)
             return GL_RGB;
 #else
             return GL_RGB8;
@@ -350,14 +350,14 @@ private:
         switch(bpc)
         {
         case 4:
-#if defined(DNLOAD_GLESV2)
+#if defined(VGL_USE_GLES)
             return GL_RGBA;
 #else
             return GL_RGBA32F;
 #endif
 
         case 2:
-#if defined(DNLOAD_GLESV2)
+#if defined(VGL_USE_GLES)
             (void)data;
             return GL_RGBA;
 #else
@@ -368,7 +368,7 @@ private:
 #if !defined(VGL_USE_LD)
         default:
 #endif
-#if defined(DNLOAD_GLESV2)
+#if defined(VGL_USE_GLES)
             return GL_RGBA;
 #else
             return GL_RGBA8;
@@ -456,14 +456,14 @@ private:
         switch(bpc)
         {
         case 2:
-#if defined(DNLOAD_GLESV2) && !defined(VGL_DISABLE_DEPTH_TEXTURE)
+#if defined(VGL_USE_GLES) && !defined(VGL_DISABLE_DEPTH_TEXTURE)
             return GL_DEPTH_COMPONENT;
 #else
             return GL_DEPTH_COMPONENT16;
 #endif
 
         case 3:
-#if defined(DNLOAD_GLESV2) && !defined(VGL_DISABLE_DEPTH_TEXTURE)
+#if defined(VGL_USE_GLES) && !defined(VGL_DISABLE_DEPTH_TEXTURE)
             return GL_DEPTH_COMPONENT;
 #elif !defined(GL_DEPTH_COMPONENT24)
             return 0x81A6;
@@ -475,7 +475,7 @@ private:
 #if !defined(VGL_USE_LD)
         default:
 #endif
-#if defined(DNLOAD_GLESV2) && !defined(VGL_DISABLE_DEPTH_TEXTURE)
+#if defined(VGL_USE_GLES) && !defined(VGL_DISABLE_DEPTH_TEXTURE)
             return GL_DEPTH_COMPONENT;
 #elif !defined(GL_DEPTH_COMPONENT32F)
             return 0x8CAC;
@@ -508,7 +508,7 @@ private:
 #if !defined(VGL_USE_LD)
         default:
 #endif
-#if defined(DNLOAD_GLESV2) && !defined(VGL_DISABLE_DEPTH_TEXTURE)
+#if defined(VGL_USE_GLES) && !defined(VGL_DISABLE_DEPTH_TEXTURE)
             return GL_UNSIGNED_INT;
 #else
             return GL_FLOAT;

@@ -86,7 +86,7 @@ string glsl_tidy(string_view source)
     return boost::algorithm::join(accepted, "\n");
 }
 
-#if !defined(DNLOAD_GLESV2)
+#if !defined(VGL_USE_GLES)
 
 /// Line comment regex on a string.
 ///
@@ -263,7 +263,7 @@ string::const_iterator regex_precision_whitespace(string::const_iterator bb,
 /// \param bb String iterator.
 /// \param ee String endpoint.
 /// \return Iterator to end of match or original iterator if no match.
-string::const_iterator regex_glesv2(string::const_iterator bb,
+string::const_iterator regex_gles(string::const_iterator bb,
         const string::const_iterator ee)
 {
     string::const_iterator ii = bb;
@@ -300,7 +300,11 @@ string::const_iterator regex_glesv2(string::const_iterator bb,
     return bb;
 }
 
-string convert_glesv2_gl(string_view op)
+/// Convert given shader source string from GLES to regular GL.
+///
+/// \param op Input string.
+/// \return Converted string.
+string convert_gles_gl(string_view op)
 {
     string ret(op);
     string::const_iterator ii = cbegin(ret);
@@ -308,7 +312,7 @@ string convert_glesv2_gl(string_view op)
 
     while(ii != ee)
     {
-        string::const_iterator jj = regex_glesv2(ii, ee);
+        string::const_iterator jj = regex_gles(ii, ee);
         if(jj != ii)
         {
             ii = ret.erase(ii, jj);
@@ -335,8 +339,8 @@ string wave_preprocess_glsl(string_view op)
 {
     string input_source = read_file_locate(op).c_str();
 
-#if !defined(DNLOAD_GLESV2)
-    input_source = convert_glesv2_gl(input_source);
+#if !defined(VGL_USE_GLES)
+    input_source = convert_gles_gl(input_source);
 #endif
 
     // Split into GLSL preprocess code and the rest.

@@ -155,7 +155,7 @@ protected:
         dnload_glTexParameteri(m_type, GL_TEXTURE_WRAP_S, mode);
         dnload_glTexParameteri(m_type, GL_TEXTURE_WRAP_T, mode);
 
-#if !defined(DNLOAD_GLESV2)
+#if !defined(VGL_USE_GLES)
         /// Set 3rd axis as well if necessary.
         if((m_type == GL_TEXTURE_3D) || (m_type == GL_TEXTURE_CUBE_MAP))
         {
