@@ -5,7 +5,9 @@ Release/
 test.dir/
 /opus2raw
 /test
+/waving
 /*.exe
+/*.gdb
 cmake_install.cmake
 CMakeCache.txt
 Makefile
