@@ -10,7 +10,7 @@ using vgl::vector;
 
 /// Main entry point.
 ///
-/// To understand the significance of USE_LD and dnload(), see:
+/// To understand the significance of VGL_USE_LD and dnload(), see:
 /// http://faemiyah.fi/demoscene/dnload
 #if defined(VGL_USE_LD)
 int main(int argc, char** argv)

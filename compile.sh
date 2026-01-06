@@ -19,7 +19,7 @@ if [ ! -f "dnload.h" ] ; then
   touch dnload.h
 fi
 
-python "${DNLOAD}" -v "test.cpp" -o "test" $*
+python3 "${DNLOAD}" -v "test.cpp" -o "test" $*
 if [ $? -ne 0 ] ; then
   echo "${0}: compilation failed"
   exit 1
